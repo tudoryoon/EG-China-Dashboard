@@ -111,7 +111,13 @@ const gpuCloudRuntime = {
 };
 
 const primaryTabMeta = {
-  Taiwan: { label: "China & HK & Taiwan", className: "is-taiwan", currencies: ["NTD", "USD"], defaultCurrency: "NTD" },
+  RS: { label: "RS" },
+  TrendScore: { label: "추세스코어" },
+  Taiwan: { label: "Taiwan", currencies: ["NTD", "USD"], defaultCurrency: "NTD" },
+};
+const regionalTabMeta = {
+  cn: { label: "중국" },
+  hk: { label: "홍콩" },
 };
 
 const screeningSubtabMeta = {
@@ -345,16 +351,16 @@ const FX_CURRENCY_OPTIONS = [
 ];
 
 const state = {
-  tab: "Taiwan",
+  tab: "RS",
   screeningView: "RS",
-  asiaView: "Taiwan",
+  asiaRegion: "cn",
   marketView: "Index",
   marketIndexView: "Trend",
   techView: "LLM",
   flowsView: "EtfStatus",
   researchView: "DataCenter",
   aiDataView: "TokenPrice",
-  currency: "NTD",
+  currency: "USD",
   sector: "All",
   query: "",
   sort: "marketCapDesc",
@@ -506,10 +512,24 @@ const state = {
 };
 
 const DASHBOARD_ROUTE_META = {
-  Taiwan: {
-    slug: "taiwan", viewStateKey: "asiaView", defaultView: "Taiwan",
-    views: { Taiwan: "overview", HongKongRS: "hong-kong-rs", HongKongTrend: "hong-kong-trend", ChinaRS: "china-rs", ChinaTrend: "china-trend" },
+  RS: {
+    slug: "rs", viewStateKey: "asiaRegion", defaultView: "cn",
+    views: { cn: "china", hk: "hong-kong" },
   },
+  TrendScore: {
+    slug: "trend-score", viewStateKey: "asiaRegion", defaultView: "cn",
+    views: { cn: "china", hk: "hong-kong" },
+  },
+  Taiwan: { slug: "taiwan" },
+};
+
+// Existing bookmarks resolve to the new canonical hierarchy.
+const LEGACY_DASHBOARD_ROUTES = {
+  "taiwan/overview": ["taiwan"],
+  "taiwan/china-rs": ["rs", "china"],
+  "taiwan/hong-kong-rs": ["rs", "hong-kong"],
+  "taiwan/china-trend": ["trend-score", "china"],
+  "taiwan/hong-kong-trend": ["trend-score", "hong-kong"],
 };
 
 let isApplyingDashboardRoute = false;
@@ -534,7 +554,7 @@ function getDashboardRouteParts(hash = window.location.hash) {
 }
 
 function buildDashboardRouteHash() {
-  const tabKey = DASHBOARD_ROUTE_META[state.tab] ? state.tab : "Taiwan";
+  const tabKey = DASHBOARD_ROUTE_META[state.tab] ? state.tab : "RS";
   const route = DASHBOARD_ROUTE_META[tabKey];
   const parts = [route.slug];
 
@@ -554,14 +574,16 @@ function buildDashboardRouteHash() {
 }
 
 function applyDashboardRouteFromHash(hash = window.location.hash) {
-  const parts = getDashboardRouteParts(hash);
+  const requestedParts = getDashboardRouteParts(hash);
+  const parts = LEGACY_DASHBOARD_ROUTES[requestedParts.join("/")] ?? requestedParts;
   const requestedTab = Object.keys(DASHBOARD_ROUTE_META).find(
     (tabKey) => DASHBOARD_ROUTE_META[tabKey].slug === parts[0],
   );
-  const tabKey = requestedTab || "Taiwan";
+  const tabKey = requestedTab || "RS";
   const route = DASHBOARD_ROUTE_META[tabKey];
 
   state.tab = tabKey;
+  state.screeningView = tabKey === "TrendScore" ? "TrendScore" : "RS";
   state.currency = tabKey === "Taiwan" ? primaryTabMeta.Taiwan.defaultCurrency : "USD";
 
   if (route.viewStateKey) {
@@ -616,10 +638,8 @@ const screeningStateKeys = Object.keys(state).filter((key) => key.startsWith("rs
 const defaultScreeningState = structuredClone(Object.fromEntries(screeningStateKeys.map((key) => [key, state[key]])));
 
 function getAsiaScreeningRegion() {
-  if (state.tab !== "Taiwan") return "";
-  if (state.asiaView.startsWith("HongKong")) return "hk";
-  if (state.asiaView.startsWith("China")) return "cn";
-  return "";
+  if (!["RS", "TrendScore"].includes(state.tab)) return "";
+  return state.asiaRegion === "hk" ? "hk" : "cn";
 }
 
 function setScreeningContext(region = "us") {
@@ -664,7 +684,7 @@ function renderAsiaScreening(region) {
     usOverviewRoot.querySelector("[data-asia-retry]")?.addEventListener("click", () => { delete asiaScreeningErrors[region]; render(); });
     return;
   }
-  if (state.asiaView.endsWith("Trend")) renderMarketTrendScoreOverview();
+  if (state.tab === "TrendScore") renderMarketTrendScoreOverview();
   else renderMarketRsOverview();
   const labels = document.createTreeWalker(usOverviewRoot, NodeFilter.SHOW_TEXT);
   while (labels.nextNode()) {
@@ -688,7 +708,6 @@ let marketTrendDetailChart = null;
 const searchInput = document.querySelector("#search-input");
 const sortSelect = document.querySelector("#sort-select");
 const sortBox = document.querySelector(".sortbox");
-const countrySwitch = document.querySelector("#country-switch");
 const subtabSwitch = document.querySelector("#subtab-switch");
 const nestedSubtabSwitch = document.querySelector("#nested-subtab-switch");
 const nestedSubtabRow = document.querySelector("#nested-subtab-row");
@@ -9497,7 +9516,7 @@ function openMarketRsTicker(ticker) {
     return;
   }
 
-  state.tab = "Screening";
+  state.tab = "RS";
   state.screeningView = "RS";
   state.rsUniverse = "all";
   state.rsFilter = "all";
@@ -21477,111 +21496,21 @@ function filteredCompanies() {
   return sorted;
 }
 
-function renderCountries() {
-  countrySwitch.innerHTML = "";
+function renderSubtabs() {
+  subtabSwitch.innerHTML = "";
+  subtabSwitch.classList.remove("hidden");
+  subtabSwitch.classList.add("subtab-switch");
   Object.entries(primaryTabMeta).forEach(([tabKey, meta]) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `country-button${state.tab === tabKey ? " active" : ""}${meta.className ? ` ${meta.className}` : ""}`;
+    button.className = `subtab-chip${state.tab === tabKey ? " active" : ""}`;
     button.textContent = meta.label;
+    button.setAttribute("aria-pressed", String(state.tab === tabKey));
     button.addEventListener("click", () => {
-      if (tabKey !== "Taiwan") setScreeningContext("us");
       state.tab = tabKey;
-      if (tabKey === "Taiwan") {
-        state.currency = meta.defaultCurrency;
-      } else {
-        state.currency = "USD";
-      }
-      if (tabKey === "Screening") {
-        state.screeningView = meta.defaultView;
-        state.rsHistoryRange = "1y";
-        state.query = "";
-        if (searchInput) {
-          searchInput.value = "";
-        }
-      } else if (tabKey === "Market") {
-        state.marketView = meta.defaultView;
-        state.marketIndexView = "Trend";
-      } else if (tabKey === "Tech") {
-        state.techView = meta.defaultView;
-      } else if (tabKey === "AIData") {
-        state.aiDataView = meta.defaultView;
-      } else if (tabKey === "Flows") {
-        state.flowsView = meta.defaultView;
-      } else if (tabKey === "Research") {
-        state.researchView = meta.defaultView;
-      }
+      state.screeningView = tabKey === "TrendScore" ? "TrendScore" : "RS";
+      state.currency = tabKey === "Taiwan" ? meta.defaultCurrency : "USD";
       state.sector = "All";
-      render();
-    });
-    countrySwitch.appendChild(button);
-  });
-}
-
-function renderSubtabs() {
-  subtabSwitch.innerHTML = "";
-  let entries = [];
-  let activeKey = "";
-  let setActive = null;
-
-  if (state.tab === "Taiwan") {
-    entries = Object.entries({ Taiwan: { label: "Taiwan" }, HongKongRS: { label: "Hong Kong · RS" }, HongKongTrend: { label: "Hong Kong · 추세스코어" }, ChinaRS: { label: "China · RS" }, ChinaTrend: { label: "China · 추세스코어" } });
-    activeKey = state.asiaView;
-    setActive = (viewKey) => { state.asiaView = viewKey; };
-  } else if (state.tab === "Screening") {
-    entries = Object.entries(screeningSubtabMeta);
-    activeKey = state.screeningView;
-    setActive = (viewKey) => {
-      state.screeningView = viewKey;
-      if (viewKey === "RS") state.rsHistoryRange = "1y";
-      state.query = "";
-      if (searchInput) searchInput.value = "";
-    };
-  } else if (state.tab === "Market") {
-    entries = Object.entries(marketSubtabMeta);
-    activeKey = state.marketView;
-    setActive = (viewKey) => {
-      state.marketView = viewKey;
-      if (viewKey === "Index") state.marketIndexView = "Trend";
-    };
-  } else if (state.tab === "Tech") {
-    entries = Object.entries(techSubtabMeta);
-    activeKey = state.techView;
-    setActive = (viewKey) => {
-      state.techView = viewKey;
-    };
-  } else if (state.tab === "AIData") {
-    entries = Object.entries(aiDataSubtabMeta);
-    activeKey = state.aiDataView;
-    setActive = (viewKey) => {
-      state.aiDataView = viewKey;
-    };
-  } else if (state.tab === "Flows") {
-    entries = Object.entries(flowsSubtabMeta);
-    activeKey = state.flowsView;
-    setActive = (viewKey) => {
-      state.flowsView = viewKey;
-    };
-  } else if (state.tab === "Research") {
-    entries = Object.entries(researchSubtabMeta);
-    activeKey = state.researchView;
-    setActive = (viewKey) => {
-      state.researchView = viewKey;
-    };
-  } else {
-    subtabSwitch.classList.add("hidden");
-    return;
-  }
-
-  subtabSwitch.classList.remove("hidden");
-  subtabSwitch.classList.add("subtab-switch");
-  entries.forEach(([viewKey, meta]) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `subtab-chip is-${state.tab.toLowerCase()}${activeKey === viewKey ? " active" : ""}`;
-    button.textContent = meta.label;
-    button.addEventListener("click", () => {
-      setActive?.(viewKey);
       render();
     });
     subtabSwitch.appendChild(button);
@@ -21589,35 +21518,19 @@ function renderSubtabs() {
 }
 
 function renderNestedSubtabs() {
-  if (!nestedSubtabSwitch || !nestedSubtabRow) {
-    return;
-  }
+  if (!nestedSubtabSwitch || !nestedSubtabRow) return;
   nestedSubtabSwitch.innerHTML = "";
-  let entries = [];
-  let activeKey = "";
-  let setActive = null;
-
-  if (state.tab === "Market" && state.marketView === "Index") {
-    entries = Object.entries(marketIndexSubtabMeta);
-    activeKey = state.marketIndexView;
-    setActive = (viewKey) => {
-      state.marketIndexView = viewKey;
-    };
-  }
-
-  if (!entries.length) {
-    nestedSubtabRow.classList.add("hidden");
-    return;
-  }
-
-  nestedSubtabRow.classList.remove("hidden");
-  entries.forEach(([viewKey, meta]) => {
+  const region = getAsiaScreeningRegion();
+  nestedSubtabRow.classList.toggle("hidden", !region);
+  if (!region) return;
+  Object.entries(regionalTabMeta).forEach(([regionKey, meta]) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `nested-subtab-chip${activeKey === viewKey ? " active" : ""}`;
+    button.className = `nested-subtab-chip${region === regionKey ? " active" : ""}`;
     button.textContent = meta.label;
+    button.setAttribute("aria-pressed", String(region === regionKey));
     button.addEventListener("click", () => {
-      setActive?.(viewKey);
+      state.asiaRegion = regionKey;
       render();
     });
     nestedSubtabSwitch.appendChild(button);
@@ -22331,7 +22244,6 @@ function render() {
     }
   }
   headerCalendarLink?.classList.toggle("active", state.tab === "Research" && state.researchView === "Calendar");
-  renderCountries();
   renderSubtabs();
   renderNestedSubtabs();
   renderCurrencies();
@@ -22461,7 +22373,7 @@ searchInput.addEventListener("input", (event) => {
   if (state.tab === "Screening" || getAsiaScreeningRegion()) {
     searchRenderTimer = window.setTimeout(() => {
       searchRenderTimer = null;
-      if (getAsiaScreeningRegion() ? state.asiaView.endsWith("RS") : state.screeningView === "RS") {
+      if (getAsiaScreeningRegion() ? state.tab === "RS" : state.screeningView === "RS") {
         resetRsCardLimit();
       } else if (getAsiaScreeningRegion() || state.screeningView === "TrendScore") {
         resetTrendScoreCardLimit();

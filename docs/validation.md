@@ -16,3 +16,11 @@
 - Real XHKG/XSHG calendar checks pass for a completed weekday session, a weekend, and a pre-close manual run.
 - Taiwan validation covers all 44 companies and both aggregates. A mocked empty source response in strict mode raises an error before any data file is written.
 - Existing regional data validation, original engine/CSS baseline checks, and JavaScript syntax validation pass. No live market refresh is claimed by the offline or `check_only` checks.
+
+## Navigation correction — 2026-09-07
+
+- The former regional parent tab is removed. Browser checks confirm the primary order RS / 추세스코어 / Taiwan and the nested order 중국 / 홍콩 under both screening tabs.
+- Empty-hash entry opens `#/rs/china`. All five canonical views render data; Taiwan hides the country subtabs and retains its revenue filters/charts.
+- Switching from Hong Kong Trend Score to RS retains Hong Kong. Browser Back restores the correct tab, market, and URL.
+- The previous `#/taiwan/china-trend` bookmark canonicalizes to `#/trend-score/china`. Other previous route names are explicitly mapped to the corresponding new routes.
+- Visual QA confirms reuse of the original primary/nested chip styling and no leftover parent-tab row. Regional data, original CSS/engine checks, and JavaScript syntax validation pass.

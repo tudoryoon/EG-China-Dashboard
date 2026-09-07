@@ -7,6 +7,8 @@
 - Preserve the original typography, colors, spacing, tabs, cards, tables, filters, charts, responsive behavior, and interactions. Reuse the original CSS and renderers. Changes to this rule require an explicit user request.
 - First migration: existing Hong Kong and China RS and Trend Score, their data and update workflow, plus the existing Taiwan revenue overview. Taiwan equity RS is not in the source and has not been invented here.
 - Keep the reference EG_Dashboard repository unchanged when working on this repository.
+- User correction on 2026-09-07: remove the large `China & HK & Taiwan` parent tab. The main tabs are **RS → 추세스코어 → Taiwan**. RS and 추세스코어 each contain **중국 → 홍콩** subtabs; Taiwan has no country subtabs. Keep the original visual components and styling with this explicitly requested navigation change.
+- Default entry is **RS / 중국** (`#/rs/china`). Never use Taiwan as the default route or the parent route of Chinese/Hong Kong screening. Preserve the selected market when switching between RS and 추세스코어.
 
 ## Calculations and data
 
@@ -14,7 +16,7 @@
 - Rank Hong Kong and China equities independently in local currency. ETFs are tracked but excluded from equity RS rankings. Shared market-cap filters use USD; chart prices remain HKD/CNY.
 - Hong Kong uses the explicitly disclosed HSI fallback for unavailable HSCI history. China uses CSI800. Preserve missing observations and holiday handling.
 - Regional data stays in `data/asia-*.json`; do not introduce the US universe.
-- Preserve the `#/taiwan/overview`, `hong-kong-rs`, `hong-kong-trend`, `china-rs`, and `china-trend` routes.
+- Canonical routes are `#/rs/china`, `#/rs/hong-kong`, `#/trend-score/china`, `#/trend-score/hong-kong`, and `#/taiwan`. Old `#/taiwan/...` screening links are compatibility redirects only, never newly generated navigation URLs.
 - Run `python scripts/validate_asia_screening.py`, `python scripts/validate_migration.py`, and `node --check dashboard.js` before publishing. Check all five views in a browser after UI changes.
 - `docs/migration-source.json` records the source commit and unchanged baseline hashes. Update provenance deliberately when importing future upstream changes; daily data refreshes may naturally change snapshot hashes.
 

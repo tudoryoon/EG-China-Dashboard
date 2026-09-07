@@ -2,17 +2,19 @@
 
 Independent regional dashboard migrated from [EG Dashboard](https://tudoryoon.github.io/EG_Dashboard/#/taiwan/overview).
 
-**Fixed UI/UX baseline:** identical to the original EG Dashboard. The original stylesheet, RS/Trend renderers, filters, tables, cards, charts, and interactions are reused. Regional naming, navigation scope, and repository identity are adapted. This decision is recorded in `AGENTS.md` for future work.
+**Fixed UI/UX baseline:** reuse the original EG Dashboard stylesheet, RS/Trend renderers, filters, tables, cards, charts, and interactions. The user-requested navigation is **RS → 추세스코어 → Taiwan**, with **중국 → 홍콩** nested under each screening tab and no extra regional parent tab. Default entry is RS / 중국. These decisions are recorded in `AGENTS.md` for future work.
 
 ## Available views
 
 | View | Route | Initial snapshot |
 | --- | --- | --- |
-| Taiwan monthly revenue | `#/taiwan/overview` (default) | Original Taiwan company data |
-| Hong Kong RS | `#/taiwan/hong-kong-rs` | 582 securities, 2026-09-04 |
-| Hong Kong Trend Score | `#/taiwan/hong-kong-trend` | Same regional universe |
-| China RS | `#/taiwan/china-rs` | 803 securities, 2026-09-04 |
-| China Trend Score | `#/taiwan/china-trend` | Same regional universe |
+| China RS (default) | `#/rs/china` | 803 securities, 2026-09-04 |
+| Hong Kong RS | `#/rs/hong-kong` | 582 securities, 2026-09-04 |
+| China Trend Score | `#/trend-score/china` | Same regional universe |
+| Hong Kong Trend Score | `#/trend-score/hong-kong` | Same regional universe |
+| Taiwan monthly revenue | `#/taiwan` | Original Taiwan company data |
+
+Switching between RS and 추세스코어 retains the selected market. Taiwan remains an independent tab. Existing `#/taiwan/...` bookmarks redirect to the corresponding canonical URLs above.
 
 The source's Taiwan view is monthly revenue; Taiwan equity RS/Trend is not part of this initial migration. Snapshot dates above describe imported data, not a newly completed market refresh.
 

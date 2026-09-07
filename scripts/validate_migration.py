@@ -18,8 +18,9 @@ def main():
     assert 'data/market-rs-data.js' not in html
     js = (ROOT / 'dashboard.js').read_text(encoding='utf-8')
     assert 'const GITHUB_REPO_NAME = "EG-China-Dashboard";' in js
-    assert 'const tabKey = requestedTab || "Taiwan";' in js
-    for route in ('overview', 'hong-kong-rs', 'hong-kong-trend', 'china-rs', 'china-trend'):
+    assert 'const tabKey = requestedTab || "RS";' in js
+    assert 'id="country-switch"' not in html
+    for route in ('rs', 'trend-score', 'taiwan', 'china', 'hong-kong'):
         assert f'"{route}"' in js
     print('PASS: original scoring engines and CSS; local assets; regional routes and repository identity')
 

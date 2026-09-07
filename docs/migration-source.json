@@ -17,8 +17,8 @@
     "data/asia-hk-screening.json": "531002e813ac21d551896ea82d5dd75553a9f33521a62b5cffdc07417d5bbe93"
   },
   "adaptedFiles": {
-    "dashboard.js": "Asia-only navigation/default route and repository identity; shared renderers retained.",
-    "index.html": "Regional identity, Taiwan data only, original chart libraries and DOM retained.",
+    "dashboard.js": "User-requested RS / Trend Score / Taiwan hierarchy, China / Hong Kong subtabs, RS/China default and canonical URLs; original shared renderers retained.",
+    "index.html": "Regional identity; removed redundant parent-tab row; original chart libraries, styles and remaining DOM retained.",
     ".github/workflows/update-asia-screening.yml": "Daily KST 21:03 all-data refresh with separate 21:10 and 21:17 guarded backups.",
     "scripts/update_taiwan_revenue.py": "Original monthly revenue calculations; strict source-coverage and HTTP validation added for daily all-data refresh."
   }
