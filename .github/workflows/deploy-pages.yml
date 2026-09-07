@@ -27,9 +27,11 @@ jobs:
           python-version: '3.12'
       - name: Validate migration and data
         run: |
+          python -m unittest discover -s tests -v
           python scripts/validate_migration.py
           python scripts/validate_asia_screening.py
           node --check dashboard.js
+          node --check data/dashboard-data.js
       - uses: actions/configure-pages@v5
       - name: Package static site
         run: |

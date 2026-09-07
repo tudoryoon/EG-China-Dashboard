@@ -4,3 +4,4 @@ curl_cffi
 requests
 xlrd
 lxml
+exchange_calendars>=4.11,<5

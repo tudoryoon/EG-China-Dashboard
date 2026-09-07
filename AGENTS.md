@@ -20,5 +20,9 @@
 
 ## Delivery
 
+- Daily data refresh is scheduled through three Actions at **21:03, 21:10, 21:17 KST**, every day. All three call the same workflow and share a queued concurrency lock; read `main` after acquiring the lock.
+- Refresh Hong Kong/China screening and Taiwan revenue together. Publish only after all collectors and validators succeed. A complete same-day checkpoint matching the data and pipeline hashes suppresses later collection, commits, pushes, and deployments. Failed or stale refreshes must leave later retries enabled.
+- Do not replace this with three unguarded push jobs. Run `python -m unittest discover -s tests -v` for schedule/refresh changes.
+
 - Carry over the source project's authorized workflow: validate, create a scoped commit, and normally push to `origin/main` without asking again. Respect explicit no-push or review-only requests. Never force-push.
 - Deployment uses this repository's GitHub Pages. Only the regional refresh workflow is migrated; do not enable unrelated US-market jobs.

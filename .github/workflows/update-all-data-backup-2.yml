@@ -1,8 +1,8 @@
-name: Update All Data - KST 21:03
+name: Update All Data - KST 21:17
 
 on:
   schedule:
-    - cron: '3 12 * * *'
+    - cron: '17 12 * * *'
   workflow_dispatch:
     inputs:
       check_only:

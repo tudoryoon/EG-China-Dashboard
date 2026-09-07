@@ -43,6 +43,14 @@ python scripts/update_asia_screening.py
 python scripts/validate_asia_screening.py
 ```
 
-The regional workflow retains the original weekday schedules (18:35 and 19:20 KST), price cache, validation, and regional-only commits. Taiwan revenue can be refreshed with `python scripts/update_taiwan_revenue.py`.
+Three daily GitHub Actions run at **21:03, 21:10, and 21:17 KST** (UTC 12:03, 12:10, 12:17), including weekends. They call `refresh-all-data.yml` and share a queued lock, so an overlapping backup waits and then reads the newest `main`.
+
+Each attempt refreshes Hong Kong/China constituents, metadata, prices, RS, and Trend Score through the existing regional pipeline, then Taiwan monthly revenue with `--strict`. Metadata keeps the collector's existing refresh cadence; unchanged values are retained. Price histories are cached. Taiwan revenue is checked against the latest available source publication, not an invented daily/monthly value.
+
+Only after every collector, data validation, and market-session freshness check succeeds are all data and `.github/data-refresh-status.json` committed together. XHKG/XSHG calendars account for separate exchange holidays. A same-day success checkpoint matching all data and pipeline hashes causes later attempts to skip collection, commit, push, and deployment. Failure or stale market dates do not certify success; the next attempt retries. A manual success before 21:03 does not suppress the evening refresh.
+
+The completion checkpoint may produce one successful daily commit even when the underlying source values are unchanged. Later backups never push merely to record that they ran. Scheduled trigger times can be delayed by GitHub; a busy preceding attempt also delays the queued backup.
+
+Use the `check_only` manual input on any of the three Actions to validate orchestration without collecting or publishing data. Run local regression tests with `python -m unittest discover -s tests -v`.
 
 GitHub Pages deploys the static files using `.github/workflows/deploy-pages.yml`. The update workflow also dispatches deployment after its data commit, because pushes with `GITHUB_TOKEN` do not trigger a second workflow automatically. Site artifacts contain only the frontend and regional data.

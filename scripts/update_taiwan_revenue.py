@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import argparse
 import math
 import re
 import time
@@ -130,6 +131,7 @@ def fetch_recent_revenue(code: str, session: requests.Session) -> dict[str, dict
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             response = session.get(url, timeout=30)
+            response.raise_for_status()
             html = response.content.decode("big5", errors="ignore")
             if "查詢過量" in html:
                 time.sleep(REQUEST_DELAY_SECONDS * attempt * 3)
@@ -307,7 +309,7 @@ def update_aggregate(company: dict, components: list[dict]) -> list[str]:
     return [company["month"]] if company.get("month") != old_month else []
 
 
-def main() -> None:
+def main(strict: bool = False) -> None:
     companies = parse_js_payload(DATA_PATH.read_text(encoding="utf-8"))
     by_name = {company.get("name"): company for company in companies}
     session = requests.Session()
@@ -318,9 +320,13 @@ def main() -> None:
     for name, code in COMPANY_CODES.items():
         company = by_name.get(name)
         if not company:
+            if strict:
+                raise RuntimeError(f'{name}: missing dashboard company')
             skipped.append(f"{name}: missing dashboard company")
             continue
         rows = fetch_recent_revenue(code, session)
+        if strict and not rows:
+            raise RuntimeError(f'{name}: source returned no revenue rows; retry required')
         months = sync_company_months(company, rows)
         if months:
             updated[name] = months
@@ -339,4 +345,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--strict', action='store_true', help='Fail incomplete source coverage instead of treating it as an unchanged success')
+    main(strict=parser.parse_args().strict)
