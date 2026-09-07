@@ -1,0 +1,4 @@
+.yfinance-cache/
+.asia-screening-cache/
+__pycache__/
+*.pyc

@@ -1,0 +1,57 @@
+name: Update China and Hong Kong Screening
+
+on:
+  workflow_dispatch:
+  schedule:
+    # KST 18:35 primary and 19:20 backup, after both local markets close.
+    - cron: "35 9 * * 1-5"
+    - cron: "20 10 * * 1-5"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: update-asia-screening
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: .asia-screening-cache
+          key: asia-screening-${{ github.run_id }}
+          restore-keys: asia-screening-
+      - name: Install data dependencies
+        run: python -m pip install pandas yfinance curl_cffi requests xlrd
+      - name: Refresh regional universes, RS and Trend Score
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python scripts/update_asia_screening.py
+      - name: Validate outputs
+        run: python scripts/validate_asia_screening.py
+      - name: Publish regional data only
+        shell: bash
+        run: |
+          git add data/asia-*.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update China and Hong Kong screening"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main || exit 1
+            git push && exit 0
+            sleep 5
+          done
+          exit 1
+      - name: Deploy refreshed data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --ref main

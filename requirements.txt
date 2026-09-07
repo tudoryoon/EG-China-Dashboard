@@ -1,0 +1,6 @@
+pandas
+yfinance
+curl_cffi
+requests
+xlrd
+lxml
