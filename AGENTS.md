@@ -23,7 +23,8 @@
 ## Delivery
 
 - Daily data refresh is scheduled through three Actions at **21:03, 21:10, 21:17 KST**, every day. All three call the same workflow and share a queued concurrency lock; read `main` after acquiring the lock.
-- Refresh Hong Kong/China screening and Taiwan revenue together. Publish only after all collectors and validators succeed. A complete same-day checkpoint matching the data and pipeline hashes suppresses later collection, commits, pushes, and deployments. Failed or stale refreshes must leave later retries enabled.
+- Refresh Hong Kong/China screening and Taiwan revenue together. Publish only after all collectors and validators succeed. A complete checkpoint for the same 21:03 KST refresh cycle, matching data and pipeline hashes, suppresses later collection, commits, pushes, and deployments even when GitHub delays runs past midnight. Failed or stale refreshes must leave later retries enabled. A morning manual refresh never suppresses the next 21:03 cycle.
+- HSCI API rows must be filtered to explicit `isDummy=N` before validating the official constituent count; residual blank/dummy rows can remain after index reviews. Never bypass missing-member or duplicate-symbol checks.
 - Do not replace this with three unguarded push jobs. Run `python -m unittest discover -s tests -v` for schedule/refresh changes.
 
 - Carry over the source project's authorized workflow: validate, create a scoped commit, and normally push to `origin/main` without asking again. Respect explicit no-push or review-only requests. Never force-push.

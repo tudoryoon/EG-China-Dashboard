@@ -46,10 +46,22 @@ jobs:
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
         run: python -m pip install -r requirements.txt
       - name: Refresh and validate every data source
+        id: refresh
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
         env:
           PYTHONUNBUFFERED: '1'
-        run: python scripts/refresh_all_data.py refresh
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/refresh_all_data.py refresh 2>&1 | tee "$RUNNER_TEMP/refresh-data.log"
+      - name: Report refresh failure
+        if: failure() && steps.refresh.outcome == 'failure'
+        shell: bash
+        run: |
+          echo '### Data refresh failed; no data was published. Later attempts will retry.' >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 45 "$RUNNER_TEMP/refresh-data.log" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
       - name: Publish completed data together
         id: publish
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only

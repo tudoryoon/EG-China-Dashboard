@@ -47,6 +47,17 @@ class DailyRefreshTests(unittest.TestCase):
         self.successful_refresh()
         self.assertFalse(refresh.completed_today(self.root, self.now + timedelta(days=1)))
 
+    def test_delayed_run_after_midnight_skips_later_backups(self):
+        delayed = self.now + timedelta(hours=5)
+        self.successful_refresh(delayed)
+        self.assertTrue(refresh.completed_today(self.root, delayed + timedelta(minutes=7)))
+        self.assertTrue(refresh.completed_today(self.root, delayed + timedelta(minutes=14)))
+        self.assertFalse(refresh.completed_today(self.root, self.now + timedelta(days=1)))
+
+    def test_evening_success_skips_backup_delayed_past_midnight(self):
+        self.successful_refresh()
+        self.assertTrue(refresh.completed_today(self.root, self.now + timedelta(hours=5)))
+
     def test_early_manual_run_does_not_suppress_evening(self):
         self.successful_refresh(self.now.replace(hour=18))
         self.assertFalse(refresh.completed_today(self.root, self.now))
@@ -56,6 +67,14 @@ class DailyRefreshTests(unittest.TestCase):
             self.successful_refresh()
             (self.root / name).write_text('modified', encoding='utf-8')
             self.assertFalse(refresh.completed_today(self.root, self.now))
+
+    def test_checkpoint_survives_git_line_ending_normalization(self):
+        for name in refresh.DATA_FILES + refresh.PIPELINE_FILES:
+            (self.root / name).write_bytes(b'first\r\nsecond\r\n')
+        self.successful_refresh()
+        for name in refresh.DATA_FILES + refresh.PIPELINE_FILES:
+            (self.root / name).write_bytes(b'first\nsecond\n')
+        self.assertTrue(refresh.completed_today(self.root, self.now))
 
     def test_missing_or_corrupt_checkpoint_retries(self):
         self.assertFalse(refresh.completed_today(self.root, self.now))

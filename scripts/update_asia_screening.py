@@ -15,6 +15,7 @@ import yfinance as yf
 
 import update_market_rs as rs
 import update_market_trend_score as trend
+from hsci_constituents import parse_hsci
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".asia-screening-cache"
@@ -55,13 +56,9 @@ def constituents(region):
     sources = []
     if region == "hk":
         data = get(HS_SOURCE).json()
-        item = data["indexSeriesList"][0]["indexList"][0]
-        content = item["constituentContent"]
-        assert len(content) == int(item["constituentsCount"]) and len(content) >= 400
-        for row in content:
-            symbol = str(int(row["code"])).zfill(4) + ".HK"
-            members[symbol] = {"ticker": symbol, "name": row["constituentName"], "groups": ["HSCI"]}
-        sources.append({"label": "Hang Seng Composite", "url": HS_SOURCE, "asOf": data["requestDate"], "count": len(members)})
+        members, diagnostics = parse_hsci(data)
+        print(f'HSCI constituents: {json.dumps(diagnostics)}', flush=True)
+        sources.append({"label": "Hang Seng Composite", "url": HS_SOURCE, "asOf": data["requestDate"], "count": len(members), **diagnostics})
     else:
         for code, label, expected in [("000300", "CSI 300", 300), ("000905", "CSI 500", 500)]:
             url = CSI_SOURCE.format(code)

@@ -19,13 +19,21 @@ DATA_FILES = ('data/dashboard-data.js',) + tuple(
     for kind in ('constituents', 'metadata', 'screening')
 )
 PIPELINE_FILES = ('requirements.txt', 'scripts/refresh_all_data.py',
+                  'scripts/hsci_constituents.py',
                   'scripts/update_asia_screening.py', 'scripts/update_market_rs.py',
                   'scripts/update_market_trend_score.py', 'scripts/update_taiwan_revenue.py',
                   'scripts/validate_asia_screening.py', 'scripts/validate_migration.py')
 
 
 def hashes(root, names):
-    return {name: hashlib.sha256((root / name).read_bytes()).hexdigest() for name in names}
+    # All tracked inputs are text. Git normalizes Windows CRLF on Linux runners.
+    return {name: hashlib.sha256((root / name).read_bytes().replace(b'\r\n', b'\n')).hexdigest()
+            for name in names}
+
+
+def refresh_date(now):
+    local = now.astimezone(KST)
+    return (local - timedelta(days=int((local.hour, local.minute) < (21, 3)))).date()
 
 
 def completed_today(root=ROOT, now=None):
@@ -33,11 +41,10 @@ def completed_today(root=ROOT, now=None):
     try:
         record = json.loads((root / STATUS_PATH).read_text(encoding='utf-8'))
         completed = datetime.fromisoformat(record['completedAt']).astimezone(KST)
-        return (record['schemaVersion'] == 1
-                and record['kstDate'] == now.date().isoformat()
-                and completed.date() == now.date()
+        return (record['schemaVersion'] == 2
+                and record['refreshDate'] == refresh_date(now).isoformat()
+                and refresh_date(completed) == refresh_date(now)
                 and completed <= now
-                and (completed.hour, completed.minute) >= (21, 3)
                 and record['dataHashes'] == hashes(root, DATA_FILES)
                 and record['pipelineHashes'] == hashes(root, PIPELINE_FILES))
     except (OSError, ValueError, KeyError, TypeError):
@@ -106,10 +113,11 @@ def refresh(root=ROOT, now=None, run=None):
     dates = validate_freshness(root, started)
     months = validate_taiwan(root)
     completed = now or datetime.now(KST)
-    if completed.astimezone(KST).date() != started.astimezone(KST).date():
-        raise RuntimeError('Refresh crossed the KST date boundary; retry for the new date')
+    if refresh_date(completed) != refresh_date(started):
+        raise RuntimeError('Refresh crossed the 21:03 KST refresh boundary; retry for the new cycle')
     record = {
-        'schemaVersion': 1, 'kstDate': completed.astimezone(KST).date().isoformat(),
+        'schemaVersion': 2, 'kstDate': completed.astimezone(KST).date().isoformat(),
+        'refreshDate': refresh_date(completed).isoformat(),
         'completedAt': completed.isoformat(), 'marketSessions': dates,
         'taiwanRevenueMonths': months, 'dataHashes': hashes(root, DATA_FILES),
         'pipelineHashes': hashes(root, PIPELINE_FILES),

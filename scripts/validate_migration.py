@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     manifest = json.loads((ROOT / 'docs/migration-source.json').read_text(encoding='utf-8'))
-    for name in ('styles.css', 'scripts/update_market_rs.py', 'scripts/update_market_trend_score.py', 'scripts/update_asia_screening.py'):
+    for name in ('styles.css', 'scripts/update_market_rs.py', 'scripts/update_market_trend_score.py'):
         digest = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
         assert digest == manifest['unchangedFiles'][name], f'Upstream baseline changed: {name}'
     html = (ROOT / 'index.html').read_text(encoding='utf-8')

@@ -7,7 +7,6 @@
     "data/dashboard-data.js": "eb1c28c411355158c96bbded54bc6ffe2beed48af9e8cd077dc6706300cf0c6f",
     "scripts/update_market_rs.py": "cbce41358d78b0859332e5b8a50250a3f2682d1846f7d2296b50722c990ddd6c",
     "scripts/update_market_trend_score.py": "50e79cc9dd04aded4ac690e0d9df2c272b4276e2031dbc1d8adc46bfa868a7c3",
-    "scripts/update_asia_screening.py": "39a1f8988ccb54b020fe412f4769f9c18643c71f5731270dc6defaaa7824dc83",
     "scripts/validate_asia_screening.py": "94ffa3f4545e218828b8d40d438628bb4f252f52026fdb10a0fdd46ced832331",
     "data/asia-cn-constituents.json": "b117f92e7435201e8b2483a2fa90573bdd303400088ec9dcf79fd8e42525e863",
     "data/asia-cn-metadata.json": "2cac278e53bf423dd02fccb12d256b4a17d5e71d69c8f348cc9a351dfdf8e2e8",
@@ -20,6 +19,10 @@
     "dashboard.js": "User-requested RS / Trend Score / Taiwan hierarchy, China / Hong Kong subtabs, RS/China default and canonical URLs; original shared renderers retained.",
     "index.html": "Regional identity; removed redundant parent-tab row; original chart libraries, styles and remaining DOM retained.",
     ".github/workflows/update-asia-screening.yml": "Daily KST 21:03 all-data refresh with separate 21:10 and 21:17 guarded backups.",
-    "scripts/update_taiwan_revenue.py": "Original monthly revenue calculations; strict source-coverage and HTTP validation added for daily all-data refresh."
+    "scripts/update_taiwan_revenue.py": "Original monthly revenue calculations; strict source-coverage and HTTP validation added for daily all-data refresh.",
+    "scripts/update_asia_screening.py": "2026-09-08: filter HSCI active non-dummy rows and validate unique constituents against official count; original RS/trend engines unchanged."
+  },
+  "originalBaselineHashes": {
+    "scripts/update_asia_screening.py": "39a1f8988ccb54b020fe412f4769f9c18643c71f5731270dc6defaaa7824dc83"
   }
 }
