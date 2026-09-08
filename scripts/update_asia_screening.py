@@ -16,6 +16,7 @@ import yfinance as yf
 import update_market_rs as rs
 import update_market_trend_score as trend
 from hsci_constituents import parse_hsci
+from regional_supplements import ETF_SECIDS, ETF_SOURCE, parse_etf_history, build_regional_rs, build_regional_trend
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".asia-screening-cache"
@@ -78,6 +79,8 @@ def constituents(region):
 
 
 def chart(symbol, full=False):
+    if symbol in ETFS:
+        return etf_chart(symbol)
     path = CACHE / (symbol.replace("^", "index-") + ".json")
     saved = json.loads(path.read_text(encoding="utf8")) if path.exists() else None
     params = {"interval": "1d", "events": "div,splits"}
@@ -115,6 +118,20 @@ def chart(symbol, full=False):
     return payload
 
 
+def etf_chart(symbol):
+    now = datetime.now(timezone(timedelta(hours=8)))
+    cutoff = now.date() - timedelta(days=int(now.hour * 60 + now.minute < 16 * 60 + 30))
+    params = {"secid": ETF_SECIDS[symbol], "klt": "101", "beg": "20240101", "end": "20500101",
+              "fields1": "f1,f2,f3,f4,f5,f6", "fields2": "f51,f52,f53,f54,f55,f56,f57"}
+    raw = get(ETF_SOURCE, params={**params, "fqt": "0"}).json()["data"]
+    adjusted = get(ETF_SOURCE, params={**params, "fqt": "1"}).json()["data"]
+    payload = parse_etf_history(symbol, raw, adjusted, cutoff.isoformat())
+    if len(payload["records"]) < 252 or (cutoff - datetime.fromisoformat(payload["records"][-1]["date"]).date()).days > 12:
+        raise ValueError(f"Incomplete ETF history: {symbol}")
+    write_json(CACHE / (symbol + ".json"), payload)
+    return payload
+
+
 def serial(series, digits=2):
     return [None if pd.isna(x) else round(float(x), digits) for x in series]
 
@@ -147,7 +164,7 @@ def run(region, full=False, recalculate=False):
     now = datetime.now(timezone(timedelta(hours=8)))
     assert (now.date() - latest.date()).days <= 12, "Stale benchmark; refusing date rollback"
     fx = chart(meta["fx"])["records"][-1]["close"]
-    frames, errors = {}, {}
+    frames, errors, price_sources = {}, {}, {}
     info_path = ROOT / "data" / f"asia-{region}-metadata.json"
     infos = json.loads(info_path.read_text(encoding="utf8")) if info_path.exists() else {}
 
@@ -155,6 +172,10 @@ def run(region, full=False, recalculate=False):
         symbol = member["ticker"]
         cache_path = CACHE / (symbol + ".json")
         data = json.loads(cache_path.read_text(encoding="utf8")) if recalculate and cache_path.exists() else chart(symbol, full)
+        if symbol in ETFS and (data.get("priceSource", {}).get("provider") != "Eastmoney" or "rawClose" not in data["records"][-1]):
+            data = etf_chart(symbol)
+        if symbol in ETFS and data["records"][-1]["date"] < latest.date().isoformat():
+            raise ValueError(f"ETF quote behind benchmark: {symbol}; retry needed")
         info = infos.get(symbol, {})
         age = (latest.date() - datetime.fromisoformat(info.get("asOf", "2000-01-01")).date()).days
         if not info or full or (age >= 7 and not recalculate):
@@ -166,16 +187,17 @@ def run(region, full=False, recalculate=False):
                 info = {"name": data["name"], "marketCapLocal": None}
         frame = pd.DataFrame(data["records"])
         frame.index = pd.to_datetime(frame.pop("date"))
-        return symbol, frame.reindex(dates), info
+        return symbol, frame.reindex(dates), info, data.get("priceSource", {"provider": "Yahoo Finance"})
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         futures = {pool.submit(fetch, m): m["ticker"] for m in members}
         for i, future in enumerate(as_completed(futures), 1):
             symbol = futures[future]
             try:
-                symbol, frame, info = future.result()
+                symbol, frame, info, price_source = future.result()
                 frames[symbol] = frame
                 infos[symbol] = info
+                price_sources[symbol] = price_source
             except Exception as error:
                 errors[symbol] = str(error)[:180]
             if i % 50 == 0:
@@ -185,8 +207,8 @@ def run(region, full=False, recalculate=False):
         raise RuntimeError(f"Insufficient coverage: {len(frames)}/{len(members)}; refusing publication")
     equities = [m["ticker"] for m in members if m["assetType"] != "ETF" and m["ticker"] in frames]
     adjusted = pd.DataFrame({s: frames[s]["adjClose"] for s in equities})
-    periods = rs.build_period_rs_ratings(adjusted)
-    ratings = rs.weighted_rs_rating(periods)
+    etf_prices = pd.DataFrame({s: frames[s]["adjClose"] for s in sorted(ETFS) if s in frames}, index=dates)
+    periods, ratings = build_regional_rs(adjusted, etf_prices, rs)
     display_dates = dates[dates >= "2025-01-01"]
     rows, histories = [], {}
     for member in members:
@@ -209,6 +231,9 @@ def run(region, full=False, recalculate=False):
         atr_pct = rs.compute_atr_pct_series(frame.high, frame.low, frame.close)
         atr = rs.compute_atr_series(frame.high, frame.low, frame.close)
         row = {**member, "name": infos.get(symbol, {}).get("name") or member["name"], "price": round(price, 4), "currency": meta["currency"], "marketCap": round(cap / fx) if cap else None, "marketCapLocal": cap, "asOfDate": last.date().isoformat(), "rsRatingAll": None if pd.isna(rating.loc[last]) else int(rating.loc[last]), "memberships": {}, "returns": {}, "rsPeriods": {}, "atr21Pct": rs.compute_atr_pct(frame.high, frame.low, frame.close), "extension": rs.compute_extension_metrics(frame.close, atr, atr_pct), "distanceTo52wHighPct": rs.compute_52w_gap(frame.adjClose.dropna()), "historySessions": len(valid), "provisional": len(valid) < 252}
+        row["returns"]["1d"] = rs.compute_return(frame["rawClose"] if symbol in ETFS else frame.close, 1)
+        row["priceSource"] = price_sources[symbol]
+        row["rsBasis"] = "equity-reference-percentile" if symbol in ETFS else "regional-equity-percentile"
         for key in periods:
             row["returns"][key] = rs.compute_return(frame.adjClose, rs.LOOKBACKS[key])
             value = periods[key].at[last, symbol] if symbol in periods[key] else None
@@ -219,11 +244,11 @@ def run(region, full=False, recalculate=False):
         row["rsNewHighAll"] = row["rsNewHigh1yAll"]
         rows.append(row)
     rows.sort(key=lambda x: (-(x["rsRatingAll"] or 0), x["ticker"]))
-    rs_payload = {"updatedAt": latest.date().isoformat(), "historyDates": display_dates.strftime("%Y-%m-%d").tolist(), "rows": rows, "histories": histories, "universes": {"all": {"label": meta["label"]}}, "historyRanges": [{"key": k, "label": v} for k, v in [("1m", "1M"), ("3m", "3M"), ("6m", "6M"), ("1y", "1Y"), ("3y", "2025~"), ("ytd", "YTD")]], "scoring": {"description": "RS: 1M 20% + 3M 40% + 6M 20% + 12M 20%. 현지통화 · 시장별 순위 · ETF 제외"}}
+    rs_payload = {"updatedAt": latest.date().isoformat(), "historyDates": display_dates.strftime("%Y-%m-%d").tolist(), "rows": rows, "histories": histories, "universes": {"all": {"label": meta["label"]}}, "historyRanges": [{"key": k, "label": v} for k, v in [("1m", "1M"), ("3m", "3M"), ("6m", "6M"), ("1y", "1Y"), ("3y", "2025~"), ("ytd", "YTD")]], "scoring": {"description": "RS: 1M 20% + 3M 40% + 6M 20% + 12M 20%. 현지통화 · 시장별 주식 순위 · ETF는 주식 대비 별도 백분위(주식 순위 불변)"}}
     bench_data = {"items": {"regional": {"dates": dates.strftime("%Y-%m-%d").tolist(), "values": serial(pd.Series(benchmark_frame.close.to_numpy(), index=pd.to_datetime(benchmark_frame.index)).reindex(dates), 4)}}}
     # The same trend/climax implementation is called with a regional benchmark.
     tmeta = {"label": meta["label"], "include_all": True, "history_key": "rsRatingAll", "benchmark_key": "regional", "color": "#0f766e"}
-    trows, thistories = trend.build_universe_payload("all", tmeta, rs_payload, bench_data, {}, {})
+    trows, thistories = build_regional_trend(trend, "all", tmeta, rs_payload, bench_data, {}, {})
     trend_payload = {"updatedAt": rs_payload["updatedAt"], "historyDates": rs_payload["historyDates"][-trend.HISTORY_POINTS:], "rows": {"all": trows}, "histories": {"all": thistories}, "universes": {"all": tmeta}, "scoring": {"description": f"가격 추세 4 + {meta['benchmarkLabel']} 대비 추세 4 + 모멘텀 2 · Market Cap: USD"}}
     benchmark_note = "HSCI 무료 장기 이력 부족으로 항셍지수를 상대추세 기준으로 사용" if region == "hk" else "CSI800 지수 일별 가격: Eastmoney 공개 시세"
     output = {"meta": {**meta, "sources": sources, "requested": len(members), "covered": len(rows), "missing": errors, "fxLocalPerUsd": fx, "benchmarkNote": benchmark_note, "watchlist": WATCH[region]}, "rs": rs_payload, "trend": trend_payload}

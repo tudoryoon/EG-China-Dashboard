@@ -45,6 +45,9 @@ jobs:
       - name: Install data dependencies
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
         run: python -m pip install -r requirements.txt
+      - name: Validate regional quote and scoring integration
+        if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
+        run: python -m unittest discover -s tests -p test_regional_supplements.py -v
       - name: Refresh and validate every data source
         id: refresh
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only

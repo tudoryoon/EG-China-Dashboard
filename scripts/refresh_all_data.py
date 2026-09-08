@@ -20,6 +20,7 @@ DATA_FILES = ('data/dashboard-data.js',) + tuple(
 )
 PIPELINE_FILES = ('requirements.txt', 'scripts/refresh_all_data.py',
                   'scripts/hsci_constituents.py',
+                  'scripts/regional_supplements.py',
                   'scripts/update_asia_screening.py', 'scripts/update_market_rs.py',
                   'scripts/update_market_trend_score.py', 'scripts/update_taiwan_revenue.py',
                   'scripts/validate_asia_screening.py', 'scripts/validate_migration.py')

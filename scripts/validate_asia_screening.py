@@ -20,12 +20,21 @@ def main():
             for key in ["price", "open", "high", "low", "volume", "rsRatingAll"]:
                 assert len(history[key]) == len(rs["historyDates"]), (ticker, key)
             if row["assetType"] == "ETF":
-                assert row["rsRatingAll"] is None
-            elif row["rsRatingAll"] is not None:
+                assert row["rsBasis"] == "equity-reference-percentile"
+                assert row["priceSource"]["provider"] == "Eastmoney"
+                assert row["asOfDate"] == rs["updatedAt"]
+                assert row["returns"]["1d"] is not None
+                assert row["rsRatingAll"] is not None
+            if row["rsRatingAll"] is not None:
                 assert 1 <= row["rsRatingAll"] <= 99
             assert row["currency"] == data["meta"]["currency"]
         for row in trend["rows"]["all"]:
             assert row["score"] is None or 0 <= row["score"] <= 10
+            if rows[row["ticker"]]["assetType"] == "ETF":
+                assert row["score"] is not None and row["asOfDate"] == rs["updatedAt"], row["ticker"]
+            if row.get("scoreBasis") == "available-history-provisional":
+                assert row["ticker"] in ("6082.HK", "0100.HK")
+                assert 60 <= row["historySessions"] < 200
         assert not data["meta"]["missing"], data["meta"]["missing"]
         assert set(data["meta"]["watchlist"]) <= set(rows)
         assert path.stat().st_size < 24 * 1024 * 1024
