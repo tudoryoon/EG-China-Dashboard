@@ -33,3 +33,10 @@
 - Checkpoints apply to cycles starting at 21:03 KST. A delayed success suppresses later attempts in that cycle; the next 21:03 run remains enabled. Failures retain retry eligibility and now include the last collector log lines in the Actions summary.
 - A full local execution of `refresh_all_data.py refresh` passed all collectors and validators: Hong Kong 582/582 and China 803/803, both screening dates 2026-09-07; Taiwan 44 companies plus two aggregates. Taiwan latest published months are August for 27 companies and July for 17. All 1,380 equity quotes are dated September 7; the five ETF feeds still end on September 4 and retain their actual quote dates.
 - The generated completion checkpoint skips a repeat run now and leaves the next 21:03 KST refresh enabled. Regional validation, migration provenance checks, and both JavaScript syntax checks pass.
+
+## Requested securities and search repair — 2026-09-08
+
+- Added World-Link Logistics `6083.HK` to daily collection separately from Biren `6082.HK`. Refetched all seven requested price histories and recomputed both markets with the unchanged scoring engines; HK 583/583 and China 803/803 pass validation at the completed September 7 session.
+- `HK`, `C1` (Shanghai), and `C2` (Shenzhen) search suffixes resolve to canonical symbols, including `100 HK` → `0100.HK`. The All score filter no longer removes ETFs with null RS ratings. Missing scores/caps are retained in All and excluded from explicit numerical ranges instead of being interpreted as zero.
+- Browser searches verify all seven requested symbols in both RS and Trend Score. ETF RS remains unranked; MiniMax's 162-session history and STAR 50 ETF's gaps do not receive fabricated 200-session trend scores. Existing CSS and scoring engine hashes remain unchanged. Nineteen regression tests pass, including aliases and missing-value filters.
+- This is a targeted securities update; the earlier all-source checkpoint is left unchanged and fails the existing data/pipeline hash check, so the next scheduled full refresh remains eligible.

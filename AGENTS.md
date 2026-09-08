@@ -14,6 +14,7 @@
 
 - Use `scripts/update_asia_screening.py`, which calls the original `update_market_rs.py` and `update_market_trend_score.py` engines. Do not independently approximate the formulas.
 - Rank Hong Kong and China equities independently in local currency. ETFs are tracked but excluded from equity RS rankings. Shared market-cap filters use USD; chart prices remain HKD/CNY.
+- User watchlist additions (2026-09-08): 3033.HK, 6083.HK, 588200.SS (C1), 3109.HK, 0100.HK (100 HK), 562500.SS (C1), 159819.SZ (C2). Keep 6083.HK (World-Link Logistics) separate from 6082.HK (Biren). Support HK/C1/C2 search notation in both screening views. All filters must retain unscored ETFs/new listings and unknown market caps; explicit numeric filters must exclude missing values rather than treating them as zero.
 - Hong Kong uses the explicitly disclosed HSI fallback for unavailable HSCI history. China uses CSI800. Preserve missing observations and holiday handling.
 - Regional data stays in `data/asia-*.json`; do not introduce the US universe.
 - Canonical routes are `#/rs/china`, `#/rs/hong-kong`, `#/trend-score/china`, `#/trend-score/hong-kong`, and `#/taiwan`. Old `#/taiwan/...` screening links are compatibility redirects only, never newly generated navigation URLs.

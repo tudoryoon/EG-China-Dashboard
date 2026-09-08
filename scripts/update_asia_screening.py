@@ -22,7 +22,7 @@ CACHE = ROOT / ".asia-screening-cache"
 HS_SOURCE = "https://origin-www.hsi.com.hk/data/eng/rt/index-series/hsci/constituents.do"
 CSI_SOURCE = "https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/file/autofile/cons/{}cons.xls"
 WATCH = {
-    "hk": "9988.HK 0700.HK 0992.HK 3033.HK 1810.HK 0100.HK 1347.HK 0981.HK 3109.HK 6082.HK 9660.HK 2026.HK 9999.HK".split(),
+    "hk": "9988.HK 0700.HK 0992.HK 3033.HK 1810.HK 0100.HK 1347.HK 0981.HK 3109.HK 6082.HK 6083.HK 9660.HK 2026.HK 9999.HK".split(),
     "cn": "588200.SS 002371.SZ 600183.SS 562500.SS 688072.SS 000977.SZ 688702.SS 159819.SZ 301377.SZ 601869.SS".split(),
 }
 ETFS = {"3033.HK", "3109.HK", "588200.SS", "562500.SS", "159819.SZ"}

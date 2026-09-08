@@ -797,11 +797,17 @@ function formatShortIsoDate(dateText) {
 }
 
 function normalizeMarketTickerSearch(value) {
-  return String(value ?? "")
+  const text = String(value ?? "")
     .trim()
     .toLowerCase()
     .replace(/\.(us|uw|uq|un|n|o)$/i, "")
     .replace(/\s+(us|equity)$/i, "");
+  const regional = text.match(/^(\d{1,6})[.\s]*(hk|c1|c2|ss|sz)$/i);
+  if (regional) {
+    const suffix = { hk: "hk", c1: "ss", c2: "sz", ss: "ss", sz: "sz" }[regional[2]];
+    return `${String(Number(regional[1])).padStart(suffix === "hk" ? 4 : 6, "0")}.${suffix}`;
+  }
+  return text;
 }
 
 function marketTickerSearchTerms(ticker, name = "") {
@@ -11856,12 +11862,15 @@ function parseMarketCapInput(value) {
 }
 
 function matchesMarketCapRange(row, rangeKey, customMinValue = "", customMaxValue = "") {
-  const marketCap = Number(row.marketCap);
+  const customMin = parseMarketCapInput(customMinValue);
+  const customMax = parseMarketCapInput(customMaxValue);
+  if (rangeKey === "all" && customMin === null && customMax === null) {
+    return true;
+  }
+  const marketCap = row.marketCap == null ? NaN : Number(row.marketCap);
   if (!Number.isFinite(marketCap)) {
     return false;
   }
-  const customMin = parseMarketCapInput(customMinValue);
-  const customMax = parseMarketCapInput(customMaxValue);
   if (customMin !== null && marketCap < customMin) {
     return false;
   }
@@ -11885,12 +11894,15 @@ function parseScoreInput(value) {
 }
 
 function matchesScoreRange(score, ranges, rangeKey, customMinValue = "", customMaxValue = "") {
-  const numeric = Number(score);
+  const customMin = parseScoreInput(customMinValue);
+  const customMax = parseScoreInput(customMaxValue);
+  if (rangeKey === "all" && customMin === null && customMax === null) {
+    return true;
+  }
+  const numeric = score == null ? NaN : Number(score);
   if (!Number.isFinite(numeric)) {
     return false;
   }
-  const customMin = parseScoreInput(customMinValue);
-  const customMax = parseScoreInput(customMaxValue);
   if (customMin !== null && numeric < customMin) {
     return false;
   }
