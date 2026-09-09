@@ -1,0 +1,28 @@
+name: Verify Full Data Refresh
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache/restore@v4
+        with:
+          path: .asia-screening-cache
+          key: asia-screening-verification-${{ github.run_id }}
+          restore-keys: asia-screening-
+      - run: python -m pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+      - name: Collect and validate all sources without publishing
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python scripts/refresh_all_data.py refresh --force

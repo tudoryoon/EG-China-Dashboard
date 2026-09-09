@@ -21,7 +21,7 @@ def main():
                 assert len(history[key]) == len(rs["historyDates"]), (ticker, key)
             if row["assetType"] == "ETF":
                 assert row["rsBasis"] == "equity-reference-percentile"
-                assert row["priceSource"]["provider"] == "Eastmoney"
+                assert row["priceSource"]["provider"] in ("Tencent", "Eastmoney")
                 assert row["asOfDate"] == rs["updatedAt"]
                 assert row["returns"]["1d"] is not None
                 assert row["rsRatingAll"] is not None

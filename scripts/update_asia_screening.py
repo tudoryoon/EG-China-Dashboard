@@ -17,6 +17,8 @@ import update_market_rs as rs
 import update_market_trend_score as trend
 from hsci_constituents import parse_hsci
 from regional_supplements import ETF_SECIDS, ETF_SOURCE, parse_etf_history, build_regional_rs, build_regional_trend
+from market_price_sources import current_source, tencent_history
+from refresh_all_data import expected_session
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".asia-screening-cache"
@@ -118,7 +120,7 @@ def chart(symbol, full=False):
     return payload
 
 
-def etf_chart(symbol):
+def eastmoney_etf_chart(symbol):
     now = datetime.now(timezone(timedelta(hours=8)))
     cutoff = now.date() - timedelta(days=int(now.hour * 60 + now.minute < 16 * 60 + 30))
     params = {"secid": ETF_SECIDS[symbol], "klt": "101", "beg": "20240101", "end": "20500101",
@@ -128,6 +130,19 @@ def etf_chart(symbol):
     payload = parse_etf_history(symbol, raw, adjusted, cutoff.isoformat())
     if len(payload["records"]) < 252 or (cutoff - datetime.fromisoformat(payload["records"][-1]["date"]).date()).days > 12:
         raise ValueError(f"Incomplete ETF history: {symbol}")
+    return payload
+
+
+def completed_session(symbol):
+    return expected_session("XHKG" if symbol.endswith(".HK") or symbol == "^HSI" else "XSHG", datetime.now(timezone.utc))
+
+
+def etf_chart(symbol):
+    expected = completed_session(symbol)
+    payload = current_source(symbol, expected, [
+        ("Tencent", lambda: tencent_history(symbol, expected, get)),
+        ("Eastmoney", lambda: eastmoney_etf_chart(symbol)),
+    ])
     write_json(CACHE / (symbol + ".json"), payload)
     return payload
 
@@ -136,7 +151,7 @@ def serial(series, digits=2):
     return [None if pd.isna(x) else round(float(x), digits) for x in series]
 
 
-def regional_benchmark(region, full=False):
+def legacy_benchmark(region, full=False):
     if region == "hk":
         return chart(META[region]["benchmark"], full)
     url = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
@@ -150,6 +165,15 @@ def regional_benchmark(region, full=False):
         records.append({"date": values[0], "close": float(values[2])})
     assert len(records) > 400 and (now.date() - datetime.fromisoformat(records[-1]["date"]).date()).days <= 12
     return {"records": records, "source": url}
+
+
+def regional_benchmark(region, full=False):
+    symbol = META[region]["benchmark"]
+    expected = completed_session(symbol)
+    return current_source(symbol, expected, [
+        ("Tencent", lambda: tencent_history(symbol, expected, get)),
+        ("Yahoo Finance" if region == "hk" else "Eastmoney", lambda: legacy_benchmark(region, full)),
+    ])
 
 
 def run(region, full=False, recalculate=False):
@@ -172,7 +196,7 @@ def run(region, full=False, recalculate=False):
         symbol = member["ticker"]
         cache_path = CACHE / (symbol + ".json")
         data = json.loads(cache_path.read_text(encoding="utf8")) if recalculate and cache_path.exists() else chart(symbol, full)
-        if symbol in ETFS and (data.get("priceSource", {}).get("provider") != "Eastmoney" or "rawClose" not in data["records"][-1]):
+        if symbol in ETFS and ("rawClose" not in data["records"][-1] or data["records"][-1]["date"] < latest.date().isoformat()):
             data = etf_chart(symbol)
         if symbol in ETFS and data["records"][-1]["date"] < latest.date().isoformat():
             raise ValueError(f"ETF quote behind benchmark: {symbol}; retry needed")
@@ -250,8 +274,9 @@ def run(region, full=False, recalculate=False):
     tmeta = {"label": meta["label"], "include_all": True, "history_key": "rsRatingAll", "benchmark_key": "regional", "color": "#0f766e"}
     trows, thistories = build_regional_trend(trend, "all", tmeta, rs_payload, bench_data, {}, {})
     trend_payload = {"updatedAt": rs_payload["updatedAt"], "historyDates": rs_payload["historyDates"][-trend.HISTORY_POINTS:], "rows": {"all": trows}, "histories": {"all": thistories}, "universes": {"all": tmeta}, "scoring": {"description": f"가격 추세 4 + {meta['benchmarkLabel']} 대비 추세 4 + 모멘텀 2 · Market Cap: USD"}}
-    benchmark_note = "HSCI 무료 장기 이력 부족으로 항셍지수를 상대추세 기준으로 사용" if region == "hk" else "CSI800 지수 일별 가격: Eastmoney 공개 시세"
+    benchmark_note = "HSCI 무료 장기 이력 부족으로 항셍지수를 상대추세 기준으로 사용" if region == "hk" else "CSI800 지수 일별 가격 · 검증된 최신 시세 원천 사용"
     output = {"meta": {**meta, "sources": sources, "requested": len(members), "covered": len(rows), "missing": errors, "fxLocalPerUsd": fx, "benchmarkNote": benchmark_note, "watchlist": WATCH[region]}, "rs": rs_payload, "trend": trend_payload}
+    output["meta"]["benchmarkSource"] = benchmark.get("priceSource") or {"provider": "Yahoo Finance" if region == "hk" else "Eastmoney", "url": benchmark.get("source")}
     assert len(trows) == len(rows), "Trend and RS coverage differ"
     path = ROOT / "data" / f"asia-{region}-screening.json"
     write_json(path, output)

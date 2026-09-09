@@ -47,6 +47,14 @@ class DailyRefreshTests(unittest.TestCase):
         self.successful_refresh()
         self.assertFalse(refresh.completed_today(self.root, self.now + timedelta(days=1)))
 
+    def test_explicit_force_rechecks_collectors_and_freshness(self):
+        self.successful_refresh()
+        runner = Mock()
+        with patch.object(refresh, 'validate_freshness', side_effect=RuntimeError('stale session')):
+            with self.assertRaisesRegex(RuntimeError, 'stale session'):
+                refresh.refresh(self.root, self.now, runner, force=True)
+        self.assertEqual(runner.call_count, 5)
+
     def test_delayed_run_after_midnight_skips_later_backups(self):
         delayed = self.now + timedelta(hours=5)
         self.successful_refresh(delayed)

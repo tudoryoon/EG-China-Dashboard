@@ -21,6 +21,7 @@ DATA_FILES = ('data/dashboard-data.js',) + tuple(
 PIPELINE_FILES = ('requirements.txt', 'scripts/refresh_all_data.py',
                   'scripts/hsci_constituents.py',
                   'scripts/regional_supplements.py',
+                  'scripts/market_price_sources.py',
                   'scripts/update_asia_screening.py', 'scripts/update_market_rs.py',
                   'scripts/update_market_trend_score.py', 'scripts/update_taiwan_revenue.py',
                   'scripts/validate_asia_screening.py', 'scripts/validate_migration.py')
@@ -96,9 +97,9 @@ def validate_taiwan(root=ROOT):
     return {name: names[name]['month'] for name in taiwan.COMPANY_CODES}
 
 
-def refresh(root=ROOT, now=None, run=None):
+def refresh(root=ROOT, now=None, run=None, force=False):
     started = now or datetime.now(KST)
-    if completed_today(root, started):
+    if not force and completed_today(root, started):
         print('All data already refreshed today; no changes.')
         return False
     run = run or subprocess.run
@@ -136,9 +137,10 @@ def refresh(root=ROOT, now=None, run=None):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=['check', 'refresh'])
+    parser.add_argument('--force', action='store_true', help='Run all collectors and validators even with a complete checkpoint')
     args = parser.parse_args()
     if args.command == 'refresh':
-        refresh()
+        refresh(force=args.force)
         return
     skip = completed_today()
     if os.getenv('GITHUB_OUTPUT'):
