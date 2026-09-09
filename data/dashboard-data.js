@@ -1111,16 +1111,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "서버/ODM",
     "currency": {
-      "USD": 58.153,
-      "NTD": 1828.8816
+      "USD": 64.655,
+      "NTD": 2033.3815
     },
     "marketCap": {
       "USD": 205.9,
       "NTD": 6488.1
     },
-    "mom": 5.0,
-    "yoy": 65.8,
-    "month": "26/07",
+    "mom": 11.2,
+    "yoy": 86.7,
+    "month": "26/08",
     "bars": [
       null,
       574.6042,
@@ -1188,7 +1188,8 @@ window.dashboardCompanies = [
       1622.9743,
       1627.9322,
       1742.4092,
-      1828.8816
+      1828.8816,
+      2033.3815
     ],
     "yoyLine": [
       null,
@@ -1257,7 +1258,8 @@ window.dashboardCompanies = [
       53.8,
       45.8,
       60.1,
-      65.8
+      65.8,
+      86.7
     ],
     "momLine": [
       null,
@@ -1326,7 +1328,8 @@ window.dashboardCompanies = [
       -3.7,
       0.3,
       7.0,
-      5.0
+      5.0,
+      11.2
     ],
     "yearly": {
       "labels": [
@@ -1439,7 +1442,7 @@ window.dashboardCompanies = [
             45.8,
             60.1,
             65.8,
-            null,
+            86.7,
             null,
             null,
             null,
@@ -2770,16 +2773,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "서버/ODM",
     "currency": {
-      "USD": 9.8,
-      "NTD": 308.2192
+      "USD": 14.628,
+      "NTD": 460.0651
     },
     "marketCap": {
       "USD": 14.2,
       "NTD": 446.8
     },
-    "mom": -4.2,
-    "yoy": 60.8,
-    "month": "26/07",
+    "mom": 49.3,
+    "yoy": 166.5,
+    "month": "26/08",
     "bars": [
       58.5694,
       49.4778,
@@ -2847,7 +2850,8 @@ window.dashboardCompanies = [
       283.4372,
       290.1835,
       321.822,
-      308.2192
+      308.2192,
+      460.0651
     ],
     "yoyLine": [
       null,
@@ -2916,7 +2920,8 @@ window.dashboardCompanies = [
       112.0,
       39.2,
       53.9,
-      60.8
+      60.8,
+      166.5
     ],
     "momLine": [
       null,
@@ -2985,7 +2990,8 @@ window.dashboardCompanies = [
       -14.9,
       2.4,
       10.9,
-      -4.2
+      -4.2,
+      49.3
     ],
     "yearly": {
       "labels": [
@@ -3081,7 +3087,7 @@ window.dashboardCompanies = [
             39.2,
             53.9,
             60.8,
-            null,
+            166.5,
             null,
             null,
             null,
@@ -3754,16 +3760,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "메모리/스토리지",
     "currency": {
-      "USD": 0.863,
-      "NTD": 27.1617
+      "USD": 0.898,
+      "NTD": 28.2757
     },
     "marketCap": {
       "USD": 18.5,
       "NTD": 582.6
     },
-    "mom": 9.3,
-    "yoy": 377.6,
-    "month": "26/07",
+    "mom": 4.1,
+    "yoy": 376.5,
+    "month": "26/08",
     "bars": [
       null,
       3.6546,
@@ -3831,7 +3837,8 @@ window.dashboardCompanies = [
       20.2075,
       22.828,
       24.8528,
-      27.1617
+      27.1617,
+      28.2757
     ],
     "yoyLine": [
       null,
@@ -3900,7 +3907,8 @@ window.dashboardCompanies = [
       236.6,
       301.2,
       301.0,
-      377.6
+      377.6,
+      376.5
     ],
     "momLine": [
       null,
@@ -3969,7 +3977,8 @@ window.dashboardCompanies = [
       10.3,
       13.0,
       8.9,
-      9.3
+      9.3,
+      4.1
     ],
     "yearly": {
       "labels": [
@@ -4065,7 +4074,7 @@ window.dashboardCompanies = [
             301.2,
             301.0,
             377.6,
-            null,
+            376.5,
             null,
             null,
             null,
@@ -8374,16 +8383,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "PCB소재/공구",
     "currency": {
-      "USD": 0.026,
-      "NTD": 0.8544
+      "USD": 0.028,
+      "NTD": 0.9124
     },
     "marketCap": {
       "USD": 1.8,
       "NTD": 55.8
     },
-    "mom": 24.0,
-    "yoy": 68.1,
-    "month": "26/07",
+    "mom": 6.8,
+    "yoy": 79.2,
+    "month": "26/08",
     "bars": [
       0.4236,
       0.3536,
@@ -8451,7 +8460,8 @@ window.dashboardCompanies = [
       0.7338,
       0.7084,
       0.689,
-      0.8544
+      0.8544,
+      0.9124
     ],
     "yoyLine": [
       null,
@@ -8520,7 +8530,8 @@ window.dashboardCompanies = [
       53.2,
       49.9,
       46.4,
-      68.1
+      68.1,
+      79.2
     ],
     "momLine": [
       null,
@@ -8589,7 +8600,8 @@ window.dashboardCompanies = [
       7.7,
       -3.5,
       -2.7,
-      24.0
+      24.0,
+      6.8
     ],
     "yearly": {
       "labels": [
@@ -8685,7 +8697,7 @@ window.dashboardCompanies = [
             49.9,
             46.4,
             68.1,
-            null,
+            79.2,
             null,
             null,
             null,
@@ -8700,16 +8712,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "PCB소재/공구",
     "currency": {
-      "USD": 0.032,
-      "NTD": 1.0086
+      "USD": 0.034,
+      "NTD": 1.0562
     },
     "marketCap": {
       "USD": 3.8,
       "NTD": 120.5
     },
-    "mom": 4.8,
-    "yoy": 54.9,
-    "month": "26/07",
+    "mom": 4.7,
+    "yoy": 59.7,
+    "month": "26/08",
     "bars": [
       0.5812,
       0.6004,
@@ -8777,7 +8789,8 @@ window.dashboardCompanies = [
       0.9008,
       0.9419,
       0.9623,
-      1.0086
+      1.0086,
+      1.0562
     ],
     "yoyLine": [
       null,
@@ -8846,7 +8859,8 @@ window.dashboardCompanies = [
       35.8,
       41.4,
       43.4,
-      54.9
+      54.9,
+      59.7
     ],
     "momLine": [
       null,
@@ -8915,7 +8929,8 @@ window.dashboardCompanies = [
       4.7,
       4.6,
       2.2,
-      4.8
+      4.8,
+      4.7
     ],
     "yearly": {
       "labels": [
@@ -9011,7 +9026,7 @@ window.dashboardCompanies = [
             41.4,
             43.4,
             54.9,
-            null,
+            59.7,
             null,
             null,
             null,
@@ -9684,16 +9699,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "파워/PSU",
     "currency": {
-      "USD": 2.133,
-      "NTD": 67.0732
+      "USD": 2.054,
+      "NTD": 64.586
     },
     "marketCap": {
       "USD": 180.1,
       "NTD": 5675.6
     },
-    "mom": 2.2,
-    "yoy": 47.8,
-    "month": "26/07",
+    "mom": -3.7,
+    "yoy": 35.0,
+    "month": "26/08",
     "bars": [
       25.1152,
       20.3442,
@@ -9761,7 +9776,8 @@ window.dashboardCompanies = [
       58.6917,
       58.9618,
       65.6026,
-      67.0732
+      67.0732,
+      64.586
     ],
     "yoyLine": [
       null,
@@ -9830,7 +9846,8 @@ window.dashboardCompanies = [
       43.9,
       43.6,
       55.4,
-      47.8
+      47.8,
+      35.0
     ],
     "momLine": [
       null,
@@ -9899,7 +9916,8 @@ window.dashboardCompanies = [
       -1.8,
       0.5,
       11.3,
-      2.2
+      2.2,
+      -3.7
     ],
     "yearly": {
       "labels": [
@@ -9995,7 +10013,7 @@ window.dashboardCompanies = [
             43.6,
             55.4,
             47.8,
-            null,
+            35.0,
             null,
             null,
             null,
@@ -14945,16 +14963,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "반도체 장비",
     "currency": {
-      "USD": 0.025,
-      "NTD": 0.7929
+      "USD": 0.021,
+      "NTD": 0.6814
     },
     "marketCap": {
       "USD": 2.7,
       "NTD": 86.6
     },
-    "mom": 25.6,
-    "yoy": 42.4,
-    "month": "26/07",
+    "mom": -14.1,
+    "yoy": 43.4,
+    "month": "26/08",
     "bars": [
       null,
       null,
@@ -15022,7 +15040,8 @@ window.dashboardCompanies = [
       0.5364,
       0.5591,
       0.6311,
-      0.7929
+      0.7929,
+      0.6814
     ],
     "yoyLine": [
       null,
@@ -15091,7 +15110,8 @@ window.dashboardCompanies = [
       -4.4,
       7.2,
       15.2,
-      42.4
+      42.4,
+      43.4
     ],
     "momLine": [
       null,
@@ -15160,7 +15180,8 @@ window.dashboardCompanies = [
       9.7,
       4.2,
       12.9,
-      25.6
+      25.6,
+      -14.1
     ],
     "yearly": {
       "labels": [
@@ -15256,7 +15277,7 @@ window.dashboardCompanies = [
             7.2,
             15.2,
             42.4,
-            null,
+            43.4,
             null,
             null,
             null,
