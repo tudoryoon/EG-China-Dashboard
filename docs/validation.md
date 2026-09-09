@@ -61,3 +61,10 @@
 - Thirty-two tests pass, including connection failures, stale successful responses, exhaustion of all sources, symbol validation, adjusted-history alignment, and explicit forced verification without weakening scheduled backup skipping. Original scoring engines and CSS remain unchanged.
 - Manual recovery collected all equity prices and Taiwan source rows, then rebuilt both markets against the corrected benchmarks: HK 583/583 and China 803/803, all 1,386 quote dates September 8. All five ETF sources and both benchmark sources are Tencent. Taiwan strict collection updated August revenue for 10 companies; 37 companies now have August and seven have July, plus both aggregates. Regional, session-freshness, Taiwan, provenance and JavaScript checks pass.
 - `Verify Full Data Refresh` is a manual, read-only Action that runs the real collectors and validators with `--force`; it never commits or deploys. The three scheduled publication jobs retain their normal checkpoints and concurrency lock.
+
+## STAR 50 index addition — 2026-09-09
+
+- Added `000688.SS` as `STAR 50 Index` and asset type `Index` to both China RS and Trend Score. Tencent supplied 651 verified sessions through September 8; Eastmoney is an identity- and freshness-checked fallback.
+- September 8 output: close 1,591.00, 1D -1.52%, RS 53, and Trend Score 4 versus CSI800. Period RS values are 1W 22, 2W 39, 1M 24, 3M 40, 6M 84, and 12M 76.
+- STAR 50 receives an independent percentile against the China equity population through the unchanged RS engine. A full comparison with the prior published file confirms all 800 equity RS values remain identical. The index is excluded from equity ranks and market-cap calculations.
+- China coverage is 804/804 at the September 8 session: 800 CSI equities, three requested ETFs, and STAR 50. All 34 tests and regional/provenance/JavaScript checks pass. The daily collector now retains STAR 50 automatically.

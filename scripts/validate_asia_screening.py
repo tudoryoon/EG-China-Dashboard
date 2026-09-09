@@ -25,12 +25,20 @@ def main():
                 assert row["asOfDate"] == rs["updatedAt"]
                 assert row["returns"]["1d"] is not None
                 assert row["rsRatingAll"] is not None
+            if row["assetType"] == "Index":
+                assert ticker == "000688.SS"
+                assert row["name"] == "STAR 50 Index"
+                assert row["rsBasis"] == "equity-reference-percentile"
+                assert row["priceSource"]["provider"] in ("Tencent", "Eastmoney")
+                assert row["asOfDate"] == rs["updatedAt"]
+                assert row["returns"]["1d"] is not None
+                assert row["rsRatingAll"] is not None
             if row["rsRatingAll"] is not None:
                 assert 1 <= row["rsRatingAll"] <= 99
             assert row["currency"] == data["meta"]["currency"]
         for row in trend["rows"]["all"]:
             assert row["score"] is None or 0 <= row["score"] <= 10
-            if rows[row["ticker"]]["assetType"] == "ETF":
+            if rows[row["ticker"]]["assetType"] in ("ETF", "Index"):
                 assert row["score"] is not None and row["asOfDate"] == rs["updatedAt"], row["ticker"]
             if row.get("scoreBasis") == "available-history-provisional":
                 assert row["ticker"] in ("6082.HK", "0100.HK")

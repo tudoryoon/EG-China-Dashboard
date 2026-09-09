@@ -74,6 +74,10 @@ class EngineTests(unittest.TestCase):
         expected = rs.weighted_rs_rating(rs.build_period_rs_ratings(pd.concat([equities, etfs[["E"]]], axis=1)))["E"]
         pd.testing.assert_series_equal(together["E"], expected)
         self.assertGreater(together["E"].iloc[-1], together["F"].iloc[-1])
+        # The same independent reference rule is used for an index such as STAR 50.
+        _, with_index = build_regional_rs(equities, pd.DataFrame({"000688.SS": etfs["E"]}), rs)
+        pd.testing.assert_frame_equal(with_index[equities.columns], baseline)
+        pd.testing.assert_series_equal(with_index["000688.SS"], together["E"], check_names=False)
 
     def test_provisional_has_minimum_and_converges_to_standard_at_200(self):
         import pandas as pd

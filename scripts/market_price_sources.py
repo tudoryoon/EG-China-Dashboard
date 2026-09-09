@@ -4,6 +4,8 @@ import math
 from regional_supplements import ETF_SECIDS, parse_etf_history
 
 TENCENT_URL = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
+EASTMONEY_URL = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
+INDEX_SECIDS = {"000688.SS": "1.000688"}
 
 
 def tencent_symbol(symbol):
@@ -85,4 +87,29 @@ def tencent_history(symbol, expected, get):
                              "adjustment": "qfq adjusted OHLC; rawClose and raw volume retained" if symbol in ETF_SECIDS else "unadjusted index close",
                              "volumeUnit": "shares" if symbol in ETF_SECIDS else "provider index volume"}
     result["priceSource"].pop("secid", None)
+    return require_current(result, expected)
+
+
+def eastmoney_index_history(symbol, expected, get):
+    secid = INDEX_SECIDS[symbol]
+    response = get(EASTMONEY_URL, params={
+        "secid": secid, "klt": "101", "fqt": "0", "beg": "20240101", "end": "20500101",
+        "fields1": "f1,f2,f3,f4,f5,f6", "fields2": "f51,f52,f53,f54,f55,f56,f57",
+    }).json()
+    data = response.get("data") or {}
+    if str(data.get("code", "")).zfill(6) != symbol.split(".")[0]:
+        raise ValueError(f"Wrong Eastmoney index: {symbol}")
+    records = []
+    for line in data.get("klines", []):
+        values = line.split(",")
+        if values[0] > expected:
+            continue
+        opening, close, high, low, volume = map(float, values[1:6])
+        if not all(math.isfinite(x) for x in (opening, close, high, low, volume)) or not 0 < low <= close <= high or opening <= 0 or volume < 0:
+            raise ValueError(f"Invalid Eastmoney index OHLCV: {symbol} {values[0]}")
+        records.append({"date": values[0], "open": opening, "close": close, "high": high,
+                        "low": low, "volume": volume, "adjClose": close})
+    result = {"name": data.get("name") or symbol, "records": records,
+              "priceSource": {"provider": "Eastmoney", "url": EASTMONEY_URL,
+                              "secid": secid, "adjustment": "unadjusted index OHLCV"}}
     return require_current(result, expected)

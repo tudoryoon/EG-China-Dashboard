@@ -7,6 +7,10 @@ import market_price_sources as sources
 
 
 class PriceSourceTests(unittest.TestCase):
+    def test_star50_symbol_mapping(self):
+        self.assertEqual(sources.tencent_symbol('000688.SS'), 'sh000688')
+        self.assertEqual(sources.INDEX_SECIDS['000688.SS'], '1.000688')
+
     def payload(self, key='day', symbol='hk03033'):
         return {'code': 0, 'data': {symbol: {'qt': {symbol: ['100', 'ETF', symbol[2:]]}, key: [
             ['2026-09-07', '4.48', '4.438', '4.482', '4.424', '1460273673'],
@@ -59,3 +63,15 @@ class PriceSourceTests(unittest.TestCase):
         get = Mock(side_effect=[Mock(json=lambda: raw), Mock(json=lambda: adj)])
         with self.assertRaises(ValueError):
             sources.tencent_history('588200.SS', '2026-09-09', get)
+
+    def test_eastmoney_star50_identity_freshness_and_ohlcv(self):
+        lines = [f'2024-01-{day:02d},100,101,102,99,1000,100000' for day in range(1, 29)] * 15
+        lines[-1] = '2026-09-08,1200,1210,1220,1190,2000,2000000'
+        response = Mock(json=lambda: {'data': {'code': '000688', 'name': 'STAR 50', 'klines': lines}})
+        result = sources.eastmoney_index_history('000688.SS', '2026-09-08', Mock(return_value=response))
+        self.assertEqual(result['records'][-1]['date'], '2026-09-08')
+        self.assertEqual(result['records'][-1]['adjClose'], 1210)
+        self.assertEqual(result['priceSource']['provider'], 'Eastmoney')
+        wrong = Mock(json=lambda: {'data': {'code': '000300', 'klines': lines}})
+        with self.assertRaises(ValueError):
+            sources.eastmoney_index_history('000688.SS', '2026-09-08', Mock(return_value=wrong))

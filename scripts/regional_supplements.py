@@ -55,12 +55,12 @@ def parse_etf_history(symbol, raw, adjusted, completed_through):
                             "volumeUnit": "shares", "openOutsideSessionRangeDates": opening_notes}}
 
 
-def build_regional_rs(equity_prices, etf_prices, engine):
-    """Score each ETF against regional equities without changing equity ranks."""
+def build_regional_rs(equity_prices, supplemental_prices, engine):
+    """Score each ETF/index against equities without changing equity ranks."""
     import pandas as pd
     periods = engine.build_period_rs_ratings(equity_prices)
-    for ticker in etf_prices:
-        reference = pd.concat([equity_prices, etf_prices[[ticker]]], axis=1)
+    for ticker in supplemental_prices:
+        reference = pd.concat([equity_prices, supplemental_prices[[ticker]]], axis=1)
         supplementary = engine.build_period_rs_ratings(reference)
         for period, values in supplementary.items():
             periods[period][ticker] = values[ticker]
