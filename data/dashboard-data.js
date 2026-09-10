@@ -127,16 +127,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "파운드리",
     "currency": {
-      "USD": 14.868,
-      "NTD": 467.5805
+      "USD": 16.37,
+      "NTD": 514.8053
     },
     "marketCap": {
       "USD": 1838.9,
       "NTD": 57958
     },
-    "mom": 5.6,
-    "yoy": 44.7,
-    "month": "26/07",
+    "mom": 10.1,
+    "yoy": 53.3,
+    "month": "26/08",
     "bars": [
       126.7492,
       106.5337,
@@ -204,7 +204,8 @@ window.dashboardCompanies = [
       410.7251,
       416.9752,
       442.68,
-      467.5805
+      467.5805,
+      514.8053
     ],
     "yoyLine": [
       null,
@@ -273,7 +274,8 @@ window.dashboardCompanies = [
       17.5,
       30.1,
       67.9,
-      44.7
+      44.7,
+      53.3
     ],
     "momLine": [
       null,
@@ -342,7 +344,8 @@ window.dashboardCompanies = [
       -1.1,
       1.5,
       6.2,
-      5.6
+      5.6,
+      10.1
     ],
     "yearly": {
       "labels": [
@@ -438,7 +441,7 @@ window.dashboardCompanies = [
             30.1,
             67.9,
             44.7,
-            null,
+            53.3,
             null,
             null,
             null,
