@@ -10,6 +10,7 @@ class PriceSourceTests(unittest.TestCase):
     def test_star50_symbol_mapping(self):
         self.assertEqual(sources.tencent_symbol('000688.SS'), 'sh000688')
         self.assertEqual(sources.INDEX_SECIDS['000688.SS'], '1.000688')
+        self.assertEqual(sources.INDEX_SECIDS['^HSI'], '100.HSI')
 
     def payload(self, key='day', symbol='hk03033'):
         return {'code': 0, 'data': {symbol: {'qt': {symbol: ['100', 'ETF', symbol[2:]]}, key: [
@@ -75,3 +76,23 @@ class PriceSourceTests(unittest.TestCase):
         wrong = Mock(json=lambda: {'data': {'code': '000300', 'klines': lines}})
         with self.assertRaises(ValueError):
             sources.eastmoney_index_history('000688.SS', '2026-09-08', Mock(return_value=wrong))
+
+        hsi = Mock(json=lambda: {'data': {'code': 'HSI', 'name': 'Hang Seng Index', 'klines': lines}})
+        result = sources.eastmoney_index_history('^HSI', '2026-09-08', Mock(return_value=hsi))
+        self.assertEqual(result['records'][-1]['date'], '2026-09-08')
+
+    def test_tencent_equity_keeps_raw_ohlc_and_uses_adjusted_close(self):
+        raw = self.payload(symbol='sh600519')
+        adjusted = self.payload('qfqday', 'sh600519')
+        adjusted['data']['sh600519']['qfqday'][-1][1:5] = ['3.96', '3.96', '3.96', '3.96']
+        get = Mock(side_effect=[Mock(json=lambda: raw), Mock(json=lambda: adjusted)])
+        result = sources.tencent_equity_history('600519.SS', '2026-09-09', get)
+        self.assertEqual(result['records'][-1]['close'], 4.4)
+        self.assertEqual(result['records'][-1]['adjClose'], 3.96)
+        self.assertEqual(result['records'][-1]['volume'], 10000)
+        self.assertEqual(result['priceSource']['provider'], 'Tencent')
+
+        adjusted['data']['sh600519']['qfqday'].pop(1)
+        get = Mock(side_effect=[Mock(json=lambda: raw), Mock(json=lambda: adjusted)])
+        with self.assertRaises(ValueError):
+            sources.tencent_equity_history('600519.SS', '2026-09-09', get)

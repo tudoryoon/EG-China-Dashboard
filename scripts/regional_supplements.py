@@ -8,6 +8,7 @@ ETF_SECIDS = {
 }
 ETF_SOURCE = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
 PROVISIONAL_TREND = {"6082.HK": 60, "0100.HK": 60}
+DEFAULT_PROVISIONAL_TREND_MIN_PERIODS = 20
 
 
 def parse_etf_history(symbol, raw, adjusted, completed_through):
@@ -68,15 +69,39 @@ def build_regional_rs(equity_prices, supplemental_prices, engine):
 
 
 def build_regional_trend(engine, universe, meta, rs_payload, *args):
-    """Enable the upstream available-history mode only for requested new listings."""
+    """Use upstream available-history scoring when the latest 200-session window has gaps."""
     previous = engine.PROVISIONAL_LONG_TREND_MIN_PERIODS_BY_TICKER
     previous_set = engine.PROVISIONAL_LONG_TREND_TICKERS
-    enabled = {ticker: minimum for ticker, minimum in PROVISIONAL_TREND.items()
-               if sum(value is not None for value in rs_payload.get("histories", {}).get(ticker, {}).get("price", [])) < 200}
+    enabled = {}
+    for ticker, history in rs_payload.get("histories", {}).items():
+        prices = history.get("price", [])
+        relative = history.get("rsRatingAll", [])
+        sessions = sum(value is not None for value in prices)
+        minimum = PROVISIONAL_TREND.get(ticker, DEFAULT_PROVISIONAL_TREND_MIN_PERIODS)
+        standard_ready = (
+            len(prices) >= 200
+            and all(value is not None for value in prices[-200:])
+            and all(value is not None for value in relative[-200:])
+        )
+        available_ready = (
+            sum(value is not None for value in prices[-200:]) >= minimum
+            and sum(value is not None for value in relative[-200:]) >= minimum
+        )
+        if not standard_ready and available_ready:
+            enabled[ticker] = minimum
     try:
         engine.PROVISIONAL_LONG_TREND_MIN_PERIODS_BY_TICKER = {**previous, **enabled}
         engine.PROVISIONAL_LONG_TREND_TICKERS = set(engine.PROVISIONAL_LONG_TREND_MIN_PERIODS_BY_TICKER)
-        return engine.build_universe_payload(universe, meta, rs_payload, *args)
+        result = engine.build_universe_payload(universe, meta, rs_payload, *args)
+        if result:
+            for row in result[0]:
+                if row["ticker"] in enabled and row.get("score") is not None:
+                    row["scoreBasis"] = "available-history-provisional"
+                    row["historySessions"] = sum(
+                        value is not None
+                        for value in rs_payload["histories"][row["ticker"]].get("price", [])
+                    )
+        return result
     finally:
         engine.PROVISIONAL_LONG_TREND_MIN_PERIODS_BY_TICKER = previous
         engine.PROVISIONAL_LONG_TREND_TICKERS = previous_set

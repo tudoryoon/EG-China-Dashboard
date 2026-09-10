@@ -57,13 +57,16 @@ jobs:
         run: |
           set -o pipefail
           python scripts/refresh_all_data.py refresh 2>&1 | tee "$RUNNER_TEMP/refresh-data.log"
+      - name: Audit every regional security date before publication
+        if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
+        run: python scripts/validate_asia_screening.py
       - name: Report refresh failure
         if: failure() && steps.refresh.outcome == 'failure'
         shell: bash
         run: |
           echo '### Data refresh failed; no data was published. Later attempts will retry.' >> "$GITHUB_STEP_SUMMARY"
           echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          tail -n 45 "$RUNNER_TEMP/refresh-data.log" >> "$GITHUB_STEP_SUMMARY"
+          tail -n 80 "$RUNNER_TEMP/refresh-data.log" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
       - name: Publish completed data together
         id: publish

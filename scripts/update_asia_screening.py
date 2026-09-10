@@ -17,7 +17,14 @@ import update_market_rs as rs
 import update_market_trend_score as trend
 from hsci_constituents import parse_hsci
 from regional_supplements import ETF_SECIDS, ETF_SOURCE, parse_etf_history, build_regional_rs, build_regional_trend
-from market_price_sources import INDEX_SECIDS, current_source, eastmoney_index_history, tencent_history
+from market_price_sources import (
+    INDEX_SECIDS,
+    current_source,
+    eastmoney_index_history,
+    require_current,
+    tencent_equity_history,
+    tencent_history,
+)
 from refresh_all_data import expected_session
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,7 +36,7 @@ WATCH = {
     "cn": "000688.SS 588200.SS 002371.SZ 600183.SS 562500.SS 688072.SS 000977.SZ 688702.SS 159819.SZ 301377.SZ 601869.SS".split(),
 }
 ETFS = {"3033.HK", "3109.HK", "588200.SS", "562500.SS", "159819.SZ"}
-INDEXES = set(INDEX_SECIDS)
+INDEXES = {"000688.SS"}
 META = {
     "hk": {"label": "Hong Kong", "currency": "HKD", "benchmark": "^HSI", "benchmarkLabel": "Hang Seng Index", "fx": "HKD=X"},
     "cn": {"label": "China A", "currency": "CNY", "benchmark": "000906", "benchmarkLabel": "CSI 800", "fx": "CNY=X"},
@@ -169,6 +176,15 @@ def index_chart(symbol):
     return payload
 
 
+def equity_chart(symbol, expected, full=False):
+    payload = current_source(symbol, expected, [
+        ("Tencent", lambda: tencent_equity_history(symbol, expected, get)),
+        ("Yahoo Finance", lambda: require_current(chart(symbol, full), expected, minimum=30)),
+    ], minimum=30)
+    write_json(CACHE / (symbol + ".json"), payload)
+    return payload
+
+
 def serial(series, digits=2):
     return [None if pd.isna(x) else round(float(x), digits) for x in series]
 
@@ -189,27 +205,39 @@ def legacy_benchmark(region, full=False):
     return {"records": records, "source": url}
 
 
-def regional_benchmark(region, full=False):
+def regional_benchmark(region, full=False, cached=False):
+    cache_path = CACHE / f"benchmark-{region}.json"
+    if cached and cache_path.exists():
+        return json.loads(cache_path.read_text(encoding="utf8"))
     symbol = META[region]["benchmark"]
     expected = completed_session(symbol)
-    return current_source(symbol, expected, [
-        ("Tencent", lambda: tencent_history(symbol, expected, get)),
-        ("Yahoo Finance" if region == "hk" else "Eastmoney", lambda: legacy_benchmark(region, full)),
-    ])
+    providers = [("Tencent", lambda: tencent_history(symbol, expected, get))]
+    if region == "hk":
+        providers.extend([
+            ("Eastmoney", lambda: eastmoney_index_history(symbol, expected, get)),
+            ("Yahoo Finance", lambda: legacy_benchmark(region, full)),
+        ])
+    else:
+        providers.append(("Eastmoney", lambda: legacy_benchmark(region, full)))
+    payload = current_source(symbol, expected, providers)
+    write_json(cache_path, payload)
+    return payload
 
 
 def run(region, full=False, recalculate=False):
     members, sources = constituents(region, cached=recalculate)
     write_json(ROOT / "data" / f"asia-{region}-constituents.json", {"sources": sources, "members": members})
     meta = META[region]
-    benchmark = regional_benchmark(region, full)
+    benchmark = regional_benchmark(region, full, recalculate)
     benchmark_frame = pd.DataFrame(benchmark["records"]).set_index("date")
     dates = pd.DatetimeIndex(benchmark_frame.index)
     dates = dates[dates >= "2024-01-01"]
     latest = dates[-1]
     now = datetime.now(timezone(timedelta(hours=8)))
     assert (now.date() - latest.date()).days <= 12, "Stale benchmark; refusing date rollback"
-    fx = chart(meta["fx"])["records"][-1]["close"]
+    fx_path = CACHE / (meta["fx"] + ".json")
+    fx_data = json.loads(fx_path.read_text(encoding="utf8")) if recalculate and fx_path.exists() else chart(meta["fx"])
+    fx = fx_data["records"][-1]["close"]
     frames, errors, price_sources = {}, {}, {}
     info_path = ROOT / "data" / f"asia-{region}-metadata.json"
     infos = json.loads(info_path.read_text(encoding="utf8")) if info_path.exists() else {}
@@ -217,13 +245,20 @@ def run(region, full=False, recalculate=False):
     def fetch(member):
         symbol = member["ticker"]
         cache_path = CACHE / (symbol + ".json")
-        data = json.loads(cache_path.read_text(encoding="utf8")) if recalculate and cache_path.exists() else chart(symbol, full)
+        if recalculate and cache_path.exists():
+            data = json.loads(cache_path.read_text(encoding="utf8"))
+        elif member["assetType"] == "Equity":
+            data = equity_chart(symbol, latest.date().isoformat(), full)
+        else:
+            data = chart(symbol, full)
         if symbol in ETFS and ("rawClose" not in data["records"][-1] or data["records"][-1]["date"] < latest.date().isoformat()):
             data = etf_chart(symbol)
         if symbol in INDEXES and data["records"][-1]["date"] < latest.date().isoformat():
             data = index_chart(symbol)
         if symbol in ETFS | INDEXES and data["records"][-1]["date"] < latest.date().isoformat():
             raise ValueError(f"Supplemental quote behind benchmark: {symbol}; retry needed")
+        if data["records"][-1]["date"] < latest.date().isoformat():
+            raise ValueError(f"Quote behind benchmark: {symbol}; retry needed")
         info = infos.get(symbol, {})
         age = (latest.date() - datetime.fromisoformat(info.get("asOf", "2000-01-01")).date()).days
         if member["assetType"] == "Index":

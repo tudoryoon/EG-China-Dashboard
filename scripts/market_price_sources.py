@@ -1,11 +1,28 @@
-"""Independent, freshness-checked sources for regional ETFs and benchmarks."""
+"""Independent, freshness-checked sources for regional securities and benchmarks."""
 from datetime import date
 import math
+from threading import Lock
+import time
 from regional_supplements import ETF_SECIDS, parse_etf_history
 
 TENCENT_URL = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
 EASTMONEY_URL = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
-INDEX_SECIDS = {"000688.SS": "1.000688"}
+INDEX_SECIDS = {"000688.SS": "1.000688", "^HSI": "100.HSI"}
+TENCENT_REQUEST_INTERVAL_SECONDS = 0.25
+_TENCENT_REQUEST_LOCK = Lock()
+_tencent_last_completed = 0.0
+
+
+def tencent_get(get, params):
+    """Serialize bulk history requests so Tencent does not throttle the daily universe refresh."""
+    global _tencent_last_completed
+    with _TENCENT_REQUEST_LOCK:
+        wait = TENCENT_REQUEST_INTERVAL_SECONDS - (time.monotonic() - _tencent_last_completed)
+        if wait > 0:
+            time.sleep(wait)
+        response = get(TENCENT_URL, params=params)
+        _tencent_last_completed = time.monotonic()
+        return response
 
 
 def tencent_symbol(symbol):
@@ -48,11 +65,11 @@ def require_current(payload, expected, minimum=400):
     return payload
 
 
-def current_source(symbol, expected, providers):
+def current_source(symbol, expected, providers, minimum=400):
     errors = []
     for name, fetch in providers:
         try:
-            payload = require_current(fetch(), expected)
+            payload = require_current(fetch(), expected, minimum)
             print(f"{symbol}: {name}, completed {expected}", flush=True)
             return payload
         except Exception as error:
@@ -65,7 +82,7 @@ def current_source(symbol, expected, providers):
 def tencent_history(symbol, expected, get):
     code = tencent_symbol(symbol)
     def fetch(adjustment):
-        response = get(TENCENT_URL, params={"param": f"{code},day,2024-01-01,{expected},1000,{adjustment}"})
+        response = tencent_get(get, {"param": f"{code},day,2024-01-01,{expected},1000,{adjustment}"})
         return parse_tencent(response.json(), symbol, adjustment, expected)
     raw = fetch("")
     if symbol in ETF_SECIDS:
@@ -90,6 +107,44 @@ def tencent_history(symbol, expected, get):
     return require_current(result, expected)
 
 
+def tencent_equity_history(symbol, expected, get):
+    """Return raw OHLC with a coherent Tencent qfq close series for RS."""
+    if symbol in ETF_SECIDS or symbol in INDEX_SECIDS or not symbol.endswith((".HK", ".SS", ".SZ")):
+        raise ValueError(f"Not a regional equity: {symbol}")
+    code = tencent_symbol(symbol)
+
+    def fetch(adjustment):
+        response = tencent_get(get, {"param": f"{code},day,2024-01-01,{expected},1000,{adjustment}"})
+        return parse_tencent(response.json(), symbol, adjustment, expected)
+
+    raw, adjusted = fetch(""), fetch("qfq")
+    if not raw["records"] or not adjusted["records"]:
+        raise ValueError(f"Empty Tencent equity history: {symbol}")
+    start = max(raw["records"][0]["date"], adjusted["records"][0]["date"])
+    prices = {row["date"]: row for row in raw["records"] if row["date"] >= start}
+    adjusted_prices = {row["date"]: row for row in adjusted["records"] if row["date"] >= start}
+    if prices.keys() != adjusted_prices.keys():
+        raise ValueError(f"Tencent equity adjusted/raw dates differ: {symbol}")
+    mainland = symbol.endswith((".SS", ".SZ"))
+    records = []
+    for day, row in prices.items():
+        item = {**row, "adjClose": adjusted_prices[day]["close"]}
+        if mainland:
+            item["volume"] *= 100
+        records.append(item)
+    return {
+        "name": raw["name"],
+        "records": records,
+        "priceSource": {
+            "provider": "Tencent",
+            "url": TENCENT_URL,
+            "symbol": code,
+            "adjustment": "raw OHLC; qfq adjusted close for RS",
+            "volumeUnit": "shares",
+        },
+    }
+
+
 def eastmoney_index_history(symbol, expected, get):
     secid = INDEX_SECIDS[symbol]
     response = get(EASTMONEY_URL, params={
@@ -97,7 +152,8 @@ def eastmoney_index_history(symbol, expected, get):
         "fields1": "f1,f2,f3,f4,f5,f6", "fields2": "f51,f52,f53,f54,f55,f56,f57",
     }).json()
     data = response.get("data") or {}
-    if str(data.get("code", "")).zfill(6) != symbol.split(".")[0]:
+    expected_code = "HSI" if symbol == "^HSI" else symbol.split(".")[0]
+    if str(data.get("code", "")).upper().zfill(6 if expected_code.isdigit() else 0) != expected_code:
         raise ValueError(f"Wrong Eastmoney index: {symbol}")
     records = []
     for line in data.get("klines", []):

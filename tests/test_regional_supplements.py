@@ -95,13 +95,19 @@ class EngineTests(unittest.TestCase):
         from types import SimpleNamespace
         def fail(*args):
             self.assertEqual(engine.PROVISIONAL_LONG_TREND_MIN_PERIODS_BY_TICKER["6082.HK"], 60)
+            self.assertEqual(engine.PROVISIONAL_LONG_TREND_MIN_PERIODS_BY_TICKER["NEW.HK"], 20)
+            self.assertEqual(engine.PROVISIONAL_LONG_TREND_MIN_PERIODS_BY_TICKER["GAPPED.HK"], 20)
             raise RuntimeError("fixture")
         original = {"EXISTING": 50}
         original_set = set(original)
         engine = SimpleNamespace(PROVISIONAL_LONG_TREND_MIN_PERIODS_BY_TICKER=original,
                                  PROVISIONAL_LONG_TREND_TICKERS=original_set, build_universe_payload=fail)
         with self.assertRaises(RuntimeError):
-            build_regional_trend(engine, "all", {}, {"histories": {"6082.HK": {"price": [1] * 167}}})
+            build_regional_trend(engine, "all", {}, {"histories": {
+                "6082.HK": {"price": [1] * 167, "rsRatingAll": [1] * 167},
+                "NEW.HK": {"price": [1] * 80, "rsRatingAll": [1] * 80},
+                "GAPPED.HK": {"price": [1] * 249 + [None], "rsRatingAll": [1] * 250},
+            }})
         self.assertIs(engine.PROVISIONAL_LONG_TREND_MIN_PERIODS_BY_TICKER, original)
         self.assertIs(engine.PROVISIONAL_LONG_TREND_TICKERS, original_set)
 
