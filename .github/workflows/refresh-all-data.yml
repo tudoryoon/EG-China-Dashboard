@@ -113,3 +113,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run deploy-pages.yml --ref main
+      - name: Queue another recovery run after failure
+        if: failure() && !inputs.check_only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh workflow run update-all-data-backup-2.yml --ref main
+          echo 'Another guarded recovery run was queued. Retries continue until a validated refresh succeeds.' >> "$GITHUB_STEP_SUMMARY"

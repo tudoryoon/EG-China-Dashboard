@@ -47,7 +47,7 @@ python scripts/validate_asia_screening.py
 
 Three daily GitHub Actions run at **21:03, 21:10, and 21:17 KST** (UTC 12:03, 12:10, 12:17), including weekends. They call `refresh-all-data.yml` and share a queued lock, so an overlapping backup waits and then reads the newest `main`.
 
-Within each Action, the complete atomic collection and validation is retried up to six times with waits of 1, 2, 3, 4, and 5 minutes. Failed attempts never reach the commit step. If every in-run attempt fails, the queued backup repeats the same retry cycle. The first successful run writes the checkpoint, commits once, and causes all remaining backups to skip update, push, and deployment.
+Within each Action, the complete atomic collection and validation is retried up to six times with waits of 1, 2, 3, 4, and 5 minutes. Failed attempts never reach the commit step. Any failed publication run dispatches the guarded 21:17 recovery workflow, so the recovery cycle continues until one run succeeds. The first successful run writes the checkpoint, commits once, and causes all remaining queued runs to skip update, push, and deployment. A GitHub Actions service or account outage can still prevent runners or dispatches from starting.
 
 Each attempt refreshes Hong Kong/China constituents, metadata, prices, RS, and Trend Score through the existing regional pipeline, then Taiwan monthly revenue with `--strict`. Metadata keeps the collector's existing refresh cadence; unchanged values are retained. Price histories are cached. Taiwan revenue is checked against the latest available source publication, not an invented daily/monthly value.
 
