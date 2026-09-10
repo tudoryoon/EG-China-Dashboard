@@ -47,6 +47,8 @@ python scripts/validate_asia_screening.py
 
 Three daily GitHub Actions run at **21:03, 21:10, and 21:17 KST** (UTC 12:03, 12:10, 12:17), including weekends. They call `refresh-all-data.yml` and share a queued lock, so an overlapping backup waits and then reads the newest `main`.
 
+Within each Action, the complete atomic collection and validation is retried up to six times with waits of 1, 2, 3, 4, and 5 minutes. Failed attempts never reach the commit step. If every in-run attempt fails, the queued backup repeats the same retry cycle. The first successful run writes the checkpoint, commits once, and causes all remaining backups to skip update, push, and deployment.
+
 Each attempt refreshes Hong Kong/China constituents, metadata, prices, RS, and Trend Score through the existing regional pipeline, then Taiwan monthly revenue with `--strict`. Metadata keeps the collector's existing refresh cadence; unchanged values are retained. Price histories are cached. Taiwan revenue is checked against the latest available source publication, not an invented daily/monthly value.
 
 Only after every collector, data validation, and market-session freshness check succeeds are all data and `.github/data-refresh-status.json` committed together. XHKG/XSHG calendars account for separate exchange holidays. A success checkpoint matching all data and pipeline hashes applies to the refresh cycle starting at 21:03 KST, including retries delayed past midnight. Later attempts skip collection, commit, push, and deployment. Failure or stale market dates do not certify success; the next attempt retries. A manual success before 21:03 does not suppress the evening refresh.
