@@ -1,11 +1,11 @@
 {
   "schemaVersion": 2,
-  "kstDate": "2026-09-11",
-  "refreshDate": "2026-09-10",
-  "completedAt": "2026-09-11T06:27:43.651811+09:00",
+  "kstDate": "2026-09-12",
+  "refreshDate": "2026-09-11",
+  "completedAt": "2026-09-12T06:08:43.550066+09:00",
   "marketSessions": {
-    "hk": "2026-09-10",
-    "cn": "2026-09-10"
+    "hk": "2026-09-11",
+    "cn": "2026-09-11"
   },
   "taiwanRevenueMonths": {
     "TSMC": "26/08",
@@ -55,12 +55,12 @@
   },
   "dataHashes": {
     "data/dashboard-data.js": "4dfc2ece67d5826e6ab9752cb3c45425818c19fab4b2de1f42bcd53630791e1a",
-    "data/asia-hk-constituents.json": "7b0206830d6a22af6ea46be6eaceda7d0ecb58567b46b638b33f2ef599f4608f",
-    "data/asia-hk-metadata.json": "a39862fbbf3970b8c30999bd24c3c005cc3f256c6d8412de5e910b56be023b90",
-    "data/asia-hk-screening.json": "60245176cd75f4a2265154be504586fa4bf33c998ad4a3a7977ca1844e8f24da",
-    "data/asia-cn-constituents.json": "a22f9f76f6e704af074843eb0ff0553adfef03b735b95024517cbf50a25b1d6d",
-    "data/asia-cn-metadata.json": "ab041f782e3500273e206a05ffec5fd002e6615b0be18a9c53e3698d210284fe",
-    "data/asia-cn-screening.json": "ba2cb07fbfbe995f85d97b486cfaf191a0722d9369816f7d6ea47009d76a5798"
+    "data/asia-hk-constituents.json": "7d21e62719aaf7bbf442b11750b30c51cd3dec850a0869a3d74825a624362aa4",
+    "data/asia-hk-metadata.json": "565728c12ac996a15d360cbba4e3124c792421fe83860402a7534e0f8eb6e74d",
+    "data/asia-hk-screening.json": "85cd77548e372c3792aa9dfb1e1c03437e6ae07f997fcec3475df314b066e772",
+    "data/asia-cn-constituents.json": "7eef6d936e74faa9076e8d613c315a5974e76de862f9848b712d9f59ff656b5c",
+    "data/asia-cn-metadata.json": "3a348be11622e12511c74cd748bfd472035b45e493781d04a7803318ddc75795",
+    "data/asia-cn-screening.json": "0046f1b9079057fcb834f83976fd27aa71c2874c995112222c3e1bdf00239edd"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -75,5 +75,5 @@
     "scripts/validate_asia_screening.py": "76bad6eb6683f029bc2bb0c8e52e00c328e96fce0597838d238b61bff07362fd",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "34501625685"
+  "runId": "34621417146"
 }
