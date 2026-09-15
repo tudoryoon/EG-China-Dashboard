@@ -26,6 +26,7 @@ from market_price_sources import (
     tencent_history,
 )
 from refresh_all_data import expected_session
+import validated_price_cache as price_cache
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".asia-screening-cache"
@@ -101,6 +102,8 @@ def chart(symbol, full=False):
         return index_chart(symbol)
     path = CACHE / (symbol.replace("^", "index-") + ".json")
     saved = json.loads(path.read_text(encoding="utf8")) if path.exists() else None
+    if saved and saved.get("priceSource", {}).get("provider") != "Yahoo Finance":
+        saved = None
     params = {"interval": "1d", "events": "div,splits"}
     if saved and not full:
         params["range"] = "1mo"
@@ -109,7 +112,7 @@ def chart(symbol, full=False):
     result = get("https://query1.finance.yahoo.com/v8/finance/chart/" + symbol, params=params).json()["chart"]["result"][0]
     quote = result["indicators"]["quote"][0]
     adjusted = (result["indicators"].get("adjclose") or [{}])[0].get("adjclose", quote.get("close", []))
-    records = {r["date"]: r for r in (saved or {}).get("records", [])}
+    records = {r["date"]: r for r in (saved or {}).get("records", [])} if not full else {}
     # Both exchanges are UTC+8. Only publish completed sessions, with a 30-minute buffer.
     now = datetime.now(timezone(timedelta(hours=8)))
     for i, timestamp in enumerate(result.get("timestamp") or []):
@@ -132,6 +135,7 @@ def chart(symbol, full=False):
         raise ValueError(f"No completed history: {symbol}")
     meta = result["meta"]
     payload = {"records": sorted(records.values(), key=lambda r: r["date"]), "name": meta.get("longName") or meta.get("shortName") or symbol}
+    payload["priceSource"] = {"provider": "Yahoo Finance", "symbol": symbol}
     write_json(path, payload)
     return payload
 
@@ -177,10 +181,17 @@ def index_chart(symbol):
 
 
 def equity_chart(symbol, expected, full=False):
-    payload = current_source(symbol, expected, [
-        ("Tencent", lambda: tencent_equity_history(symbol, expected, get)),
-        ("Yahoo Finance", lambda: require_current(chart(symbol, full), expected, minimum=30)),
-    ], minimum=30)
+    from corporate_actions import REALORD_SYMBOL, REALORD_SPLIT_DATE
+    def tencent():
+        from corporate_actions import normalize_equity_history
+        return normalize_equity_history(symbol, tencent_equity_history(symbol, expected, get), expected)
+    providers = [("Tencent", tencent)]
+    # Only the verified permanent-counter series has the explicit split repair.
+    if symbol != REALORD_SYMBOL or expected < REALORD_SPLIT_DATE:
+        providers.append(("Yahoo Finance", lambda: require_current(chart(symbol, full), expected, minimum=1)))
+    # Newly listed official constituents can have fewer observations than the
+    # scoring engine needs. Keep their current prices and explicit null scores.
+    payload = current_source(symbol, expected, providers, minimum=1)
     write_json(CACHE / (symbol + ".json"), payload)
     return payload
 
@@ -245,8 +256,12 @@ def run(region, full=False, recalculate=False):
     def fetch(member):
         symbol = member["ticker"]
         cache_path = CACHE / (symbol + ".json")
+        expected = latest.date().isoformat()
+        verified = None if full or recalculate else price_cache.read_current(cache_path, expected, 1 if member["assetType"] == "Equity" else 400)
         if recalculate and cache_path.exists():
             data = json.loads(cache_path.read_text(encoding="utf8"))
+        elif verified is not None:
+            data = verified
         elif member["assetType"] == "Equity":
             data = equity_chart(symbol, latest.date().isoformat(), full)
         else:
@@ -259,6 +274,8 @@ def run(region, full=False, recalculate=False):
             raise ValueError(f"Supplemental quote behind benchmark: {symbol}; retry needed")
         if data["records"][-1]["date"] < latest.date().isoformat():
             raise ValueError(f"Quote behind benchmark: {symbol}; retry needed")
+        if not recalculate and verified is None:
+            write_json(cache_path, price_cache.mark(data, expected))
         info = infos.get(symbol, {})
         age = (latest.date() - datetime.fromisoformat(info.get("asOf", "2000-01-01")).date()).days
         if member["assetType"] == "Index":
@@ -284,7 +301,7 @@ def run(region, full=False, recalculate=False):
                 infos[symbol] = info
                 price_sources[symbol] = price_source
             except Exception as error:
-                errors[symbol] = str(error)[:180]
+                errors[symbol] = str(error)[:1000]
             if i % 50 == 0:
                 print(f"{region}: fetched {i}/{len(members)}; errors {len(errors)}", flush=True)
     write_json(info_path, infos)

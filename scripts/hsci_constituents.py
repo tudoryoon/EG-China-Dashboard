@@ -1,4 +1,5 @@
 """Parse active HSCI members, excluding residual/dummy API rows."""
+from corporate_actions import canonical_hk_member
 
 
 def parse_hsci(data):
@@ -23,8 +24,10 @@ def parse_hsci(data):
         if not code.isdecimal() or not 0 < int(code) < 100000 or not row.get('constituentName'):
             raise ValueError(f'HSCI: invalid active constituent code/name: {code}')
         symbol = str(int(code)).zfill(4) + '.HK'
+        member = canonical_hk_member(symbol, row['constituentName'], data.get('requestDate'))
+        symbol = member['ticker']
         if symbol in members:
             raise ValueError(f'HSCI: duplicate active constituent {symbol}')
-        members[symbol] = {'ticker': symbol, 'name': row['constituentName'], 'groups': ['HSCI']}
+        members[symbol] = {**member, 'groups': ['HSCI']}
     return members, {'reportedCount': expected, 'rawCount': len(raw),
                      'excludedCodes': [str(row.get('code', '')) for row in raw if row.get('isDummy') != 'N']}

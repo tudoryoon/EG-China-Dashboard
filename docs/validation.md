@@ -1,5 +1,14 @@
 # Initial migration validation — 2026-09-07
 
+## September 14 failure repaired September 15, 2026
+
+- Run 34878206776 repeatedly rejected 2922.HK because its temporary counter had only one session. HKEX confirms this is Realord's 1196 counter after a 1-into-4 split effective September 14. The permanent Tencent series has full history and current quotes; canonical identity and explicit split normalization restore continuity without joining providers or manufacturing prices.
+- Other attempts failed when Taiwan's EMOPS server refused connections. Repeating every source on every attempt exhausted the 330-minute job limit; cancellation skipped the old in-job recovery step.
+- Same-run verified quote and Taiwan response caches retain completed collection work. Tencent starts remain limited to four per second, but network responses no longer hold the global lock. Yahoo fallback rebuilds its own series rather than merging another provider's cache.
+- Each attempt has a 45-minute process-tree timeout. Corrected data must still pass every coverage, freshness, scoring, and migration check before publication.
+- A separate completion watcher distinguishes GitHub's execution-limit cancellations from deliberate user cancellations using check-run annotations. Repeated Tencent failures open a five-minute circuit breaker; fallbacks still require the exact completed session. New HSCI constituent 0625.HK has ten sessions and is retained with current prices and null scores until sufficient history exists.
+- Rebuilt September 14 snapshots contain Hong Kong 584/584 and China 804/804 with zero stale rows or missing securities. Only 0625.HK lacks overall RS/trend scores because its actual ten-session history is too short. Realord 1196.HK retains 664 sessions, with a split-adjusted one-day return of +6.18%. The 71-test suite passes both with dependencies and before dependency installation (nine integration tests correctly skip in the latter environment).
+
 - Regional validator: Hong Kong 582 securities and China 803 securities, both dated 2026-09-04. All expected tickers are covered; ETF rank exclusion, currencies, history lengths, and score bounds pass.
 - SHA-256 checks confirm the RS engine, Trend Score engine, regional collector, and CSS match the upstream baseline byte for byte.
 - JavaScript syntax check and Python compilation pass. Local frontend assets resolve.

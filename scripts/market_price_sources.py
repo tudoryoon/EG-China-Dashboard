@@ -10,19 +10,65 @@ EASTMONEY_URL = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
 INDEX_SECIDS = {"000688.SS": "1.000688", "^HSI": "100.HSI"}
 TENCENT_REQUEST_INTERVAL_SECONDS = 0.25
 _TENCENT_REQUEST_LOCK = Lock()
-_tencent_last_completed = 0.0
+_tencent_last_started = 0.0
+
+
+class ProviderCircuitBreaker:
+    """Pause a failing provider, then allow one recovery probe across workers."""
+
+    def __init__(self, failure_threshold=5, cooldown_seconds=300, clock=time.monotonic):
+        self.failure_threshold = failure_threshold
+        self.cooldown_seconds = cooldown_seconds
+        self.clock = clock
+        self._lock = Lock()
+        self._failures = 0
+        self._blocked_until = None
+        self._probe_in_flight = False
+        self._generation = 0
+
+    def acquire(self):
+        """Return a request ticket, or None while the provider is paused."""
+        with self._lock:
+            if self._blocked_until is not None:
+                if self.clock() < self._blocked_until or self._probe_in_flight:
+                    return None
+                self._probe_in_flight = True
+            return self._generation
+
+    def success(self, ticket):
+        with self._lock:
+            if ticket != self._generation:
+                return
+            self._failures = 0
+            self._blocked_until = None
+            self._probe_in_flight = False
+
+    def failure(self, ticket):
+        with self._lock:
+            if ticket != self._generation:
+                return
+            self._failures += 1
+            if self._probe_in_flight or self._failures >= self.failure_threshold:
+                self._blocked_until = self.clock() + self.cooldown_seconds
+                self._probe_in_flight = False
+                # An already-running success must not reopen a failed provider.
+                self._generation += 1
+
+
+# This state lasts only for this collector process. Other providers always keep
+# their normal fallback order, and every accepted payload still passes freshness.
+_TENCENT_CIRCUIT = ProviderCircuitBreaker()
 
 
 def tencent_get(get, params):
-    """Serialize bulk history requests so Tencent does not throttle the daily universe refresh."""
-    global _tencent_last_completed
+    """Limit request starts to four/second without blocking other network responses."""
+    global _tencent_last_started
     with _TENCENT_REQUEST_LOCK:
-        wait = TENCENT_REQUEST_INTERVAL_SECONDS - (time.monotonic() - _tencent_last_completed)
+        wait = TENCENT_REQUEST_INTERVAL_SECONDS - (time.monotonic() - _tencent_last_started)
         if wait > 0:
             time.sleep(wait)
-        response = get(TENCENT_URL, params=params)
-        _tencent_last_completed = time.monotonic()
-        return response
+        _tencent_last_started = time.monotonic()
+    return get(TENCENT_URL, params=params)
 
 
 def tencent_symbol(symbol):
@@ -68,11 +114,22 @@ def require_current(payload, expected, minimum=400):
 def current_source(symbol, expected, providers, minimum=400):
     errors = []
     for name, fetch in providers:
+        circuit = _TENCENT_CIRCUIT if name == "Tencent" else None
+        ticket = circuit.acquire() if circuit is not None else None
+        if circuit is not None and ticket is None:
+            reason = f"{name}: temporarily paused after repeated failures; recovery probe after cooldown"
+            errors.append(reason)
+            print(f"{symbol}: source skipped; {reason}", flush=True)
+            continue
         try:
             payload = require_current(fetch(), expected, minimum)
+            if circuit is not None:
+                circuit.success(ticket)
             print(f"{symbol}: {name}, completed {expected}", flush=True)
             return payload
         except Exception as error:
+            if circuit is not None:
+                circuit.failure(ticket)
             reason = f"{name}: {error}"
             errors.append(reason)
             print(f"{symbol}: source rejected; {reason}", flush=True)

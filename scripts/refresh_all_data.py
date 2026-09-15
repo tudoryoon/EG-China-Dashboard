@@ -19,6 +19,7 @@ DATA_FILES = ('data/dashboard-data.js',) + tuple(
     for kind in ('constituents', 'metadata', 'screening')
 )
 PIPELINE_FILES = ('requirements.txt', 'scripts/refresh_all_data.py',
+                  'scripts/corporate_actions.py', 'scripts/validated_price_cache.py',
                   'scripts/hsci_constituents.py',
                   'scripts/regional_supplements.py',
                   'scripts/market_price_sources.py',

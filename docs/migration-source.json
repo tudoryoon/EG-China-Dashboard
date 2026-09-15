@@ -15,6 +15,10 @@
     "data/asia-hk-screening.json": "531002e813ac21d551896ea82d5dd75553a9f33521a62b5cffdc07417d5bbe93"
   },
   "adaptedFiles": {
+    "scripts/corporate_actions.py": "2026-09-15: HKEX-backed 1196/2922 temporary-counter identity and 1-into-4 split normalization with raw-value provenance and double-adjustment guards.",
+    "scripts/validated_price_cache.py": "2026-09-15: exact-session verified prices reused only inside the same collection run; no daily freshness bypass.",
+    "scripts/retry_data_refresh.py": "2026-09-15: six bounded 45-minute process-tree attempts with incremental backoff.",
+    "scripts/recover_timed_out_refresh.py": "2026-09-15: recover only cancelled main-branch update jobs with explicit GitHub timeout annotations; manual cancellation remains stopped.",
     "dashboard.js": "User-requested RS / Trend Score / Taiwan hierarchy, China / Hong Kong subtabs, RS/China default and canonical URLs; original shared renderers retained. HK/C1/C2 ticker aliases and All-filter inclusion of unscored/unknown-cap securities added on 2026-09-08.",
     "index.html": "Regional identity; removed redundant parent-tab row; original chart libraries, styles and remaining DOM retained.",
     ".github/workflows/update-asia-screening.yml": "Daily KST 21:03 all-data refresh with separate 21:10 and 21:17 guarded backups.",

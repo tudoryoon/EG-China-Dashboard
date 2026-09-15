@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import argparse
+from datetime import datetime, timedelta, timezone
 import math
+import os
 import re
 import time
 import warnings
@@ -22,6 +24,9 @@ SERIES_START_YEAR = 2021
 SERIES_START_MONTH = 1
 REQUEST_DELAY_SECONDS = 1.2
 MAX_RETRIES = 5
+CACHE_PATH = ROOT / ".asia-screening-cache" / "taiwan-revenue"
+CACHE_MAX_AGE = timedelta(hours=6)
+KST = timezone(timedelta(hours=9))
 
 COMPANY_CODES = {
     "TSMC": "2330",
@@ -125,8 +130,66 @@ def number_or_none(value: object) -> float | None:
     return numeric
 
 
+def revenue_url(code: str) -> str:
+    return f"https://emops.twse.com.tw/server-java/t146sb05_e?step=0&co_id={code}"
+
+
+def retry_cache_scope() -> str | None:
+    """Reuse successful requests only within this collection/retry run."""
+    run_id = os.getenv("GITHUB_RUN_ID")
+    if run_id:
+        return f"github:{run_id}:{os.getenv('GITHUB_RUN_ATTEMPT', '1')}"
+    # Manual retry callers must explicitly supply a unique run scope.
+    scope = os.getenv("EG_DATA_REFRESH_SCOPE")
+    return f"local:{scope}" if scope else None
+
+
+def valid_revenue_rows(rows: object) -> bool:
+    if not isinstance(rows, dict) or not rows:
+        return False
+    for period, row in rows.items():
+        if not isinstance(period, str) or not re.fullmatch(r"20\d{2}/(?:0[1-9]|1[0-2])", period):
+            return False
+        if not isinstance(row, dict) or number_or_none(row.get("revenue")) is None:
+            return False
+        if row.get("yoy") is not None and number_or_none(row["yoy"]) is None:
+            return False
+    return True
+
+
+def cached_revenue(code: str, scope: str | None, now: datetime | None = None) -> dict | None:
+    if not scope:
+        return None
+    now = now or datetime.now(KST)
+    try:
+        record = json.loads((CACHE_PATH / f"{code}.json").read_text(encoding="utf-8"))
+        fetched = datetime.fromisoformat(record["fetchedAt"])
+        if (record.get("schemaVersion") != 1 or record.get("scope") != scope
+                or record.get("code") != code or record.get("source") != revenue_url(code)
+                or fetched.tzinfo is None or not timedelta(0) <= now - fetched <= CACHE_MAX_AGE
+                or not valid_revenue_rows(record.get("rows"))):
+            return None
+        return record["rows"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def cache_revenue(code: str, scope: str | None, rows: dict, now: datetime | None = None) -> None:
+    if not scope or not valid_revenue_rows(rows):
+        return
+    record = {
+        "schemaVersion": 1, "scope": scope, "code": code, "source": revenue_url(code),
+        "fetchedAt": (now or datetime.now(KST)).isoformat(), "rows": rows,
+    }
+    CACHE_PATH.mkdir(parents=True, exist_ok=True)
+    destination = CACHE_PATH / f"{code}.json"
+    temporary = destination.with_suffix(".tmp")
+    temporary.write_text(json.dumps(record, allow_nan=False), encoding="utf-8")
+    temporary.replace(destination)
+
+
 def fetch_recent_revenue(code: str, session: requests.Session) -> dict[str, dict[str, float]]:
-    url = f"https://emops.twse.com.tw/server-java/t146sb05_e?step=0&co_id={code}"
+    url = revenue_url(code)
     last_error: Exception | None = None
     for attempt in range(1, MAX_RETRIES + 1):
         try:
@@ -316,21 +379,40 @@ def main(strict: bool = False) -> None:
     session.headers.update({"User-Agent": "Mozilla/5.0"})
     updated: dict[str, list[str]] = {}
     skipped: list[str] = []
+    failures: dict[str, str] = {}
+    scope = retry_cache_scope()
 
     for name, code in COMPANY_CODES.items():
         company = by_name.get(name)
         if not company:
             if strict:
-                raise RuntimeError(f'{name}: missing dashboard company')
+                failures[name] = "missing dashboard company"
             skipped.append(f"{name}: missing dashboard company")
             continue
-        rows = fetch_recent_revenue(code, session)
-        if strict and not rows:
-            raise RuntimeError(f'{name}: source returned no revenue rows; retry required')
-        months = sync_company_months(company, rows)
-        if months:
-            updated[name] = months
-        time.sleep(REQUEST_DELAY_SECONDS)
+        rows = cached_revenue(code, scope)
+        reused = rows is not None
+        try:
+            if rows is None:
+                rows = fetch_recent_revenue(code, session)
+                if strict and not valid_revenue_rows(rows):
+                    raise RuntimeError("source returned no valid revenue rows; retry required")
+                cache_revenue(code, scope, rows)
+            months = sync_company_months(company, rows)
+            if months:
+                updated[name] = months
+            print(f"Taiwan {name} ({code}): {'reused this run' if reused else 'fetched'} {len(rows)} revenue months", flush=True)
+        except Exception as error:
+            failures[name] = str(error)
+            print(f"Taiwan {name} ({code}): {error}; continue collecting remaining companies", flush=True)
+        if not reused:
+            time.sleep(REQUEST_DELAY_SECONDS)
+
+    session.close()
+    if failures:
+        # Keep successful source responses for the next attempt, but never publish
+        # an incomplete dashboard even if earlier companies changed in memory.
+        detail = "; ".join(f"{name}: {error}" for name, error in failures.items())
+        raise RuntimeError(f"Taiwan revenue incomplete ({len(failures)}/{len(COMPANY_CODES)}); retry required: {detail}")
 
     for aggregate_name, component_names in AGGREGATES.items():
         company = by_name.get(aggregate_name)

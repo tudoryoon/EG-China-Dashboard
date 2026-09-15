@@ -1,0 +1,30 @@
+name: Recover Timed Out Regional Refresh
+
+on:
+  workflow_run:
+    workflows:
+      - Update All Data - KST 21:03
+      - Update All Data - KST 21:10
+      - Update All Data - KST 21:17
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: write
+  checks: read
+
+jobs:
+  recover-timeout:
+    if: github.event.workflow_run.conclusion == 'cancelled' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # This privileged completion watcher runs only trusted default-branch code.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Verify timeout annotation and queue guarded recovery
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/recover_timed_out_refresh.py

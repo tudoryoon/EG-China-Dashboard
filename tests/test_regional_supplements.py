@@ -60,6 +60,46 @@ class QuoteTests(unittest.TestCase):
 
 @unittest.skipUnless(importlib.util.find_spec("pandas") and importlib.util.find_spec("yfinance"), "Requires data dependencies")
 class EngineTests(unittest.TestCase):
+    def test_ten_session_listing_is_retained_current_with_unavailable_scores(self):
+        import pandas as pd
+        import update_market_rs as rs
+        import update_market_trend_score as trend
+        dates = pd.bdate_range(end="2026-09-14", periods=300)
+        prices = pd.DataFrame({
+            "OLD.HK": [100.0 + i / 10 for i in range(300)],
+            "PEER.HK": [150.0 + i / 5 for i in range(300)],
+            "0625.HK": [float("nan")] * 290 + [20.0 + i / 10 for i in range(10)],
+        }, index=dates)
+        periods, ratings = build_regional_rs(prices, pd.DataFrame(index=dates), rs)
+        # A one-week return exists, but the unchanged weighted RS formula starts
+        # at one month and cannot assign a combined rating to a ten-session IPO.
+        self.assertTrue(pd.notna(periods["1w"]["0625.HK"].iloc[-1]))
+        self.assertTrue(ratings["0625.HK"].iloc[-10:].isna().all())
+
+        def values(series):
+            return [None if pd.isna(value) else float(value) for value in series]
+
+        date_strings = dates.strftime("%Y-%m-%d").tolist()
+        source = {"updatedAt": date_strings[-1], "historyDates": date_strings,
+                  "rows": [{"ticker": ticker, "asOfDate": date_strings[-1]} for ticker in prices],
+                  "histories": {ticker: {"price": values(prices[ticker]),
+                                         "rsRatingAll": values(ratings[ticker])}
+                                for ticker in prices}}
+        benchmark = {"items": {"regional": {"dates": date_strings, "values": [100.0] * 300}}}
+        meta = {"include_all": True, "history_key": "rsRatingAll", "benchmark_key": "regional"}
+        rows, histories = build_regional_trend(trend, "all", meta, source, benchmark, {}, {})
+        by_ticker = {row["ticker"]: row for row in rows}
+        self.assertEqual(set(by_ticker), {"OLD.HK", "PEER.HK", "0625.HK"})
+        new = by_ticker["0625.HK"]
+        self.assertEqual(new["asOfDate"], source["updatedAt"])
+        self.assertEqual(new["price"], prices["0625.HK"].iloc[-1])
+        for field in ("score", "rank", "rsRating", "baseWeightPct"):
+            self.assertIsNone(new[field], field)
+        self.assertNotIn("scoreBasis", new)
+        self.assertEqual(sum(value is not None for value in histories["0625.HK"]["price"]), 10)
+        self.assertTrue(all(value is None for value in histories["0625.HK"]["score"]))
+        self.assertIsNotNone(by_ticker["OLD.HK"]["score"])
+
     def test_etfs_do_not_move_equity_ranks_or_each_other(self):
         import pandas as pd
         import update_market_rs as rs

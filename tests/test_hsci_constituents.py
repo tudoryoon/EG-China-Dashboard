@@ -45,3 +45,34 @@ class HSCIParserTests(unittest.TestCase):
         self.rows[-1]['isDummy'] = 'unknown'
         with self.assertRaises(ValueError):
             parse_hsci(self.payload)
+
+    def test_temporary_realord_counter_preserves_canonical_history_identity(self):
+        self.payload['requestDate'] = '2026-09-14 00:05:12'
+        self.rows[-1].update(code='2922', constituentName='REALORD TECH')
+        members, info = parse_hsci(self.payload)
+        self.assertEqual(len(members), info['reportedCount'])
+        self.assertNotIn('2922.HK', members)
+        self.assertEqual(members['1196.HK']['sourceTicker'], '2922.HK')
+        self.assertEqual(members['1196.HK']['aliases'], ['2922.HK'])
+
+    def test_canonical_alias_collision_and_wrong_issuer_fail(self):
+        self.payload['requestDate'] = '2026-09-14 00:05:12'
+        self.rows[-1].update(code='2922', constituentName='REALORD TECH')
+        self.rows[-2].update(code='1196', constituentName='REALORD TECH')
+        with self.assertRaisesRegex(ValueError, 'duplicate active constituent 1196.HK'):
+            parse_hsci(self.payload)
+        self.rows[-2]['code'] = '579'
+        self.rows[-1]['constituentName'] = 'Different Issuer'
+        with self.assertRaisesRegex(ValueError, 'unexpected issuer'):
+            parse_hsci(self.payload)
+
+    def test_temporary_mapping_is_date_bounded(self):
+        self.rows[-1].update(code='2922', constituentName='Different Issuer')
+        for day in ('2026-09-11', '2026-10-21'):
+            self.payload['requestDate'] = day
+            members, _ = parse_hsci(self.payload)
+            self.assertIn('2922.HK', members)
+            self.assertNotIn('1196.HK', members)
+        self.payload.pop('requestDate')
+        with self.assertRaisesRegex(ValueError, 'valid requestDate'):
+            parse_hsci(self.payload)

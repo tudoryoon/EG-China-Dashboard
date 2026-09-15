@@ -14,8 +14,8 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-    # One full regional collection can take about 40 minutes. Keep enough room
-    # for repeated provider recovery attempts without ever publishing a partial run.
+    # Six 45-minute collection attempts + 15 minutes of backoff leave 45 minutes
+    # for setup, publication and shutdown. Recovery runs in a separate job below.
     timeout-minutes: 330
     concurrency:
       group: refresh-all-regional-data
@@ -47,37 +47,19 @@ jobs:
       - name: Install data dependencies
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
         run: python -m pip install -r requirements.txt
-      - name: Validate regional quote and scoring integration
+      - name: Validate quote, scoring and Taiwan integration
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
-        run: python -m unittest discover -s tests -p test_regional_supplements.py -v
+        run: python -m unittest discover -s tests -v
       - name: Refresh and validate every data source
         id: refresh
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
         env:
           PYTHONUNBUFFERED: '1'
-          MAX_REFRESH_ATTEMPTS: '6'
         shell: bash
         run: |
           set -o pipefail
           log="$RUNNER_TEMP/refresh-data.log"
-          : > "$log"
-          for attempt in $(seq 1 "$MAX_REFRESH_ATTEMPTS"); do
-            echo "Refresh attempt $attempt/$MAX_REFRESH_ATTEMPTS" | tee -a "$log"
-            set +e
-            python scripts/refresh_all_data.py refresh 2>&1 | tee -a "$log"
-            status=${PIPESTATUS[0]}
-            set -e
-            if [ "$status" -eq 0 ]; then
-              exit 0
-            fi
-            if [ "$attempt" -eq "$MAX_REFRESH_ATTEMPTS" ]; then
-              echo "All $MAX_REFRESH_ATTEMPTS refresh attempts failed." | tee -a "$log"
-              exit "$status"
-            fi
-            delay=$((attempt * 60))
-            echo "Attempt $attempt failed; retrying the complete atomic refresh in ${delay}s." | tee -a "$log"
-            sleep "$delay"
-          done
+          python scripts/retry_data_refresh.py 2>&1 | tee "$log"
       - name: Audit every regional security date before publication
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
         run: python scripts/validate_asia_screening.py
@@ -113,11 +95,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run deploy-pages.yml --ref main
-      - name: Queue another recovery run after failure
-        if: failure() && !inputs.check_only
+  recovery:
+    # The Python attempt deadline exits as failure, so this job queues recovery.
+    # GitHub's whole-job timeout is cancelled and handled by the completion watcher.
+    needs: update
+    if: always() && needs.update.result == 'failure' && !inputs.check_only
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Queue another recovery run after failure or attempt timeout
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh workflow run update-all-data-backup-2.yml --ref main
-          echo 'Another guarded recovery run was queued. Retries continue until a validated refresh succeeds.' >> "$GITHUB_STEP_SUMMARY"
+          # Avoid a tight dispatch loop if setup or another deterministic check fails.
+          sleep 300
+          for attempt in 1 2 3; do
+            if gh workflow run update-all-data-backup-2.yml --repo "$GITHUB_REPOSITORY" --ref main; then
+              echo 'Another guarded recovery run was queued after failure or timeout. Retries continue until a validated refresh succeeds.' >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep $((attempt * 30))
+          done
+          echo 'Recovery dispatch failed after three attempts; a later scheduled run can retry.' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
