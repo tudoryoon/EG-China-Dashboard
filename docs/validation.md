@@ -1,5 +1,15 @@
 # Initial migration validation — 2026-09-07
 
+## Partial publication policy and delivery guards — September 15, 2026
+
+- User policy supersedes the earlier all-or-nothing per-security freshness rule: up to 10 failed securities combined across Hong Kong, China and Taiwan may be published with successful updates. Count a security once for RS and Trend. More than 10 failures and systemic/schema/benchmark errors still prevent publication.
+- Regional failures retain the previously published RS/trend pair and actual observation date after fresh securities are calculated by the original engines. New history dates contain null, including repeated daily failures. Securities without usable old history remain explicitly reported omissions. Recovery clears the failure metadata.
+- Taiwan isolates updates per company before committing in-memory changes. Accepted failures preserve all old business fields with a current collection timestamp; missing, duplicate or malformed company data remains fatal. The complete Taiwan report is included in the shared failure budget and data hashes.
+- Schema-3 checkpoints accept at most 10 combined failures and suppress same-cycle backup collection/push. The next 21:03 KST cycle still retries all securities. Publication rechecks checkpoint/data/pipeline hashes after each rebase so concurrent calculation changes cannot certify an old result.
+- Pages delivery is checked separately from the collection checkpoint. A current successful/active deployment avoids another dispatch; a missing deployment is retried. Failed/timed-out Pages runs trigger a delayed delivery-only recovery. The deployment reads main after its lock.
+- 114 regression tests pass with dependencies. The same 114-test suite passes before dependency installation with 22 integration tests correctly skipped. Tests include 0/10/11 failures, cross-market counting, omitted watchlist entries, original-engine partial collection, empty exception messages, preserved history and dates, recovered metadata, next-cycle retry, stale Taiwan reports, rebase changes, and deployment API/recovery behavior.
+- Live recollection: Hong Kong 583 fresh plus retained 1196.HK, China 804 fresh, and all 44 Taiwan companies successfully checked (August revenue). Tencent's outage/circuit breaker prevented a new 1196.HK request; its already verified September 14 price, RS, Trend and split-adjusted return remain intact. The combined 1/10 failure was accepted and the same-cycle skip/next-21:03 retry checks passed. All displayed regional observation dates remain September 14. Eight workflow YAML files parse successfully; provenance and JavaScript checks pass.
+
 ## September 14 failure repaired September 15, 2026
 
 - Run 34878206776 repeatedly rejected 2922.HK because its temporary counter had only one session. HKEX confirms this is Realord's 1196 counter after a 1-into-4 split effective September 14. The permanent Tencent series has full history and current quotes; canonical identity and explicit split normalization restore continuity without joining providers or manufacturing prices.

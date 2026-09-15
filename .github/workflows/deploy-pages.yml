@@ -22,6 +22,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Read main after the Pages lock, not a possibly older dispatch/push SHA.
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -38,6 +41,7 @@ jobs:
           mkdir -p _site/data
           cp index.html dashboard.js styles.css .nojekyll _site/
           cp data/dashboard-data.js data/asia-*-screening.json _site/data/
+          if [ -f data/taiwan-collection-status.json ]; then cp data/taiwan-collection-status.json _site/data/; fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

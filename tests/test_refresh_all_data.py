@@ -23,10 +23,11 @@ class DailyRefreshTests(unittest.TestCase):
             path.write_text('fixture', encoding='utf-8')
         self.now = datetime(2026, 9, 7, 21, 5, tzinfo=refresh.KST)
 
-    def successful_refresh(self, now=None):
+    def successful_refresh(self, now=None, failure_count=0):
         runner = Mock()
         with patch.object(refresh, 'validate_freshness', return_value={'hk': '2026-09-07', 'cn': '2026-09-07'}), \
-             patch.object(refresh, 'validate_taiwan', return_value={'TSMC': '26/08'}):
+             patch.object(refresh, 'validate_taiwan', return_value={'TSMC': '26/08'}), \
+             patch.object(refresh, 'validate_collection_policy', return_value={'failureLimit': 10, 'failureCount': failure_count, 'failures': {f'hk:{i}': 'offline' for i in range(failure_count)}, 'retry': 'next-refresh-cycle'}):
             self.assertTrue(refresh.refresh(self.root, now or self.now, runner))
         return runner
 
@@ -36,6 +37,7 @@ class DailyRefreshTests(unittest.TestCase):
         self.assertIn('scripts/update_asia_screening.py', commands[0])
         self.assertIn('scripts/update_taiwan_revenue.py', commands[1])
         self.assertIn('--strict', commands[1])
+        self.assertIn('--allow-partial', commands[1])
         before = (self.root / refresh.STATUS_PATH).read_bytes()
         for minute in (10, 17):
             forbidden = Mock(side_effect=AssertionError('A backup must not run a collector'))
@@ -46,6 +48,21 @@ class DailyRefreshTests(unittest.TestCase):
     def test_next_kst_day_retries(self):
         self.successful_refresh()
         self.assertFalse(refresh.completed_today(self.root, self.now + timedelta(days=1)))
+
+    def test_ten_accepted_failures_skip_backups_but_retry_next_cycle(self):
+        self.successful_refresh(failure_count=10)
+        self.assertTrue(refresh.completed_today(self.root, self.now + timedelta(minutes=12)))
+        self.assertFalse(refresh.completed_today(self.root, self.now + timedelta(days=1)))
+        status = json.loads((self.root / refresh.STATUS_PATH).read_text(encoding='utf8'))
+        self.assertEqual(status['collection']['failureCount'], 10)
+
+    def test_global_failure_budget_rejection_never_records_success(self):
+        with patch.object(refresh, 'validate_freshness', return_value={}), \
+             patch.object(refresh, 'validate_taiwan', return_value={}), \
+             patch.object(refresh, 'validate_collection_policy', side_effect=RuntimeError('11 failures; limit is 10')):
+            with self.assertRaisesRegex(RuntimeError, '11 failures'):
+                refresh.refresh(self.root, self.now, Mock())
+        self.assertFalse((self.root / refresh.STATUS_PATH).exists())
 
     def test_explicit_force_rechecks_collectors_and_freshness(self):
         self.successful_refresh()

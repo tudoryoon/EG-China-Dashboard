@@ -27,6 +27,7 @@ from market_price_sources import (
 )
 from refresh_all_data import expected_session
 import validated_price_cache as price_cache
+from regional_failure_retention import require_collection_coverage, retain_failed_securities
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".asia-screening-cache"
@@ -236,6 +237,13 @@ def regional_benchmark(region, full=False, cached=False):
 
 
 def run(region, full=False, recalculate=False):
+    path = ROOT / "data" / f"asia-{region}-screening.json"
+    # Read the last publication before producing a replacement. An unusable
+    # prior snapshot only prevents retention, never fabrication of new values.
+    try:
+        previous = json.loads(path.read_text(encoding="utf8")) if path.exists() else {}
+    except (OSError, ValueError):
+        previous = {}
     members, sources = constituents(region, cached=recalculate)
     write_json(ROOT / "data" / f"asia-{region}-constituents.json", {"sources": sources, "members": members})
     meta = META[region]
@@ -274,8 +282,6 @@ def run(region, full=False, recalculate=False):
             raise ValueError(f"Supplemental quote behind benchmark: {symbol}; retry needed")
         if data["records"][-1]["date"] < latest.date().isoformat():
             raise ValueError(f"Quote behind benchmark: {symbol}; retry needed")
-        if not recalculate and verified is None:
-            write_json(cache_path, price_cache.mark(data, expected))
         info = infos.get(symbol, {})
         age = (latest.date() - datetime.fromisoformat(info.get("asOf", "2000-01-01")).date()).days
         if member["assetType"] == "Index":
@@ -289,7 +295,12 @@ def run(region, full=False, recalculate=False):
                 info = {"name": data["name"], "marketCapLocal": None}
         frame = pd.DataFrame(data["records"])
         frame.index = pd.to_datetime(frame.pop("date"))
-        return symbol, frame.reindex(dates), info, data.get("priceSource", {"provider": "Yahoo Finance"})
+        frame = frame.reindex(dates)
+        if frame["close"].empty or pd.isna(frame["close"].iloc[-1]) or pd.isna(frame["adjClose"].iloc[-1]):
+            raise ValueError(f"Quote has no price on benchmark session: {symbol}; retry needed")
+        if not recalculate and verified is None:
+            write_json(cache_path, price_cache.mark(data, expected))
+        return symbol, frame, info, data.get("priceSource", {"provider": "Yahoo Finance"})
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         futures = {pool.submit(fetch, m): m["ticker"] for m in members}
@@ -301,12 +312,11 @@ def run(region, full=False, recalculate=False):
                 infos[symbol] = info
                 price_sources[symbol] = price_source
             except Exception as error:
-                errors[symbol] = str(error)[:1000]
+                errors[symbol] = (str(error) or type(error).__name__)[:1000]
             if i % 50 == 0:
                 print(f"{region}: fetched {i}/{len(members)}; errors {len(errors)}", flush=True)
     write_json(info_path, infos)
-    if len(frames) < len(members) * 0.95:
-        raise RuntimeError(f"Insufficient coverage: {len(frames)}/{len(members)}; refusing publication")
+    require_collection_coverage(len(frames), len(members), errors)
     equities = [m["ticker"] for m in members if m["assetType"] == "Equity" and m["ticker"] in frames]
     adjusted = pd.DataFrame({s: frames[s]["adjClose"] for s in equities})
     supplemental_prices = pd.DataFrame({s: frames[s]["adjClose"] for s in sorted(ETFS | INDEXES) if s in frames}, index=dates)
@@ -356,10 +366,13 @@ def run(region, full=False, recalculate=False):
     output = {"meta": {**meta, "sources": sources, "requested": len(members), "covered": len(rows), "missing": errors, "fxLocalPerUsd": fx, "benchmarkNote": benchmark_note, "watchlist": WATCH[region]}, "rs": rs_payload, "trend": trend_payload}
     output["meta"]["benchmarkSource"] = benchmark.get("priceSource") or {"provider": "Yahoo Finance" if region == "hk" else "Eastmoney", "url": benchmark.get("source")}
     assert len(trows) == len(rows), "Trend and RS coverage differ"
-    path = ROOT / "data" / f"asia-{region}-screening.json"
+    retain_failed_securities(output, previous, members)
+    assert len(output["trend"]["rows"]["all"]) == len(output["rs"]["rows"]), "Retained trend and RS coverage differ"
     write_json(path, output)
     assert path.stat().st_size < 24 * 1024 * 1024, "Pages asset size limit"
-    print(f"{region}: published {len(rows)}/{len(members)} at {rs_payload['updatedAt']}; missing {json.dumps(errors)}", flush=True)
+    print(f"{region}: published {output['meta']['covered']}/{len(members)} at {rs_payload['updatedAt']}; "
+          f"fresh {output['meta']['fresh']}; retained {output['meta']['retained']}; "
+          f"omitted {output['meta']['omitted']}; missing {json.dumps(errors)}", flush=True)
 
 
 if __name__ == "__main__":

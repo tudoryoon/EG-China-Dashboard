@@ -15,6 +15,10 @@
     "data/asia-hk-screening.json": "531002e813ac21d551896ea82d5dd75553a9f33521a62b5cffdc07417d5bbe93"
   },
   "adaptedFiles": {
+    "scripts/collection_policy.py": "2026-09-15: user-authorized combined allowance of 10 failed securities across Hong Kong, China and Taiwan; schema validation and explicit next-cycle retry reporting.",
+    "scripts/regional_failure_retention.py": "2026-09-15: retain failed current members after original-engine fresh scoring, preserving real dates and values with null future history; report omitted first-time securities.",
+    "scripts/refresh_all_data.py": "2026-09-15: schema-3 checkpoint accepts validated partial collection up to the shared limit, validates Taiwan failure provenance, and rechecks data/pipeline hashes after rebase before push.",
+    "scripts/ensure_pages_deployment.py": "2026-09-15: repair missing committed-main Pages delivery independently of collection checkpoints; exact-commit duplicate suppression and failed deployment recovery.",
     "scripts/corporate_actions.py": "2026-09-15: HKEX-backed 1196/2922 temporary-counter identity and 1-into-4 split normalization with raw-value provenance and double-adjustment guards.",
     "scripts/validated_price_cache.py": "2026-09-15: exact-session verified prices reused only inside the same collection run; no daily freshness bypass.",
     "scripts/retry_data_refresh.py": "2026-09-15: six bounded 45-minute process-tree attempts with incremental backoff.",
@@ -22,9 +26,9 @@
     "dashboard.js": "User-requested RS / Trend Score / Taiwan hierarchy, China / Hong Kong subtabs, RS/China default and canonical URLs; original shared renderers retained. HK/C1/C2 ticker aliases and All-filter inclusion of unscored/unknown-cap securities added on 2026-09-08.",
     "index.html": "Regional identity; removed redundant parent-tab row; original chart libraries, styles and remaining DOM retained.",
     ".github/workflows/update-asia-screening.yml": "Daily KST 21:03 all-data refresh with separate 21:10 and 21:17 guarded backups.",
-    "scripts/update_taiwan_revenue.py": "Original monthly revenue calculations; strict source-coverage and HTTP validation added for daily all-data refresh.",
+    "scripts/update_taiwan_revenue.py": "Original monthly revenue calculations; validated source responses and same-run retry cache. 2026-09-15: explicit strict/allow-partial mode retains at most 10 failed companies with dated failure metadata, isolates failed mutations, and emits a complete collection report.",
     "scripts/update_asia_screening.py": "2026-09-08: filter HSCI active non-dummy rows and validate unique constituents against official count; original RS/trend engines unchanged. User-requested 6083.HK added independently of existing 6082.HK. Eastmoney full ETF histories repair Yahoo delays/gaps; per-ETF equity reference percentiles, explicit 1D returns, and original provisional trend mode for requested new listings via regional_supplements.py. 2026-09-09: Tencent primary ETF/index histories with date-validated Eastmoney/Yahoo fallback; reject stale benchmarks before constructing the market calendar. Added STAR 50 Index 000688.SS to China RS and Trend Score as an independently scored Index without changing equity ranks. 2026-09-10: Tencent raw/qfq equity histories with strict per-security latest-session checks, coherent Yahoo fallback, benchmark caching, and Eastmoney HSI fallback.",
-    "scripts/validate_asia_screening.py": "Per-security latest-session/history-tail validation plus complete RS and supported-history trend score coverage.",
+    "scripts/validate_asia_screening.py": "Per-security latest-session/history-tail validation plus complete RS and supported-history trend score coverage. 2026-09-15: only explicitly reported failures within the combined 10-security budget may retain old observations; reject undeclared stale rows, invented observations and missing members.",
     "scripts/regional_supplements.py": "Validated Eastmoney ETF OHLC/adjusted history, original-engine supplementary RS, and disclosed available-history trend mode for new or gapped regional histories.",
     "scripts/market_price_sources.py": "Independent Tencent raw/qfq history parsing, identity/OHLC checks, throttled bulk requests, shared history-window validation and freshness-gated provider failover; STAR 50 and HSI Eastmoney fallback validation."
   },

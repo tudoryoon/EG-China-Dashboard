@@ -37,7 +37,7 @@ jobs:
         run: python scripts/refresh_all_data.py check
       - name: Explain skipped update
         if: steps.freshness.outputs.skip == 'true' || inputs.check_only
-        run: echo 'No data update, commit, push, or deployment is needed for this run.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'Data collection, commit and push are skipped. Publication runs still check whether committed main needs Pages delivery.' >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/cache@v4
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
         with:
@@ -76,13 +76,15 @@ jobs:
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
         shell: bash
         run: |
-          git add data/asia-*.json data/dashboard-data.js .github/data-refresh-status.json
+          git add data/asia-*.json data/dashboard-data.js data/taiwan-collection-status.json .github/data-refresh-status.json
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Update all China, Hong Kong and Taiwan data'
           for attempt in 1 2 3; do
             git pull --rebase origin main || exit 1
+            # Never push old calculations over a pipeline changed during collection.
+            python scripts/refresh_all_data.py verify-publication || exit 1
             if git push origin HEAD:main; then
               echo 'pushed=true' >> "$GITHUB_OUTPUT"
               exit 0
@@ -90,11 +92,11 @@ jobs:
             sleep 5
           done
           exit 1
-      - name: Deploy only newly published data
-        if: steps.publish.outputs.pushed == 'true'
+      - name: Ensure committed main is deployed, including delivery recovery
+        if: success() && !inputs.check_only
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run deploy-pages.yml --ref main
+        run: python scripts/ensure_pages_deployment.py
   recovery:
     # The Python attempt deadline exits as failure, so this job queues recovery.
     # GitHub's whole-job timeout is cancelled and handled by the completion watcher.

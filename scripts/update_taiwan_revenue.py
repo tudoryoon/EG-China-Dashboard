@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import argparse
+from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 import math
 import os
@@ -13,12 +14,14 @@ from pathlib import Path
 
 import pandas as pd
 import requests
+from collection_policy import MAX_SECURITY_FAILURES
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="pandas")
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = ROOT / "data" / "dashboard-data.js"
+COLLECTION_STATUS_PATH = ROOT / "data" / "taiwan-collection-status.json"
 
 SERIES_START_YEAR = 2021
 SERIES_START_MONTH = 1
@@ -93,13 +96,71 @@ def parse_js_payload(text: str) -> list[dict]:
 
 
 def write_js_payload(companies: list[dict]) -> None:
-    DATA_PATH.write_text(
+    temporary = DATA_PATH.with_suffix(".tmp")
+    temporary.write_text(
         "window.dashboardCompanies = "
         + json.dumps(companies, ensure_ascii=False, indent=2, allow_nan=False)
         + ";\n",
         encoding="utf-8",
         newline="\n",
     )
+    temporary.replace(DATA_PATH)
+
+
+def validate_existing_companies(companies: object) -> dict[str, dict]:
+    """A broken dashboard is not a tolerated individual source failure."""
+    if not isinstance(companies, list) or not companies:
+        raise RuntimeError("malformed Taiwan dashboard: expected company list")
+    by_name = {}
+    for company in companies:
+        if not isinstance(company, dict) or not isinstance(company.get("name"), str):
+            raise RuntimeError("malformed Taiwan dashboard company")
+        name = company["name"]
+        if name in by_name:
+            raise RuntimeError(f"duplicate dashboard company: {name}")
+        by_name[name] = company
+    for name in (*COMPANY_CODES, *AGGREGATES):
+        company = by_name.get(name)
+        if company is None:
+            raise RuntimeError(f"{name}: missing dashboard company")
+        month = company.get("month")
+        if not isinstance(month, str) or not re.fullmatch(r"\d{2}/(?:0[1-9]|1[0-2])", month):
+            raise RuntimeError(f"{name}: malformed existing month")
+        count = month_index(*parse_month_text(month)) + 1
+        for field in ("bars", "yoyLine", "momLine"):
+            values = company.get(field)
+            if not isinstance(values, list) or count <= 0 or len(values) != count:
+                raise RuntimeError(f"{name}: malformed existing {field} period coverage")
+            if any(value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
+                                          or not math.isfinite(value)) for value in values):
+                raise RuntimeError(f"{name}: malformed existing {field} values")
+        if company["bars"][-1] is None:
+            raise RuntimeError(f"{name}: missing existing latest revenue")
+        if "currency" in company and not isinstance(company["currency"], dict):
+            raise RuntimeError(f"{name}: malformed existing currency")
+        yearly = company.get("yearly")
+        if yearly is not None:
+            if not isinstance(yearly, dict) or not isinstance(yearly.get("series"), list):
+                raise RuntimeError(f"{name}: malformed existing yearly series")
+            for series in yearly["series"]:
+                if (not isinstance(series, dict) or not isinstance(series.get("values"), list)
+                        or len(series["values"]) != 12
+                        or not re.fullmatch(r"\d{2}", str(series.get("year", "")))
+                        or any(value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
+                                                      or not math.isfinite(value)) for value in series["values"])):
+                    raise RuntimeError(f"{name}: malformed existing yearly values")
+    for name, components in AGGREGATES.items():
+        if not components or any(component not in COMPANY_CODES for component in components):
+            raise RuntimeError(f"{name}: malformed aggregate company configuration")
+    if len(set(COMPANY_CODES.values())) != len(COMPANY_CODES):
+        raise RuntimeError("duplicate Taiwan source codes")
+    return by_name
+
+
+def write_collection_status(report: dict) -> None:
+    temporary = COLLECTION_STATUS_PATH.with_suffix(".tmp")
+    temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    temporary.replace(COLLECTION_STATUS_PATH)
 
 
 def parse_month_text(text: str) -> tuple[int, int]:
@@ -372,47 +433,56 @@ def update_aggregate(company: dict, components: list[dict]) -> list[str]:
     return [company["month"]] if company.get("month") != old_month else []
 
 
-def main(strict: bool = False) -> None:
+def main(strict: bool = False, allow_partial: bool = False) -> None:
     companies = parse_js_payload(DATA_PATH.read_text(encoding="utf-8"))
-    by_name = {company.get("name"): company for company in companies}
+    by_name = validate_existing_companies(companies)
     session = requests.Session()
     session.headers.update({"User-Agent": "Mozilla/5.0"})
     updated: dict[str, list[str]] = {}
-    skipped: list[str] = []
     failures: dict[str, str] = {}
+    successful: list[str] = []
     scope = retry_cache_scope()
+    checked_at = datetime.now(KST).isoformat()
 
     for name, code in COMPANY_CODES.items():
-        company = by_name.get(name)
-        if not company:
-            if strict:
-                failures[name] = "missing dashboard company"
-            skipped.append(f"{name}: missing dashboard company")
-            continue
+        company = by_name[name]
         rows = cached_revenue(code, scope)
         reused = rows is not None
         try:
             if rows is None:
                 rows = fetch_recent_revenue(code, session)
-                if strict and not valid_revenue_rows(rows):
+                if (strict or allow_partial) and not valid_revenue_rows(rows):
                     raise RuntimeError("source returned no valid revenue rows; retry required")
                 cache_revenue(code, scope, rows)
-            months = sync_company_months(company, rows)
+            # A parser or calculation may fail after changing several months.
+            # Work on a copy so a retained company never contains half an update.
+            candidate = deepcopy(company)
+            months = sync_company_months(candidate, rows)
+            for field in ("dataStatus", "collectionError", "sourceCheckedAt"):
+                candidate.pop(field, None)
+            company.clear()
+            company.update(candidate)
+            successful.append(code)
             if months:
                 updated[name] = months
             print(f"Taiwan {name} ({code}): {'reused this run' if reused else 'fetched'} {len(rows)} revenue months", flush=True)
         except Exception as error:
-            failures[name] = str(error)
+            failures[code] = str(error) or type(error).__name__
             print(f"Taiwan {name} ({code}): {error}; continue collecting remaining companies", flush=True)
         if not reused:
             time.sleep(REQUEST_DELAY_SECONDS)
 
     session.close()
-    if failures:
-        # Keep successful source responses for the next attempt, but never publish
-        # an incomplete dashboard even if earlier companies changed in memory.
+    if failures and (not allow_partial or len(failures) > MAX_SECURITY_FAILURES):
+        # Root refresh also enforces this budget across HK, China, and Taiwan.
         detail = "; ".join(f"{name}: {error}" for name, error in failures.items())
         raise RuntimeError(f"Taiwan revenue incomplete ({len(failures)}/{len(COMPANY_CODES)}); retry required: {detail}")
+
+    for name, code in COMPANY_CODES.items():
+        if code in failures:
+            by_name[name].update({
+                "dataStatus": "stale", "collectionError": failures[code], "sourceCheckedAt": checked_at,
+            })
 
     for aggregate_name, component_names in AGGREGATES.items():
         company = by_name.get(aggregate_name)
@@ -423,10 +493,20 @@ def main(strict: bool = False) -> None:
                 updated[aggregate_name] = months
 
     write_js_payload(companies)
-    print(json.dumps({"updated": updated, "skipped": skipped}, ensure_ascii=False, indent=2))
+    write_collection_status({
+        "schemaVersion": 1,
+        "checkedAt": checked_at,
+        "scope": scope,
+        "failures": failures,
+        "retained": sorted(failures),
+        "successful": sorted(successful),
+    })
+    print(json.dumps({"updated": updated, "retained": failures}, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--strict', action='store_true', help='Fail incomplete source coverage instead of treating it as an unchanged success')
-    main(strict=parser.parse_args().strict)
+    parser.add_argument('--allow-partial', action='store_true', help='Retain previous data for at most 10 individual company failures; combined regional limit is enforced before publication')
+    args = parser.parse_args()
+    main(strict=args.strict, allow_partial=args.allow_partial)
