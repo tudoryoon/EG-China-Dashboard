@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "kstDate": "2026-09-16",
-  "refreshDate": "2026-09-15",
-  "completedAt": "2026-09-16T04:42:51.143790+09:00",
+  "kstDate": "2026-09-17",
+  "refreshDate": "2026-09-16",
+  "completedAt": "2026-09-17T04:02:33.813285+09:00",
   "marketSessions": {
-    "hk": "2026-09-15",
-    "cn": "2026-09-15"
+    "hk": "2026-09-16",
+    "cn": "2026-09-16"
   },
   "taiwanRevenueMonths": {
     "TSMC": "26/08",
@@ -54,14 +54,14 @@
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "data/dashboard-data.js": "e5d5a362a29e53549efd4dadbb15e74caf4bb457234e180f9d5a07503faa8530",
-    "data/taiwan-collection-status.json": "595e2092fb9a4ce38caf9cf9384ce91517e8197e6332cf2d93b4ede963da7028",
-    "data/asia-hk-constituents.json": "6ce20b027df297af0591ac47d103817d34ecc9a32a04a251907b830d388381d2",
+    "data/dashboard-data.js": "c24c7e41d4712a2774b96ffccf3dc538e618a423f0de6c4093edf78d32f01369",
+    "data/taiwan-collection-status.json": "4a196a8b7ac356104cc35d8db0fe80dd1036f2113fb97762e18325e5eb975a78",
+    "data/asia-hk-constituents.json": "2a978ab8aa2e726f609fc375dc9f68aa80577d6201e3eea4bbd09ab22d3ccc5d",
     "data/asia-hk-metadata.json": "e304e0e6843b82de8af833cfebdaa0dceace8567b278af2ce80fe4a35027bad5",
-    "data/asia-hk-screening.json": "573b7b089201af718fbaf273a07b1d11a409ab08385f1528beaffe442b6721d9",
-    "data/asia-cn-constituents.json": "c29ba6db8b6746b7d9e0f0efec4d88a9c54f5b6c45ef983628df7e4fb7132280",
-    "data/asia-cn-metadata.json": "09ad5812c854999425b60b7f76e3b5f181f71796c2af9dd7a0e07ebea947917a",
-    "data/asia-cn-screening.json": "9260a036f2ff589f496581e06f665a6455c0d2c84e8ebf0513b97a95ed9ffbbd"
+    "data/asia-hk-screening.json": "201e1b6c0d123e7cdeecff6d892ec4215ea0af009bf04227c29ed2bfebcf442a",
+    "data/asia-cn-constituents.json": "ff00390441c17f529b23ccf7cef6306782dccf8f34924082769f2f62333eac5d",
+    "data/asia-cn-metadata.json": "ae2175aa8223debd69d32dfeaedd7419f9b1c0d5eeaf1da434ce4b4ad5ce7a96",
+    "data/asia-cn-screening.json": "e54816cfb0784e62db1e74f7514ad97f2d888f31489298fb3233d4dc0f78d860"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -80,7 +80,7 @@
     "scripts/validate_asia_screening.py": "b1a301b892b3b67ae35ec9017d522396b7d67655b87ab4fc49342b93900ad68f",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "35010385831",
+  "runId": "35132272997",
   "collection": {
     "failureLimit": 10,
     "failureCount": 2,
