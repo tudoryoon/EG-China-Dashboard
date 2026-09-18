@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "kstDate": "2026-09-18",
-  "refreshDate": "2026-09-17",
-  "completedAt": "2026-09-18T04:52:42.249057+09:00",
+  "kstDate": "2026-09-19",
+  "refreshDate": "2026-09-18",
+  "completedAt": "2026-09-19T06:04:14.244927+09:00",
   "marketSessions": {
-    "hk": "2026-09-17",
-    "cn": "2026-09-17"
+    "hk": "2026-09-18",
+    "cn": "2026-09-18"
   },
   "taiwanRevenueMonths": {
     "TSMC": "26/08",
@@ -54,14 +54,14 @@
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "data/dashboard-data.js": "4dfc2ece67d5826e6ab9752cb3c45425818c19fab4b2de1f42bcd53630791e1a",
-    "data/taiwan-collection-status.json": "0fb13b78040b0b0058e2c3fd01d63eea5abc80415b9d36ad359e259e39554eeb",
-    "data/asia-hk-constituents.json": "61acff588086d5c638a4feaf2a60d9888f0015768f1a4e0c95294c3f699275d9",
-    "data/asia-hk-metadata.json": "e304e0e6843b82de8af833cfebdaa0dceace8567b278af2ce80fe4a35027bad5",
-    "data/asia-hk-screening.json": "91fd8d475c95643816de29f13d1cf4c203d16775cc05ff281b35dd0d12a29df8",
-    "data/asia-cn-constituents.json": "00840cab85469fc1362bfe8fda4b9a2e8452937c7bad3c95600ec7e0509cb8b3",
-    "data/asia-cn-metadata.json": "c93b85b067bea0d7ace9feb4218625a6bf1334b22b451cee2bab675c3cbe45ab",
-    "data/asia-cn-screening.json": "e0bf533baa94d20b2bd9f639aec101609141b19d715d7f353c389bdae1da105b"
+    "data/dashboard-data.js": "162c20b017eafa93d9726ffd89f0a0e3705910317a3db144711b5bf5dc889755",
+    "data/taiwan-collection-status.json": "91ac881934dd9ea9939ae35f257d56c098adf8195acdc1431dbf3c116b9d9084",
+    "data/asia-hk-constituents.json": "c53e7367ff96e6cd421333010f44151d89a5af5dfccae457f214cacbae7d6555",
+    "data/asia-hk-metadata.json": "280ff9cec1a993177f89103f452943be725cbb96ed13ecb7e9ecec55854aa57a",
+    "data/asia-hk-screening.json": "6155b1679a729ebded8b8ae28d6fac191fb7db67ea64af7f01efa66d30a0559e",
+    "data/asia-cn-constituents.json": "3d0c211e15c707d161be6556648e37538d1fb8bd0ec58459438f27332d65d810",
+    "data/asia-cn-metadata.json": "0c36db959289641abde855750cdac81bc72fd05ae892800a1a96549ac9d1b7af",
+    "data/asia-cn-screening.json": "2df00034c3f81698ad95e6110a184546ed5c97aeca84f25d18958a1f836738c8"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -80,12 +80,15 @@
     "scripts/validate_asia_screening.py": "b1a301b892b3b67ae35ec9017d522396b7d67655b87ab4fc49342b93900ad68f",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "35263457785",
+  "runId": "35391097677",
   "collection": {
     "failureLimit": 10,
-    "failureCount": 1,
+    "failureCount": 4,
     "failures": {
-      "hk:1196.HK": "No current source for 1196.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown"
+      "hk:1196.HK": "No current source for 1196.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown",
+      "tw:2451": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2451 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
+      "tw:3017": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=3017 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
+      "tw:3324": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=3324 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))"
     },
     "retry": "next-refresh-cycle"
   }
