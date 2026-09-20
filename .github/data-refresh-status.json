@@ -1,8 +1,8 @@
 {
   "schemaVersion": 3,
-  "kstDate": "2026-09-20",
-  "refreshDate": "2026-09-19",
-  "completedAt": "2026-09-20T01:23:36.210672+09:00",
+  "kstDate": "2026-09-21",
+  "refreshDate": "2026-09-20",
+  "completedAt": "2026-09-21T01:55:33.235929+09:00",
   "marketSessions": {
     "hk": "2026-09-18",
     "cn": "2026-09-18"
@@ -55,10 +55,10 @@
   },
   "dataHashes": {
     "data/dashboard-data.js": "4dfc2ece67d5826e6ab9752cb3c45425818c19fab4b2de1f42bcd53630791e1a",
-    "data/taiwan-collection-status.json": "0225f6d41e28c5b977aed1f549d4729a6bc5ae2153691093d170775dee755b7b",
-    "data/asia-hk-constituents.json": "08deff955b67b2ce35bc012e5a92cbf5e6088036321a2a5b2211d1daa0d478fd",
+    "data/taiwan-collection-status.json": "8d698e4c6b20b7bcc9a487013fd1aff5e46ce97e60592054f69761bb97489f63",
+    "data/asia-hk-constituents.json": "3e227b93254c665023e5310fb0d9d12617ffa53ae39edff2a48372d9124e71c2",
     "data/asia-hk-metadata.json": "280ff9cec1a993177f89103f452943be725cbb96ed13ecb7e9ecec55854aa57a",
-    "data/asia-hk-screening.json": "817233d9ba8babe8805358e0ca6645ff923ca5252c642e561f1947271b15af78",
+    "data/asia-hk-screening.json": "fb776d5ae05dd3a60a42f8cf15d5c3cfc3ca7976e71bc916b6acfd8cf58e7eea",
     "data/asia-cn-constituents.json": "3d0c211e15c707d161be6556648e37538d1fb8bd0ec58459438f27332d65d810",
     "data/asia-cn-metadata.json": "0c36db959289641abde855750cdac81bc72fd05ae892800a1a96549ac9d1b7af",
     "data/asia-cn-screening.json": "e8e164e65f357b1126ddb42786095d238797fb551dd607f3e2d0a2d7f3ddb047"
@@ -80,7 +80,7 @@
     "scripts/validate_asia_screening.py": "b1a301b892b3b67ae35ec9017d522396b7d67655b87ab4fc49342b93900ad68f",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "35453106261",
+  "runId": "35521793560",
   "collection": {
     "failureLimit": 10,
     "failureCount": 1,
