@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "kstDate": "2026-09-23",
-  "refreshDate": "2026-09-22",
-  "completedAt": "2026-09-23T03:39:28.897204+09:00",
+  "kstDate": "2026-09-24",
+  "refreshDate": "2026-09-23",
+  "completedAt": "2026-09-24T03:03:32.351367+09:00",
   "marketSessions": {
-    "hk": "2026-09-22",
-    "cn": "2026-09-22"
+    "hk": "2026-09-23",
+    "cn": "2026-09-23"
   },
   "taiwanRevenueMonths": {
     "TSMC": "26/08",
@@ -55,13 +55,13 @@
   },
   "dataHashes": {
     "data/dashboard-data.js": "4dfc2ece67d5826e6ab9752cb3c45425818c19fab4b2de1f42bcd53630791e1a",
-    "data/taiwan-collection-status.json": "31f6f9f7acff993423b16345760e29865cd9f9d455ea763ae35e8f17a8943426",
-    "data/asia-hk-constituents.json": "0600a67c40da262a52e9a8842c874cc23705d5872641cdf1a994e275fdf359d2",
-    "data/asia-hk-metadata.json": "93cbc1979707081f29c5bf1b02b977af27cb4dcb66262ded6e2e1417edc610fe",
-    "data/asia-hk-screening.json": "60d666f352c5d5221a71d03c106d765473434e74357d2941df12db6d84507db9",
-    "data/asia-cn-constituents.json": "a91b845383e45ddaaf7ec182a57da3dbf63040b386b8b6c9b052321ebcd15b34",
-    "data/asia-cn-metadata.json": "c27fe7fd57f4f2a6f382a7a699fcdb5366712471b4dae53d0561b2129c6dd4d8",
-    "data/asia-cn-screening.json": "5e41da869c365fe7cb20ffe07c41a337cb4b6adc2b38acd1a718ddeccdd6eb12"
+    "data/taiwan-collection-status.json": "cc9cf3c4a7c2e6c16fd312f9c7f4c624802d693edf2ae7fb50ea34e41ff0cd71",
+    "data/asia-hk-constituents.json": "cebcc4d336cc749ac6df1d5a4b2940a1e3aa414addf02e799fa31dc92022f333",
+    "data/asia-hk-metadata.json": "3b681bad295c0872d600b1efd5c220922d94610a1f9b328a4258d610836473c0",
+    "data/asia-hk-screening.json": "a37c9b4e5c4fec31913c4c5b91d047b58720715ca90687a701d0c2a2ef96a69f",
+    "data/asia-cn-constituents.json": "b3b989d1e4fdbfbdc58dd5b3ddb3ab497be72abb1b9b1f6bf17a0edc0a8d9cfa",
+    "data/asia-cn-metadata.json": "f34118f0cc137f1b2cdfa4060914a775875de8c7ec215a6e48f6d3bc88a39272",
+    "data/asia-cn-screening.json": "d6aa25721aa101694db47e8365c8f551e81897d19e56d926993f69bba0fb81d8"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -80,12 +80,17 @@
     "scripts/validate_asia_screening.py": "b1a301b892b3b67ae35ec9017d522396b7d67655b87ab4fc49342b93900ad68f",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "35763335805",
+  "runId": "35893524052",
   "collection": {
     "failureLimit": 10,
-    "failureCount": 1,
+    "failureCount": 6,
     "failures": {
-      "hk:1196.HK": "No current source for 1196.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown"
+      "hk:0853.HK": "No current source for 0853.HK: Tencent: Incomplete/stale history: expected 2026-09-23, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-09-23, received 2026-09-22 (670 sessions)",
+      "hk:2172.HK": "No current source for 2172.HK: Tencent: Incomplete/stale history: expected 2026-09-23, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-09-23, received 2026-09-22 (670 sessions)",
+      "hk:2252.HK": "No current source for 2252.HK: Tencent: Incomplete/stale history: expected 2026-09-23, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-09-23, received 2026-09-22 (670 sessions)",
+      "cn:601059.SS": "No current source for 601059.SS: Tencent: Incomplete/stale history: expected 2026-09-23, received 2026-09-14 (635 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-09-23, received 2026-09-22 (661 sessions)",
+      "cn:601238.SS": "No current source for 601238.SS: Tencent: Incomplete/stale history: expected 2026-09-23, received 2026-09-11 (640 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-09-23, received 2026-09-22 (661 sessions)",
+      "cn:601198.SS": "No current source for 601198.SS: Tencent: Incomplete/stale history: expected 2026-09-23, received 2026-09-14 (635 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-09-23, received 2026-09-22 (661 sessions)"
     },
     "retry": "next-refresh-cycle"
   }
