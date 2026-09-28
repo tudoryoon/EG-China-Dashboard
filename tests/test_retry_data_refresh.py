@@ -1,7 +1,9 @@
 """Attempt deadlines and retries must preserve failure until validation succeeds."""
 from pathlib import Path
+import os
 import subprocess
 import sys
+import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
@@ -50,6 +52,32 @@ class RetryRefreshTests(unittest.TestCase):
     def test_attempts_fit_inside_runner_with_publication_headroom(self):
         worst_case_seconds = retry.DEFAULT_ATTEMPTS * retry.DEFAULT_TIMEOUT_SECONDS + sum(range(1, retry.DEFAULT_ATTEMPTS)) * 60
         self.assertLessEqual(worst_case_seconds, (330 - 30) * 60)
+
+    def test_deterministic_validation_failure_stops_without_chaining_recovery(self):
+        run, sleep = Mock(side_effect=[retry.VALIDATION_EXIT_CODE, 0]), Mock()
+        with patch.object(retry, "recovery_output") as output:
+            self.assertEqual(retry.retry_refresh(["collector"], run=run, sleep=sleep), 65)
+        run.assert_called_once()
+        sleep.assert_not_called()
+        output.assert_called_once_with(False)
+
+    def test_validation_after_transient_error_still_prevents_recovery(self):
+        with patch.object(retry, "recovery_output") as output:
+            self.assertEqual(retry.retry_refresh(["collector"], run=Mock(side_effect=[1, 65]), sleep=Mock()), 65)
+        output.assert_called_once_with(False)
+
+    def test_only_exhausted_collection_errors_opt_in_to_followup(self):
+        for code in (1, retry.TIMEOUT_EXIT_CODE):
+            with self.subTest(code=code), patch.object(retry, "recovery_output") as output:
+                self.assertEqual(retry.retry_refresh(["collector"], attempts=2, run=Mock(return_value=code), sleep=Mock()), code)
+                self.assertEqual([call.args[0] for call in output.call_args_list], [False, True])
+
+    def test_github_output_is_explicit_and_fail_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "output"
+            with patch.dict(os.environ, {"GITHUB_OUTPUT": str(output)}):
+                retry.retry_refresh(["collector"], run=Mock(return_value=65), sleep=Mock())
+            self.assertEqual(output.read_text(encoding="utf8"), "recovery_retryable=false\n")
 
 
 if __name__ == "__main__":

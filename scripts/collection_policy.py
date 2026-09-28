@@ -1,7 +1,7 @@
-"""One shared failure allowance across Hong Kong, China and Taiwan securities."""
+"""Disclose individual collection failures without delaying usable updates."""
 from datetime import datetime
 
-MAX_SECURITY_FAILURES = 10
+FAILURE_POLICY = 'retain-and-publish'
 
 
 def failure_map(value, label):
@@ -37,8 +37,5 @@ def summarize_failures(regional, taiwan_report=None):
     if taiwan_report is not None:
         for code, error in validate_taiwan_report(taiwan_report).items():
             failures[f'tw:{code}'] = error
-    if len(failures) > MAX_SECURITY_FAILURES:
-        raise RuntimeError(f'Collection failed for {len(failures)} securities across all markets; '
-                           f'limit is {MAX_SECURITY_FAILURES}. Publication blocked.')
-    return {'failureLimit': MAX_SECURITY_FAILURES, 'failureCount': len(failures),
+    return {'failurePolicy': FAILURE_POLICY, 'failureCount': len(failures),
             'failures': failures, 'retry': 'next-refresh-cycle'}

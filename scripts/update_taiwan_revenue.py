@@ -14,7 +14,6 @@ from pathlib import Path
 
 import pandas as pd
 import requests
-from collection_policy import MAX_SECURITY_FAILURES
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="pandas")
 
@@ -473,8 +472,7 @@ def main(strict: bool = False, allow_partial: bool = False) -> None:
             time.sleep(REQUEST_DELAY_SECONDS)
 
     session.close()
-    if failures and (not allow_partial or len(failures) > MAX_SECURITY_FAILURES):
-        # Root refresh also enforces this budget across HK, China, and Taiwan.
+    if failures and not allow_partial:
         detail = "; ".join(f"{name}: {error}" for name, error in failures.items())
         raise RuntimeError(f"Taiwan revenue incomplete ({len(failures)}/{len(COMPANY_CODES)}); retry required: {detail}")
 
@@ -507,6 +505,6 @@ def main(strict: bool = False, allow_partial: bool = False) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--strict', action='store_true', help='Fail incomplete source coverage instead of treating it as an unchanged success')
-    parser.add_argument('--allow-partial', action='store_true', help='Retain previous data for at most 10 individual company failures; combined regional limit is enforced before publication')
+    parser.add_argument('--allow-partial', action='store_true', help='Retain previous data for failed companies and publish valid updates without a failure-count limit')
     args = parser.parse_args()
     main(strict=args.strict, allow_partial=args.allow_partial)

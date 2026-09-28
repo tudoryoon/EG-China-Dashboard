@@ -90,7 +90,7 @@ def main(root=ROOT):
     report_path = root / "data/taiwan-collection-status.json"
     report = json.loads(report_path.read_text(encoding="utf8")) if report_path.exists() else None
     result = summarize_failures(regional, report)
-    print(f"PASS combined security failure budget: {result['failureCount']}/{result['failureLimit']}")
+    print(f"PASS reported security failures: {result['failureCount']} (retain and publish, no count limit)")
 
 
 if __name__ == "__main__":

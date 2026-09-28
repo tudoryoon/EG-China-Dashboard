@@ -22,11 +22,12 @@ class PublicationGuardTests(unittest.TestCase):
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text('certified fixture\n', encoding='utf8')
-        self.now = datetime.now(refresh.KST)
+        self.now = datetime(2026, 9, 28, 14, 0, tzinfo=refresh.KST)
         self.checkpoint = {
-            'schemaVersion': 3, 'completedAt': self.now.isoformat(),
+            'schemaVersion': 4, 'completedAt': self.now.isoformat(),
             'refreshDate': refresh.refresh_date(self.now).isoformat(),
-            'collection': {'failureCount': 10},
+            'collection': {'failurePolicy': 'retain-and-publish', 'failureCount': 10,
+                           'failures': {f'hk:{i}': 'offline' for i in range(10)}},
             'dataHashes': refresh.hashes(self.root, refresh.DATA_FILES),
             'pipelineHashes': refresh.hashes(self.root, refresh.PIPELINE_FILES),
         }
@@ -40,7 +41,9 @@ class PublicationGuardTests(unittest.TestCase):
     def verify(self):
         with patch.object(refresh, 'ROOT', self.root), \
              patch.object(sys, 'argv', ['refresh_all_data.py', 'verify-publication']), \
+             patch.object(refresh, 'datetime', wraps=datetime) as clock, \
              redirect_stdout(io.StringIO()):
+            clock.now.return_value = self.now + timedelta(minutes=1)
             refresh.main()
 
     def test_certified_partial_success_is_publishable(self):
@@ -64,7 +67,12 @@ class PublicationGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'retry before pushing'):
             self.verify()
 
-    def test_over_budget_checkpoint_blocks_push(self):
+    def test_large_reported_failure_count_does_not_block_push(self):
+        self.checkpoint['collection'].update(failureCount=100, failures={f'hk:{i}': 'offline' for i in range(100)})
+        self.save_checkpoint()
+        self.verify()
+
+    def test_inconsistent_failure_report_blocks_push(self):
         self.checkpoint['collection']['failureCount'] = 11
         self.save_checkpoint()
         with self.assertRaisesRegex(RuntimeError, 'retry before pushing'):

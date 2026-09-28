@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import datetime
 import importlib.util
 import json
 from pathlib import Path
@@ -13,6 +14,18 @@ from regional_failure_retention import retain_failed_securities, require_collect
 
 OLD_DATE = "2026-09-11"
 NEW_DATE = "2026-09-14"
+
+
+def frozen_datetime(instant):
+    """Freeze only the collector clock while preserving real date parsing."""
+    fixed = datetime.fromisoformat(instant)
+
+    class FrozenDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return fixed.astimezone(tz) if tz else fixed.replace(tzinfo=None)
+
+    return FrozenDateTime
 
 
 def previous_snapshot(symbol="FAIL.HK"):
@@ -148,10 +161,12 @@ class RegionalFailureRetentionTests(unittest.TestCase):
                 self.assertEqual(output["meta"]["retained"], [])
                 self.assertEqual(output["meta"]["omitted"], ["FAIL.HK"])
 
-    def test_ten_failures_allowed_but_eleven_and_systemic_empty_fail(self):
-        require_collection_coverage(574, 584, {f"{i}.HK": "error" for i in range(10)})
-        with self.assertRaisesRegex(RuntimeError, "11 > 10"):
-            require_collection_coverage(573, 584, {f"{i}.HK": "error" for i in range(11)})
+    def test_security_failures_have_no_numeric_or_percentage_limit(self):
+        for failed in (10, 11, 100, 583):
+            with self.subTest(failed=failed):
+                require_collection_coverage(584 - failed, 584, {f"{i}.HK": "error" for i in range(failed)})
+
+    def test_systemic_empty_collection_still_fails(self):
         with self.assertRaisesRegex(RuntimeError, "Insufficient coverage"):
             require_collection_coverage(0, 5, {f"{i}.HK": "error" for i in range(5)})
 
@@ -159,7 +174,7 @@ class RegionalFailureRetentionTests(unittest.TestCase):
 @unittest.skipUnless(importlib.util.find_spec("pandas") and importlib.util.find_spec("yfinance")
                      and importlib.util.find_spec("curl_cffi"), "Requires data dependencies")
 class RegionalCollectorRetentionTests(unittest.TestCase):
-    def collect_with_failure(self, error):
+    def collect_with_failure(self, error, collected_at=f"{NEW_DATE}T17:00:00+08:00"):
         import pandas as pd
         import update_asia_screening as collector
         dates = pd.bdate_range(end=NEW_DATE, periods=300)
@@ -179,6 +194,7 @@ class RegionalCollectorRetentionTests(unittest.TestCase):
             snapshot = root / "data/asia-hk-screening.json"
             snapshot.write_text(json.dumps(previous_snapshot()), encoding="utf8")
             with patch.object(collector, "ROOT", root), patch.object(collector, "CACHE", root / "cache"), \
+                 patch.object(collector, "datetime", frozen_datetime(collected_at)), \
                  patch.object(collector, "constituents", return_value=(current, [])), \
                  patch.object(collector, "regional_benchmark", return_value={"records": records}), \
                  patch.object(collector, "chart", return_value={"records": [{"close": 7.8}]}), \
@@ -188,6 +204,23 @@ class RegionalCollectorRetentionTests(unittest.TestCase):
                 collector.run("hk")
             output = json.loads(snapshot.read_text(encoding="utf8"))
         return output
+
+    def test_fixture_collection_is_independent_of_future_wall_clock(self):
+        import update_asia_screening as collector
+        future_clock = frozen_datetime("2027-01-04T17:00:00+08:00")
+        with patch.object(collector, "datetime", future_clock):
+            self.assertEqual(collector.datetime.now().year, 2027)
+            output = self.collect_with_failure(ValueError("Fixture unavailable quote"))
+            self.assertEqual(collector.datetime.now().year, 2027)
+        self.assertEqual(output["meta"]["fresh"], 20)
+        self.assertEqual(output["rs"]["updatedAt"], NEW_DATE)
+        self.assertEqual(output["meta"]["retained"], ["FAIL.HK"])
+
+    def test_production_stale_benchmark_guard_remains_enabled(self):
+        for collected_at in ("2026-09-27T17:00:00+08:00", "2027-01-04T17:00:00+08:00"):
+            with self.subTest(collected_at=collected_at), \
+                 self.assertRaisesRegex(AssertionError, "Stale benchmark; refusing date rollback"):
+                self.collect_with_failure(ValueError("Fixture unavailable quote"), collected_at=collected_at)
 
     def test_real_engines_publish_successes_and_preserve_failed_prior_pair(self):
         output = self.collect_with_failure(ValueError("Fixture unavailable quote"))

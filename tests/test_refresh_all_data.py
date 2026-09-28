@@ -1,4 +1,4 @@
-"""Offline regression tests for backup runs and all-or-nothing publication."""
+"""Offline regression tests for retained failures, backup skipping and publication."""
 from datetime import datetime, timedelta
 import json
 from pathlib import Path
@@ -27,7 +27,7 @@ class DailyRefreshTests(unittest.TestCase):
         runner = Mock()
         with patch.object(refresh, 'validate_freshness', return_value={'hk': '2026-09-07', 'cn': '2026-09-07'}), \
              patch.object(refresh, 'validate_taiwan', return_value={'TSMC': '26/08'}), \
-             patch.object(refresh, 'validate_collection_policy', return_value={'failureLimit': 10, 'failureCount': failure_count, 'failures': {f'hk:{i}': 'offline' for i in range(failure_count)}, 'retry': 'next-refresh-cycle'}):
+             patch.object(refresh, 'validate_collection_policy', return_value={'failurePolicy': 'retain-and-publish', 'failureCount': failure_count, 'failures': {f'hk:{i}': 'offline' for i in range(failure_count)}, 'retry': 'next-refresh-cycle'}):
             self.assertTrue(refresh.refresh(self.root, now or self.now, runner))
         return runner
 
@@ -49,18 +49,21 @@ class DailyRefreshTests(unittest.TestCase):
         self.successful_refresh()
         self.assertFalse(refresh.completed_today(self.root, self.now + timedelta(days=1)))
 
-    def test_ten_accepted_failures_skip_backups_but_retry_next_cycle(self):
-        self.successful_refresh(failure_count=10)
-        self.assertTrue(refresh.completed_today(self.root, self.now + timedelta(minutes=12)))
-        self.assertFalse(refresh.completed_today(self.root, self.now + timedelta(days=1)))
-        status = json.loads((self.root / refresh.STATUS_PATH).read_text(encoding='utf8'))
-        self.assertEqual(status['collection']['failureCount'], 10)
+    def test_any_count_of_accepted_failures_skips_backups_but_retries_next_cycle(self):
+        for count in (0, 10, 11, 100, 1000):
+            with self.subTest(count=count):
+                self.successful_refresh(failure_count=count)
+                self.assertTrue(refresh.completed_today(self.root, self.now + timedelta(minutes=12)))
+                self.assertFalse(refresh.completed_today(self.root, self.now + timedelta(days=1)))
+                status_path = self.root / refresh.STATUS_PATH
+                self.assertEqual(json.loads(status_path.read_text(encoding='utf8'))['collection']['failureCount'], count)
+                status_path.unlink()
 
-    def test_global_failure_budget_rejection_never_records_success(self):
+    def test_malformed_failure_report_never_records_success(self):
         with patch.object(refresh, 'validate_freshness', return_value={}), \
              patch.object(refresh, 'validate_taiwan', return_value={}), \
-             patch.object(refresh, 'validate_collection_policy', side_effect=RuntimeError('11 failures; limit is 10')):
-            with self.assertRaisesRegex(RuntimeError, '11 failures'):
+             patch.object(refresh, 'validate_collection_policy', side_effect=ValueError('malformed failure report')):
+            with self.assertRaisesRegex(refresh.NonRetryableRefreshError, 'malformed failure report'):
                 refresh.refresh(self.root, self.now, Mock())
         self.assertFalse((self.root / refresh.STATUS_PATH).exists())
 
@@ -119,6 +122,19 @@ class DailyRefreshTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'stale session'):
                 refresh.refresh(self.root, self.now, Mock())
         self.assertFalse((self.root / refresh.STATUS_PATH).exists())
+
+    def test_validator_process_failure_is_nonretryable(self):
+        runner = Mock(side_effect=[None, None, subprocess.CalledProcessError(1, 'schema')])
+        with self.assertRaises(refresh.NonRetryableRefreshError):
+            refresh.refresh(self.root, self.now, runner)
+        self.assertFalse((self.root / refresh.STATUS_PATH).exists())
+
+    def test_cli_reports_validation_failure_as_exit_65(self):
+        with patch.object(refresh, 'refresh', side_effect=refresh.NonRetryableRefreshError('bad schema')), \
+             patch.object(sys, 'argv', ['refresh_all_data.py', 'refresh']):
+            with self.assertRaises(SystemExit) as result:
+                refresh.main()
+        self.assertEqual(result.exception.code, 65)
 
     def test_taiwan_validation_failure_never_records_success(self):
         with patch.object(refresh, 'validate_freshness', return_value={}), \

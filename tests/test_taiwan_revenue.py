@@ -1,4 +1,4 @@
-"""Individual failures retain old company data within the publication budget."""
+"""Individual failures retain old company data without blocking valid updates."""
 from copy import deepcopy
 from contextlib import redirect_stdout
 from datetime import datetime, timedelta
@@ -119,9 +119,7 @@ class TaiwanRevenueRetryTests(unittest.TestCase):
         ]
         codes = {company["name"]: str(index) for index, company in enumerate(companies)}
         path.write_text("window.dashboardCompanies = " + json.dumps(companies) + ";\n")
-        before = path.read_bytes()
         self.status_path.write_text('{"previous":"report"}')
-        before_status = self.status_path.read_bytes()
 
         def fetch(code, _session):
             if int(code) < failed_count:
@@ -134,12 +132,6 @@ class TaiwanRevenueRetryTests(unittest.TestCase):
              patch.object(taiwan, "retry_cache_scope", return_value="partial-run"), \
              patch.object(taiwan, "fetch_recent_revenue", side_effect=fetch), \
              patch.object(taiwan.time, "sleep"), redirect_stdout(io.StringIO()):
-            if failed_count > 10:
-                with self.assertRaisesRegex(RuntimeError, rf"incomplete \({failed_count}/{company_count}\)"):
-                    taiwan.main(strict=True, allow_partial=True)
-                self.assertEqual(path.read_bytes(), before)
-                self.assertEqual(self.status_path.read_bytes(), before_status)
-                return
             taiwan.main(strict=True, allow_partial=True)
 
         result = taiwan.parse_js_payload(path.read_text())
@@ -169,8 +161,14 @@ class TaiwanRevenueRetryTests(unittest.TestCase):
     def test_ten_failed_companies_publish_successes_and_retain_old_periods(self):
         self.run_partial_scenario(10)
 
-    def test_eleven_failed_companies_preserve_both_original_files(self):
+    def test_eleven_failed_companies_publish_successes_and_retain_old_periods(self):
         self.run_partial_scenario(11)
+
+    def test_all_companies_failed_preserves_valid_old_data_and_reports_every_failure(self):
+        self.run_partial_scenario(44, company_count=44)
+
+    def test_one_hundred_failed_companies_does_not_block_a_success(self):
+        self.run_partial_scenario(100, company_count=101)
 
     def test_partial_sync_error_does_not_leak_mutated_values_and_recovery_clears_stale_metadata(self):
         path = self.root / "dashboard-data.js"

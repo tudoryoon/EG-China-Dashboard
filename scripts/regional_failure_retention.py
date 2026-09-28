@@ -1,8 +1,7 @@
-"""Retain dated published observations when a small number of quotes fail."""
+"""Retain dated published observations when individual quotes fail."""
 from copy import deepcopy
 from datetime import date
 import math
-from collection_policy import MAX_SECURITY_FAILURES
 
 
 RS_HISTORY_KEYS = {"price", "open", "high", "low", "volume", "rsRatingAll"}
@@ -11,13 +10,12 @@ MEMBER_FIELDS = {"ticker", "name", "groups", "watchlist", "assetType", "sourceTi
 
 
 def require_collection_coverage(collected, requested, errors):
-    """A handful of failed securities cannot block an otherwise healthy feed."""
-    if len(errors) > MAX_SECURITY_FAILURES:
-        raise RuntimeError(
-            f"Security collection failure limit exceeded: {len(errors)} > {MAX_SECURITY_FAILURES}; "
-            f"collected {collected}/{requested}; failures={errors}"
-        )
-    if not collected or collected < requested * 0.95:
+    """Publish usable securities regardless of the number of individual failures.
+
+    A wholly unavailable region remains a systemic collection failure. Source
+    membership, benchmark freshness and output schemas are validated separately.
+    """
+    if not collected:
         raise RuntimeError(f"Insufficient coverage: {collected}/{requested}; refusing publication")
 
 

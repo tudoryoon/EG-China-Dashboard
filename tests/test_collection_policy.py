@@ -90,7 +90,7 @@ class TaiwanPublicationValidationTests(unittest.TestCase):
                     self.validate()
 
 
-class FailureBudgetTests(unittest.TestCase):
+class FailurePolicyTests(unittest.TestCase):
     def regional(self, hk, cn):
         return {region: {'meta': {'missing': {f'{i:04d}{suffix}': 'provider offline' for i in range(n)}}}
                 for region, n, suffix in [('hk', hk, '.HK'), ('cn', cn, '.SS')]}
@@ -100,13 +100,17 @@ class FailureBudgetTests(unittest.TestCase):
         return {'schemaVersion': 1, 'checkedAt': '2026-09-15T11:00:00+09:00',
                 'failures': dict.fromkeys(codes, 'offline'), 'retained': codes, 'successful': ['9999']}
 
-    def test_exactly_ten_across_three_markets_pass_and_eleven_fail(self):
-        self.assertEqual(summarize_failures(self.regional(0, 0), self.taiwan(0))['failureCount'], 0)
-        self.assertEqual(summarize_failures(self.regional(4, 3), self.taiwan(3))['failureCount'], 10)
-        with self.assertRaisesRegex(RuntimeError, '11 securities'):
-            summarize_failures(self.regional(4, 4), self.taiwan(3))
-        with self.assertRaises(RuntimeError):
-            summarize_failures(self.regional(10, 1))
+    def test_failures_above_ten_across_three_markets_remain_publishable(self):
+        for hk, cn, tw in ((0, 0, 0), (4, 3, 3), (4, 4, 3), (100, 150, 44)):
+            with self.subTest(hk=hk, cn=cn, tw=tw):
+                report = summarize_failures(self.regional(hk, cn), self.taiwan(tw))
+                self.assertEqual(report['failureCount'], hk + cn + tw)
+                self.assertEqual(len(report['failures']), hk + cn + tw)
+                self.assertEqual(report['failurePolicy'], 'retain-and-publish')
+                self.assertEqual(report['retry'], 'next-refresh-cycle')
+                self.assertNotIn('failureLimit', report)
+                for key in report['failures']:
+                    self.assertTrue(key.startswith(('hk:', 'cn:', 'tw:')))
 
     def test_bad_reports_do_not_turn_into_zero_failures(self):
         for value in [[], None, {'x': ''}]:
@@ -143,11 +147,11 @@ class PartialSnapshotValidationTests(unittest.TestCase):
             for values in histories[ticker].values():
                 values[-1] = None
 
-    def test_ten_retained_rows_keep_real_dates_and_empty_new_sessions(self):
-        for i in range(10):
+    def test_one_hundred_retained_rows_keep_real_dates_and_empty_new_sessions(self):
+        for i in range(100):
             self.retain(i)
-        self.assertEqual(len(validate_region(self.data, 'hk', self.members)), 10)
-        self.assertEqual(summarize_failures({'hk': self.data})['failureCount'], 10)
+        self.assertEqual(len(validate_region(self.data, 'hk', self.members)), 100)
+        self.assertEqual(summarize_failures({'hk': self.data})['failureCount'], 100)
 
     def test_undeclared_stale_row_and_invented_current_price_fail(self):
         self.data['rs']['rows'][0]['asOfDate'] = '2026-09-11'

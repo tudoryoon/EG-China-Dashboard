@@ -1,6 +1,14 @@
 # Initial migration validation — 2026-09-07
 
-## Partial publication policy and delivery guards — September 15, 2026
+## Holiday recovery and unrestricted partial publication — September 28, 2026
+
+- The September 27 failures happened before collection: two integration tests mocked a September 14 benchmark but used the real clock. When that fixture aged beyond 12 days, the production stale-benchmark guard rejected it. The tests now freeze only their collector clock and verify both future-year repeatability and the unchanged production stale-data rejection.
+- Failed preflight/integration tests no longer dispatch a new workflow. Post-collection schema/freshness validation exits 65 and immediately stops retries. Exhausted collector-wide source errors/timeouts and explicitly marked push/delivery failures retain guarded recovery. The regular recovery job and timeout watcher share one lock and inspect current main, queued/active updates, and newer runs before dispatching one successor. An old workflow whose update finished and only recovery remains cannot deadlock the newest recovery owner. Check-only runs are explicitly identified and do not suppress real publication recovery.
+- The user's September 28 policy supersedes the earlier numeric limit: missing securities do not delay publishing usable updates, even above 10, and no percentage cutoff remains. Regional zero-fresh-data and structural/benchmark validation still prevent unusable output. Retained values keep their true dates and null future history; unretained first-time securities remain declared omissions. Taiwan can retain all existing valid companies when their individual sources fail.
+- Schema-4 checkpoints record `failurePolicy: retain-and-publish`, count and error map without `failureLimit`. They still suppress duplicate same-cycle pushes and require matching data/pipeline hashes after rebase. All missing securities retry in the next cycle.
+- 142 tests pass with dependencies; the same suite passes before installation with 26 dependency-based skips. Coverage includes future-year fixture execution, 11/100/583 regional failures, 100/all-company Taiwan failures, large combined counts, malformed reports, exit-65 retry termination, competing recovery owners, obsolete commits, manual cancellation and Pages delivery. Eight workflow YAML files parse and existing data/provenance/JavaScript validation passes.
+
+## Partial publication policy and delivery guards — September 15, 2026 (superseded above)
 
 - User policy supersedes the earlier all-or-nothing per-security freshness rule: up to 10 failed securities combined across Hong Kong, China and Taiwan may be published with successful updates. Count a security once for RS and Trend. More than 10 failures and systemic/schema/benchmark errors still prevent publication.
 - Regional failures retain the previously published RS/trend pair and actual observation date after fresh securities are calculated by the original engines. New history dates contain null, including repeated daily failures. Securities without usable old history remain explicitly reported omissions. Recovery clears the failure metadata.

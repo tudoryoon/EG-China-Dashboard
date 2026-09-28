@@ -1,4 +1,5 @@
 name: Update All Data - KST 21:03
+run-name: Update All Data - KST 21:03${{ inputs.check_only && ' [check-only]' || '' }}
 
 on:
   schedule:

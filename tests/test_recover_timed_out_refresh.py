@@ -3,7 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 import sys
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import recover_timed_out_refresh as recovery
@@ -27,9 +27,17 @@ class TimeoutRecoveryTests(unittest.TestCase):
 
     def test_observed_github_timeout_dispatches_one_guarded_recovery(self):
         self.github.annotations.return_value = [{"message": "The job running on runner GitHub Actions has exceeded the maximum execution time of 5h30m0s."}]
-        self.assertTrue(recovery.recover(self.event, self.repository, self.github, self.sleep))
-        self.sleep.assert_called_once_with(300)
-        self.github.request.assert_called_once_with("/actions/workflows/update-all-data-backup-2.yml/dispatches", {"ref": "main"})
+        with patch.object(recovery, "queue_recovery", return_value=True) as queue:
+            self.assertTrue(recovery.recover(self.event, self.repository, self.github, self.sleep))
+        self.assertEqual(queue.call_args.args, (self.github, self.repository, self.event["workflow_run"]["id"]))
+        self.assertIs(queue.call_args.kwargs["sleep"], self.sleep)
+        self.github.request.assert_not_called()
+
+    def test_confirmed_timeout_respects_shared_duplicate_guard(self):
+        self.github.annotations.return_value = [{"message": recovery.TIMEOUT_MESSAGE}]
+        with patch.object(recovery, "queue_recovery", return_value=False):
+            self.assertFalse(recovery.recover(self.event, self.repository, self.github, self.sleep))
+        self.github.request.assert_not_called()
 
     def test_manual_cancel_does_not_restart_the_run(self):
         self.github.annotations.return_value = [{"message": "The operation was canceled."}]
@@ -66,6 +74,12 @@ class TimeoutRecoveryTests(unittest.TestCase):
         github.pages.assert_not_called()
         github.annotations({"check_run_url": github.base + "/check-runs/123"})
         github.pages.assert_called_once_with("/check-runs/123/annotations")
+
+    def test_paginated_active_run_query_preserves_existing_filters(self):
+        github = recovery.GitHub(self.repository, "fixture")
+        github.request = Mock(return_value={"workflow_runs": []})
+        self.assertEqual(github.pages("/actions/runs?branch=main&status=queued", "workflow_runs"), [])
+        github.request.assert_called_once_with("/actions/runs?branch=main&status=queued&per_page=100&page=1")
 
 
 if __name__ == "__main__":

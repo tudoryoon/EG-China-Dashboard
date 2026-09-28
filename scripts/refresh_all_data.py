@@ -1,4 +1,4 @@
-"""Daily validated refresh with a bounded individual-security failure allowance."""
+"""Publish validated updates while retaining reported individual-security failures."""
 from __future__ import annotations
 
 import argparse
@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from collection_policy import summarize_failures, MAX_SECURITY_FAILURES
+from collection_policy import summarize_failures, failure_map, FAILURE_POLICY
 
 ROOT = Path(__file__).resolve().parents[1]
 KST = timezone(timedelta(hours=9))
@@ -30,6 +30,10 @@ PIPELINE_FILES = ('requirements.txt', 'scripts/refresh_all_data.py',
                   'scripts/validate_asia_screening.py', 'scripts/validate_migration.py')
 
 
+class NonRetryableRefreshError(RuntimeError):
+    """Invalid output needs a code/data fix, not another automatic recovery chain."""
+
+
 def hashes(root, names):
     # All tracked inputs are text. Git normalizes Windows CRLF on Linux runners.
     return {name: hashlib.sha256((root / name).read_bytes().replace(b'\r\n', b'\n')).hexdigest()
@@ -46,8 +50,12 @@ def completed_today(root=ROOT, now=None):
     try:
         record = json.loads((root / STATUS_PATH).read_text(encoding='utf-8'))
         completed = datetime.fromisoformat(record['completedAt']).astimezone(KST)
-        return (record['schemaVersion'] == 3
-                and 0 <= record['collection']['failureCount'] <= MAX_SECURITY_FAILURES
+        collection = record['collection']
+        failures = failure_map(collection['failures'], 'checkpoint')
+        return (record['schemaVersion'] == 4
+                and collection['failurePolicy'] == FAILURE_POLICY
+                and type(collection['failureCount']) is int
+                and collection['failureCount'] == len(failures)
                 and record['refreshDate'] == refresh_date(now).isoformat()
                 and refresh_date(completed) == refresh_date(now)
                 and completed <= now
@@ -121,24 +129,27 @@ def refresh(root=ROOT, now=None, run=None, force=False):
         print('All data already refreshed today; no changes.')
         return False
     run = run or subprocess.run
-    # Collectors may retain up to ten individual failures; systemic and validation
-    # failures still abort before writing the publication checkpoint.
+    # Individual failures are retained regardless of count. Collector-wide source
+    # outages may be retried; malformed final output must never be published.
     for command in [
         ['scripts/update_asia_screening.py'],
         ['scripts/update_taiwan_revenue.py', '--strict', '--allow-partial'],
-        ['scripts/validate_asia_screening.py'],
-        ['scripts/validate_migration.py'],
     ]:
         run([sys.executable, *command], cwd=root, check=True)
-    run(['node', '--check', 'dashboard.js'], cwd=root, check=True)
-    dates = validate_freshness(root, started)
-    months = validate_taiwan(root)
-    collection = validate_collection_policy(root, started)
+    try:
+        for script in ('scripts/validate_asia_screening.py', 'scripts/validate_migration.py'):
+            run([sys.executable, script], cwd=root, check=True)
+        run(['node', '--check', 'dashboard.js'], cwd=root, check=True)
+        dates = validate_freshness(root, started)
+        months = validate_taiwan(root)
+        collection = validate_collection_policy(root, started)
+    except Exception as error:
+        raise NonRetryableRefreshError(f'Publication validation failed: {error}') from error
     completed = now or datetime.now(KST)
     if refresh_date(completed) != refresh_date(started):
         raise RuntimeError('Refresh crossed the 21:03 KST refresh boundary; retry for the new cycle')
     record = {
-        'schemaVersion': 3, 'kstDate': completed.astimezone(KST).date().isoformat(),
+        'schemaVersion': 4, 'kstDate': completed.astimezone(KST).date().isoformat(),
         'refreshDate': refresh_date(completed).isoformat(),
         'completedAt': completed.isoformat(), 'marketSessions': dates,
         'taiwanRevenueMonths': months, 'dataHashes': hashes(root, DATA_FILES),
@@ -154,7 +165,7 @@ def refresh(root=ROOT, now=None, run=None, force=False):
     print(f"Validated refresh with {collection['failureCount']} tolerated security failures; ready for publication.")
     if os.getenv('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf8') as summary:
-            summary.write(f"\nCollection failures: {collection['failureCount']}/{MAX_SECURITY_FAILURES}. "
+            summary.write(f"\nCollection failures: {collection['failureCount']} (no count-based publication limit). "
                           "Accepted failures retry next refresh cycle.\n")
             for ticker, error in collection['failures'].items():
                 summary.write(f'- {ticker}: {error.replace(chr(10), " ")}\n')
@@ -167,7 +178,11 @@ def main():
     parser.add_argument('--force', action='store_true', help='Run all collectors and validators even with a complete checkpoint')
     args = parser.parse_args()
     if args.command == 'refresh':
-        refresh(force=args.force)
+        try:
+            refresh(force=args.force)
+        except NonRetryableRefreshError as error:
+            print(str(error), file=sys.stderr)
+            raise SystemExit(65) from error
         return
     if args.command == 'verify-publication':
         # A concurrent main commit can change the pipeline or data during rebase.

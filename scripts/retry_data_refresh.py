@@ -10,8 +10,16 @@ import sys
 import time
 
 TIMEOUT_EXIT_CODE = 124
+VALIDATION_EXIT_CODE = 65
 DEFAULT_ATTEMPTS = 6
 DEFAULT_TIMEOUT_SECONDS = 45 * 60
+
+
+def recovery_output(retryable):
+    """Opt in only after exhausted collection errors, never validation errors."""
+    if os.getenv("GITHUB_OUTPUT"):
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+            output.write(f"recovery_retryable={str(retryable).lower()}\n")
 
 
 def stop_process_tree(process):
@@ -45,16 +53,21 @@ def retry_refresh(command, attempts=DEFAULT_ATTEMPTS, timeout_seconds=DEFAULT_TI
                   run=run_attempt, sleep=time.sleep):
     if attempts < 1 or timeout_seconds <= 0:
         raise ValueError("Attempts and timeout must be positive")
+    recovery_output(False)
     for attempt in range(1, attempts + 1):
         print(f"Refresh attempt {attempt}/{attempts}", flush=True)
         status = run(command, timeout_seconds)
         if status == 0:
             return 0
+        if status == VALIDATION_EXIT_CODE:
+            print("Deterministic publication validation failed; stop automated recovery until repaired.", flush=True)
+            return status
         if attempt < attempts:
             delay = attempt * 60
             print(f"Attempt {attempt} failed ({status}); retrying collection and validation in {delay}s.", flush=True)
             sleep(delay)
     print(f"All {attempts} refresh attempts failed; no data may be published.", flush=True)
+    recovery_output(True)
     return status if status > 0 else 1
 
 

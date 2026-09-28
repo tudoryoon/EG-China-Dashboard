@@ -7,12 +7,7 @@ from pathlib import Path
 import re
 import time
 from urllib.request import Request, urlopen
-
-REFRESH_WORKFLOWS = frozenset({
-    "Update All Data - KST 21:03",
-    "Update All Data - KST 21:10",
-    "Update All Data - KST 21:17",
-})
+from refresh_recovery import REFRESH_WORKFLOWS, queue_recovery
 TIMEOUT_MESSAGE = "exceeded the maximum execution time"
 
 
@@ -68,7 +63,8 @@ class GitHub:
     def pages(self, path, key=None):
         result = []
         for page in range(1, 21):
-            response = self.request(f"{path}?per_page=100&page={page}")
+            separator = "&" if "?" in path else "?"
+            response = self.request(f"{path}{separator}per_page=100&page={page}")
             items = response[key] if key else response
             result.extend(items)
             if len(items) < 100:
@@ -93,11 +89,13 @@ def recover(event, repository, github, sleep=time.sleep):
     if not timed_out:
         print("No GitHub timeout annotation; leave the cancelled run stopped.")
         return False
-    print(f"Confirmed GitHub update-job timeout in run {run_id}; recovery will queue in five minutes.", flush=True)
-    sleep(300)
-    github.request("/actions/workflows/update-all-data-backup-2.yml/dispatches", {"ref": "main"})
-    print("Queued guarded recovery after confirmed GitHub job timeout.", flush=True)
-    return True
+    print(f"Confirmed GitHub update-job timeout in run {run_id}; checking shared recovery guard.", flush=True)
+    return queue_recovery(
+        github, repository, run_id,
+        current_run_id=int(os.environ["GITHUB_RUN_ID"]) if os.getenv("GITHUB_RUN_ID") else None,
+        expected_sha=event["workflow_run"].get("head_sha"),
+        source_attempt=event["workflow_run"].get("run_attempt"), sleep=sleep,
+    )
 
 
 def main():
