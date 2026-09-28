@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 3,
-  "kstDate": "2026-09-26",
-  "refreshDate": "2026-09-25",
-  "completedAt": "2026-09-26T03:39:47.779227+09:00",
+  "schemaVersion": 4,
+  "kstDate": "2026-09-28",
+  "refreshDate": "2026-09-27",
+  "completedAt": "2026-09-28T14:56:43.039647+09:00",
   "marketSessions": {
     "hk": "2026-09-25",
     "cn": "2026-09-24"
@@ -55,19 +55,19 @@
   },
   "dataHashes": {
     "data/dashboard-data.js": "4dfc2ece67d5826e6ab9752cb3c45425818c19fab4b2de1f42bcd53630791e1a",
-    "data/taiwan-collection-status.json": "0836a55e4d997fb179afdad59f4dda7ec042926fef26f7f1c043c605e3cd08e6",
-    "data/asia-hk-constituents.json": "42eda11d84a23c58e4faf51a1b2602faea54d497fdcccaf529f78d07fffb77af",
+    "data/taiwan-collection-status.json": "abc6e6e6fc9d891ec0b598e4c3429c074ea16bd7942bc07dbced78ed36de361a",
+    "data/asia-hk-constituents.json": "1148eda15ae179478b0a42f6da50192d4aeeccf9b85b2d9e2462295b8f923bea",
     "data/asia-hk-metadata.json": "fcde76ab94992a57c919d30329a4f727d076ddf5488ab873ac5341cb5e94a61b",
-    "data/asia-hk-screening.json": "5d7d131832303c0537b72b23c74a2c78a3e7c8f259e1ceae63deead2a866e017",
+    "data/asia-hk-screening.json": "137e429b0b5c7cde27649dcdb7b47f1d7fd60d5a8d7284df757a19c8e85f7990",
     "data/asia-cn-constituents.json": "da60d18a03be6d6bad6d63b8ad715f988c2b25607d4a7e3c9816dcdc0001c844",
     "data/asia-cn-metadata.json": "f78847891dad1ebbfe26ffe795619c7bed48b3c303b4bc12eb470141a746ea47",
-    "data/asia-cn-screening.json": "daa8bcda8b7db4c798f5d8468e804712a5c741a1accac16a970e9d89a79f8a50"
+    "data/asia-cn-screening.json": "9d36cfd8be13021b560a5be75088eff19442c6799baa6be7cbae3844a498dcba"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
-    "scripts/refresh_all_data.py": "0b5f32a2b6d94f8cb91bd62e23b67c394abebf4c10f2b2c827f046a3081596f9",
-    "scripts/collection_policy.py": "c56cfe43636462694351510d6f04627d986d360fe3240aa0dc26bdd85a2bfc3a",
-    "scripts/regional_failure_retention.py": "265885340c62942e55c528d80593918d14c290d3b2954ea3553454a95e6ea3b7",
+    "scripts/refresh_all_data.py": "816e3205cd821c0e063e2957cb8ff2207e9e02d568a442ff56b5aae581569fd4",
+    "scripts/collection_policy.py": "c566f346834da2d915f60865bbbe47cf82952239f387ab53369f5e7c1292cc47",
+    "scripts/regional_failure_retention.py": "956ab4f211ac53942ab688ed7f7261b007806cd663366dde478082223f4e62e8",
     "scripts/corporate_actions.py": "440bcba94ee02c5718525002ac238a448f2f8574a286df92b38ca54680ea6526",
     "scripts/validated_price_cache.py": "a0780fe5f66c3537a36d7bfa1cd7126ac437963ec55f095a3c5505255673f458",
     "scripts/hsci_constituents.py": "180109eed7765605dfb01cd4dc4d2737f69ff05c6564051671d3dbf07423e402",
@@ -76,16 +76,22 @@
     "scripts/update_asia_screening.py": "ded6ac5a821bc82f0804a571840ce77477f290f28abf95f4430413523b216525",
     "scripts/update_market_rs.py": "cbce41358d78b0859332e5b8a50250a3f2682d1846f7d2296b50722c990ddd6c",
     "scripts/update_market_trend_score.py": "50e79cc9dd04aded4ac690e0d9df2c272b4276e2031dbc1d8adc46bfa868a7c3",
-    "scripts/update_taiwan_revenue.py": "3d432758dab184cca190606be58bd8a0352cb7b06b767d7da6452a38524c26d4",
-    "scripts/validate_asia_screening.py": "b1a301b892b3b67ae35ec9017d522396b7d67655b87ab4fc49342b93900ad68f",
+    "scripts/update_taiwan_revenue.py": "e9a3ba0b0f214b125f42bc8be5863a6e1290c8cf4f73fe413c293bf3b4250750",
+    "scripts/validate_asia_screening.py": "bd4617661df8efa8ca9ebb47f30163a1e3dce840f846cc6aed5b3d523d6f0309",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "36169240191",
+  "runId": "36383534025",
   "collection": {
-    "failureLimit": 10,
-    "failureCount": 1,
+    "failurePolicy": "retain-and-publish",
+    "failureCount": 7,
     "failures": {
-      "hk:1196.HK": "No current source for 1196.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown"
+      "hk:1196.HK": "No current source for 1196.HK: Tencent: Realord split normalization received an unexpected issuer name",
+      "hk:3033.HK": "No current source for 3033.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+      "hk:3109.HK": "No current source for 3109.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+      "cn:562500.SS": "No current source for 562500.SS: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+      "cn:000688.SS": "No current source for 000688.SS: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+      "cn:159819.SZ": "No current source for 159819.SZ: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+      "cn:588200.SS": "No current source for 588200.SS: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."
     },
     "retry": "next-refresh-cycle"
   }
