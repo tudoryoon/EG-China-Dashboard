@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "kstDate": "2026-09-30",
   "refreshDate": "2026-09-29",
-  "completedAt": "2026-09-30T10:47:32.534094+09:00",
+  "completedAt": "2026-09-30T10:56:03.413238+09:00",
   "marketSessions": {
     "hk": "2026-09-29",
     "cn": "2026-09-29"
@@ -54,11 +54,11 @@
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "data/dashboard-data.js": "0031b3d3cf15ed54a7ee0cd9ff6be1b48e937e9e47a03d8597ce9e51487c4ae7",
-    "data/taiwan-collection-status.json": "53d908f3d1894e7689a61bbb1273fda78766702cd844a6b94cf050032c20e6c4",
-    "data/asia-hk-constituents.json": "a7cc870318b1085b5806abb916f21dc835f865415c2ff3c54c7e0e90f7ccc25a",
+    "data/dashboard-data.js": "4dfc2ece67d5826e6ab9752cb3c45425818c19fab4b2de1f42bcd53630791e1a",
+    "data/taiwan-collection-status.json": "7e1ae05c674ac0517e08e21a5f74d1cf3d8c1f94c0db46d9de51fba01c081e8a",
+    "data/asia-hk-constituents.json": "4b1d20440b7575a78c49a0f2d18124184c94c10c136344758e56d2a5fb78f087",
     "data/asia-hk-metadata.json": "060e9db2e7bf60cf646118497807eb32d5d7c68b8b86309d617b56131dd47032",
-    "data/asia-hk-screening.json": "f31045efea4a83fcb498d6de4da3ce201f52a435451523174271affa88a738b3",
+    "data/asia-hk-screening.json": "24c3494a73a9a87aa9d036db107439d15a06d267c0dcf49eb2ab81173fa1ce8c",
     "data/asia-cn-constituents.json": "324cf189d4eb627016517296e8720f85dac578a41f3f7e152ee2acf8c18af4da",
     "data/asia-cn-metadata.json": "62e3930cc66af40a2746ea8dfba7679ed1e597a2aaf714ade18b193a10e80eb0",
     "data/asia-cn-screening.json": "e447638eb8eacff32d59b52720d67e5650c5aa7fc7298f1e4ff792d658391cc1"
@@ -84,10 +84,8 @@
   "runId": "36656027067",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 1,
-    "failures": {
-      "tw:2368": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2368 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))"
-    },
+    "failureCount": 0,
+    "failures": {},
     "retry": "next-refresh-cycle"
   }
 }
