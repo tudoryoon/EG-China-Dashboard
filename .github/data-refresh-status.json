@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "kstDate": "2026-09-30",
   "refreshDate": "2026-09-29",
-  "completedAt": "2026-09-30T10:33:34.821942+09:00",
+  "completedAt": "2026-09-30T10:47:32.534094+09:00",
   "marketSessions": {
     "hk": "2026-09-29",
     "cn": "2026-09-29"
@@ -54,39 +54,39 @@
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "data/dashboard-data.js": "4dfc2ece67d5826e6ab9752cb3c45425818c19fab4b2de1f42bcd53630791e1a",
-    "data/taiwan-collection-status.json": "f7894f0cfb26c36cc049d25ce9413a58ecce4833e6001e0493bde6f611b7dca4",
-    "data/asia-hk-constituents.json": "35c0a9404aa33c09843d42ab4256058bbbc2e2a81a8f52896975dbc296ed8577",
+    "data/dashboard-data.js": "0031b3d3cf15ed54a7ee0cd9ff6be1b48e937e9e47a03d8597ce9e51487c4ae7",
+    "data/taiwan-collection-status.json": "53d908f3d1894e7689a61bbb1273fda78766702cd844a6b94cf050032c20e6c4",
+    "data/asia-hk-constituents.json": "a7cc870318b1085b5806abb916f21dc835f865415c2ff3c54c7e0e90f7ccc25a",
     "data/asia-hk-metadata.json": "060e9db2e7bf60cf646118497807eb32d5d7c68b8b86309d617b56131dd47032",
-    "data/asia-hk-screening.json": "14789212352d762c006a75581fbaf30b6df6fd2b2e9e40a21a0789bab1e67f84",
+    "data/asia-hk-screening.json": "f31045efea4a83fcb498d6de4da3ce201f52a435451523174271affa88a738b3",
     "data/asia-cn-constituents.json": "324cf189d4eb627016517296e8720f85dac578a41f3f7e152ee2acf8c18af4da",
     "data/asia-cn-metadata.json": "62e3930cc66af40a2746ea8dfba7679ed1e597a2aaf714ade18b193a10e80eb0",
-    "data/asia-cn-screening.json": "dfc44479553917cd5b1e368079853c4745cb47f7133d97a920d26b6129aee8af"
+    "data/asia-cn-screening.json": "e447638eb8eacff32d59b52720d67e5650c5aa7fc7298f1e4ff792d658391cc1"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
-    "scripts/refresh_all_data.py": "816e3205cd821c0e063e2957cb8ff2207e9e02d568a442ff56b5aae581569fd4",
+    "scripts/refresh_all_data.py": "ac97765e5ccb0ee6a6691a3f2d961c0da193c74e90d38cbff597d69832c451de",
+    "scripts/repair_published_failures.py": "bee1e5a3abdf11cf933565c5e6ca9df4c39b26adea6f4c38fbe947be13ad15b3",
     "scripts/collection_policy.py": "c566f346834da2d915f60865bbbe47cf82952239f387ab53369f5e7c1292cc47",
     "scripts/regional_failure_retention.py": "956ab4f211ac53942ab688ed7f7261b007806cd663366dde478082223f4e62e8",
-    "scripts/corporate_actions.py": "440bcba94ee02c5718525002ac238a448f2f8574a286df92b38ca54680ea6526",
+    "scripts/corporate_actions.py": "6f467a45173888a7fab7c33b23617349d03516d36f68e88bc5434f1feed3c104",
     "scripts/validated_price_cache.py": "a0780fe5f66c3537a36d7bfa1cd7126ac437963ec55f095a3c5505255673f458",
     "scripts/hsci_constituents.py": "180109eed7765605dfb01cd4dc4d2737f69ff05c6564051671d3dbf07423e402",
     "scripts/regional_supplements.py": "c8856572a5b35346834a90d42da2463e677f5178843b69cf8494ecd38c9d22f6",
-    "scripts/market_price_sources.py": "9ed6db52a8d9d02c65e40c80370c1e3e48eab1af9c3e0d80ec9d14b5db01772c",
-    "scripts/update_asia_screening.py": "ded6ac5a821bc82f0804a571840ce77477f290f28abf95f4430413523b216525",
+    "scripts/market_price_sources.py": "ce847537f396c44a955f955d4923364af47da6af051be1a8b6776792a1579e57",
+    "scripts/update_asia_screening.py": "01b8a019282ad25f9104e3aca2c19aad83dba2f1457d3a9c34f7fd3a0c6dfbf8",
     "scripts/update_market_rs.py": "cbce41358d78b0859332e5b8a50250a3f2682d1846f7d2296b50722c990ddd6c",
     "scripts/update_market_trend_score.py": "50e79cc9dd04aded4ac690e0d9df2c272b4276e2031dbc1d8adc46bfa868a7c3",
     "scripts/update_taiwan_revenue.py": "e9a3ba0b0f214b125f42bc8be5863a6e1290c8cf4f73fe413c293bf3b4250750",
     "scripts/validate_asia_screening.py": "bd4617661df8efa8ca9ebb47f30163a1e3dce840f846cc6aed5b3d523d6f0309",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "local",
+  "runId": "36656027067",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 2,
+    "failureCount": 1,
     "failures": {
-      "hk:1196.HK": "No current source for 1196.HK: Tencent: Realord split normalization received an unexpected issuer name",
-      "hk:2915.HK": "No current source for 2915.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Yahoo Finance: No completed history: 2915.HK"
+      "tw:2368": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2368 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))"
     },
     "retry": "next-refresh-cycle"
   }
