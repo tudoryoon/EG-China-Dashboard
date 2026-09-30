@@ -60,14 +60,21 @@ class ProviderCircuitBreaker:
 _TENCENT_CIRCUIT = ProviderCircuitBreaker()
 
 
-def tencent_get(get, params):
-    """Limit request starts to four/second without blocking other network responses."""
+def pace_tencent_request():
+    """Limit every HTTP attempt, including retries, to four starts per second."""
     global _tencent_last_started
     with _TENCENT_REQUEST_LOCK:
         wait = TENCENT_REQUEST_INTERVAL_SECONDS - (time.monotonic() - _tencent_last_started)
         if wait > 0:
             time.sleep(wait)
         _tencent_last_started = time.monotonic()
+
+
+def tencent_get(get, params):
+    # The production client paces inside its retry loop. Keep injected clients
+    # paced here unless they explicitly provide the same per-attempt contract.
+    if getattr(get, "paces_tencent_attempts", False) is not True:
+        pace_tencent_request()
     return get(TENCENT_URL, params=params)
 
 
@@ -129,7 +136,15 @@ def current_source(symbol, expected, providers, minimum=400):
             return payload
         except Exception as error:
             if circuit is not None:
-                circuit.failure(ticket)
+                # curl_cffi HTTPError/Timeout/RequestException inherit OSError.
+                # A stale/malformed/security-specific payload is not evidence
+                # that unrelated securities cannot use this provider. It also
+                # releases a half-open probe so one such listing cannot keep
+                # all subsequent requests paused.
+                if isinstance(error, OSError):
+                    circuit.failure(ticket)
+                else:
+                    circuit.success(ticket)
             reason = f"{name}: {error}"
             errors.append(reason)
             print(f"{symbol}: source rejected; {reason}", flush=True)

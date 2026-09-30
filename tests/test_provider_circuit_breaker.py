@@ -78,6 +78,59 @@ class ProviderCircuitBreakerTests(unittest.TestCase):
                 ('Tencent', recovered)], minimum=1), fresh)
             recovered.assert_called_once()
 
+    def test_security_validation_failures_do_not_pause_other_securities(self):
+        fresh = {'records': [{'date': '2026-09-29'}]}
+        rejected = Mock(side_effect=ValueError('Wrong Tencent security'))
+        current = Mock(return_value=fresh)
+        with patch.object(sources, '_TENCENT_CIRCUIT', self.breaker):
+            for _ in range(7):
+                with self.assertRaisesRegex(RuntimeError, 'Wrong Tencent security'):
+                    sources.current_source('0625.HK', '2026-09-29', [
+                        ('Tencent', rejected)], minimum=1)
+            self.assertIs(sources.current_source('9988.HK', '2026-09-29', [
+                ('Tencent', current)], minimum=1), fresh)
+        self.assertEqual(rejected.call_count, 7)
+        current.assert_called_once()
+
+    def test_stale_history_keeps_fallback_validation_without_opening_circuit(self):
+        stale = {'records': [{'date': '2026-09-28'}]}
+        fresh = {'records': [{'date': '2026-09-29'}]}
+        rejected = Mock(return_value=stale)
+        with patch.object(sources, '_TENCENT_CIRCUIT', self.breaker):
+            for _ in range(7):
+                self.assertIs(sources.current_source('0853.HK', '2026-09-29', [
+                    ('Tencent', rejected), ('Yahoo Finance', lambda: fresh)], minimum=1), fresh)
+            with self.assertRaisesRegex(RuntimeError, 'Incomplete/stale history'):
+                sources.current_source('0853.HK', '2026-09-29', [
+                    ('Tencent', rejected), ('Yahoo Finance', lambda: stale)], minimum=1)
+        self.assertEqual(rejected.call_count, 8)
+        self.assertIsNotNone(self.breaker.acquire())
+
+    def test_half_open_security_error_releases_probe_for_next_listing(self):
+        self.open_circuit()
+        self.now = 300.0
+        invalid = Mock(side_effect=ValueError('unexpected issuer name'))
+        fresh = {'records': [{'date': '2026-09-29'}]}
+        current = Mock(return_value=fresh)
+        with patch.object(sources, '_TENCENT_CIRCUIT', self.breaker):
+            with self.assertRaisesRegex(RuntimeError, 'unexpected issuer name'):
+                sources.current_source('1196.HK', '2026-09-29', [
+                    ('Tencent', invalid)], minimum=1)
+            self.assertIs(sources.current_source('9999.HK', '2026-09-29', [
+                ('Tencent', current)], minimum=1), fresh)
+        invalid.assert_called_once()
+        current.assert_called_once()
+
+    def test_old_semantic_error_cannot_release_new_transport_pause(self):
+        def rejected_after_other_workers_open_circuit():
+            self.open_circuit()
+            raise ValueError('Wrong Tencent security')
+        with patch.object(sources, '_TENCENT_CIRCUIT', self.breaker):
+            with self.assertRaisesRegex(RuntimeError, 'Wrong Tencent security'):
+                sources.current_source('0625.HK', '2026-09-29', [
+                    ('Tencent', rejected_after_other_workers_open_circuit)], minimum=1)
+        self.assertIsNone(self.breaker.acquire())
+
 
 if __name__ == '__main__':
     unittest.main()

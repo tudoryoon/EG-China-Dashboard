@@ -79,6 +79,23 @@ class RealordSplitTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'requires Tencent'):
             normalize_equity_history('1196.HK', self.payload, '2026-09-14')
 
+    def test_verified_new_share_aliases_keep_split_and_identity_guards(self):
+        for name in ('伟禄科技股份-新', '偉祿科技股份-新'):
+            with self.subTest(name=name):
+                payload = deepcopy(self.payload)
+                payload['name'] = name
+                fixed = normalize_equity_history('1196.HK', payload, '2026-09-29')
+                self.assertEqual(fixed['records'][-2]['close'], 2.7125)
+                self.assertEqual(fixed['records'][-2]['rawClose'], 10.85)
+                self.assertEqual(fixed['records'][-1]['close'], 2.88)
+                payload['records'][-2]['close'] = 9.0
+                with self.assertRaisesRegex(ValueError, 'unknown/missing raw'):
+                    normalize_equity_history('1196.HK', payload, '2026-09-29')
+        for name in ('Different Issuer-新', '伟禄科技股份-其他', '伟禄科技股份新'):
+            self.payload['name'] = name
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'unexpected issuer'):
+                normalize_equity_history('1196.HK', self.payload, '2026-09-29')
+
 
 if __name__ == '__main__':
     unittest.main()

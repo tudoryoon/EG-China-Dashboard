@@ -1,6 +1,7 @@
 """A failed run cannot multiply recovery chains or revive superseded failures."""
 from copy import deepcopy
 from pathlib import Path
+import re
 import sys
 import unittest
 from unittest.mock import Mock
@@ -89,6 +90,12 @@ class RecoveryOwnershipTests(unittest.TestCase):
         self.assertFalse(self.queue(expected_sha="b" * 40))
         self.assertEqual(self.posts, [])
 
+    def test_delivery_recovery_uses_published_repair_sha_not_event_sha(self):
+        self.sha = "b" * 40  # The repair was pushed after this run's event SHA.
+        self.assertNotEqual(self.source["head_sha"], self.sha)
+        self.assertTrue(self.queue(expected_sha=self.sha))
+        self.assertEqual(len(self.posts), 1)
+
     def test_newer_source_attempt_and_recovered_source_do_not_retry(self):
         self.assertFalse(self.queue(source_attempt=2))
         self.source.update(status="completed", conclusion="success")
@@ -134,6 +141,61 @@ class RecoveryOwnershipTests(unittest.TestCase):
 
 
 class WorkflowOutcomeContractTests(unittest.TestCase):
+    def setUp(self):
+        workflows = Path(__file__).resolve().parents[1] / ".github" / "workflows"
+        self.refresh = (workflows / "refresh-all-data.yml").read_text(encoding="utf8")
+        update = self.refresh.split("\n  recovery:", 1)[0]
+        self.steps = {}
+        for block in re.split(r"(?m)^      - ", update)[1:]:
+            identifier = re.search(r"(?m)^        id: (\w+)$", block)
+            if identifier:
+                self.steps[identifier.group(1)] = block
+
+    def condition(self, step):
+        return re.search(r"(?m)^        if: (.+)$", self.steps[step]).group(1)
+
+    def test_optional_repair_cannot_delay_initial_delivery_or_run_after_skip(self):
+        order = list(self.steps)
+        self.assertLess(order.index("publish"), order.index("delivery"))
+        self.assertLess(order.index("delivery"), order.index("repair"))
+        # Each gate is conjunctive: accepted same-cycle/check-only executions
+        # must never enter the force-refresh helper.
+        self.assertNotIn("||", self.condition("repair"))
+        gates = {part.strip() for part in self.condition("repair").split("&&")}
+        self.assertTrue({
+            "success()", "steps.freshness.outputs.skip != 'true'", "!inputs.check_only",
+            "steps.publish.outcome == 'success'", "steps.delivery.outcome == 'success'",
+        }.issubset(gates))
+        self.assertIn("continue-on-error: true", self.steps["repair"])
+
+    def test_only_successful_improvement_can_push_and_only_a_push_can_deploy(self):
+        order = list(self.steps)
+        self.assertLess(order.index("repair"), order.index("repair_publish"))
+        self.assertLess(order.index("repair_publish"), order.index("repair_delivery"))
+        self.assertNotIn("||", self.condition("repair_publish"))
+        self.assertNotIn("||", self.condition("repair_delivery"))
+        gates = {part.strip() for part in self.condition("repair_publish").split("&&")}
+        self.assertTrue({"steps.repair.outcome == 'success'",
+                         "steps.repair.outputs.updated == 'true'"}.issubset(gates))
+        self.assertIn("continue-on-error: true", self.steps["repair_publish"])
+        self.assertIn("steps.repair_publish.outputs.pushed == 'true'",
+                      {part.strip() for part in self.condition("repair_delivery").split("&&")})
+        publication = self.steps["repair_publish"]
+        self.assertLess(publication.index("verify-publication"), publication.index("git add "))
+        self.assertLess(publication.index("git pull --rebase"), publication.rindex("verify-publication"))
+        self.assertLess(publication.rindex("verify-publication"), publication.index("git push "))
+
+    def test_optional_failures_do_not_chain_recovery_but_repaired_delivery_can(self):
+        retry = re.search(r"(?m)^      recovery_retryable: (.+)$", self.refresh).group(1)
+        self.assertIn("steps.repair_delivery.outcome == 'failure'", retry)
+        self.assertNotIn("steps.repair.", retry)
+        self.assertNotIn("steps.repair_publish.", retry)
+        revision = re.search(r"(?m)^      recovery_sha: (.+)$", self.refresh).group(1)
+        self.assertLess(revision.index("steps.repair_publish.outputs.recovery_sha"),
+                        revision.index("steps.publish.outputs.recovery_sha"))
+        self.assertLess(revision.index("steps.publish.outputs.recovery_sha"),
+                        revision.index("steps.source.outputs.sha"))
+
     def test_failed_tests_cannot_enter_recovery_and_watchers_share_one_lock(self):
         workflows = Path(__file__).resolve().parents[1] / ".github" / "workflows"
         refresh = (workflows / "refresh-all-data.yml").read_text(encoding="utf8")

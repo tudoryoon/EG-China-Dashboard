@@ -19,6 +19,10 @@ REALORD_SOURCES = [
 
 
 def is_realord_name(name):
+    # Tencent labels the reopened permanent counter as new shares during the
+    # documented split arrangement. Accept these exact issuer aliases only.
+    if str(name).strip() in {"偉祿科技股份-新", "伟禄科技股份-新"}:
+        return True
     compact = "".join(c for c in str(name).casefold() if c.isalnum())
     return compact in {
         "realordtech", "realordtechnology", "realordtechnologycompanylimited",

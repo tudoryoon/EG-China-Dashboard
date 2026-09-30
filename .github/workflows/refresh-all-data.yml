@@ -14,11 +14,11 @@ permissions:
 jobs:
   update:
     outputs:
-      recovery_retryable: ${{ steps.refresh.outputs.recovery_retryable == 'true' || steps.publish.outputs.recovery_retryable == 'true' || steps.delivery.outcome == 'failure' }}
-      recovery_sha: ${{ steps.publish.outputs.recovery_sha || steps.source.outputs.sha }}
+      recovery_retryable: ${{ steps.refresh.outputs.recovery_retryable == 'true' || steps.publish.outputs.recovery_retryable == 'true' || steps.delivery.outcome == 'failure' || steps.repair_delivery.outcome == 'failure' }}
+      recovery_sha: ${{ steps.repair_publish.outputs.recovery_sha || steps.publish.outputs.recovery_sha || steps.source.outputs.sha }}
     runs-on: ubuntu-latest
-    # Six 45-minute collection attempts + 15 minutes of backoff leave 45 minutes
-    # for setup, publication and shutdown. Recovery runs in a separate job below.
+    # Six 45-minute attempts + 15-minute backoff + one optional 25-minute repair
+    # leave 20 minutes for setup and publication. Normal data is published first.
     timeout-minutes: 330
     concurrency:
       group: refresh-all-regional-data
@@ -108,6 +108,45 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/ensure_pages_deployment.py
+      - name: Retry remaining securities once after initial publication
+        id: repair
+        if: success() && steps.freshness.outputs.skip != 'true' && !inputs.check_only && steps.publish.outcome == 'success' && steps.delivery.outcome == 'success'
+        continue-on-error: true
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: python scripts/repair_published_failures.py
+      - name: Publish only an improved repair
+        id: repair_publish
+        if: success() && steps.repair.outcome == 'success' && steps.repair.outputs.updated == 'true'
+        # An optional repair must not invalidate the data already published.
+        # Source/push failures here never dispatch another collection workflow.
+        continue-on-error: true
+        shell: bash
+        run: |
+          python scripts/refresh_all_data.py verify-publication || exit 1
+          git add data/asia-*.json data/dashboard-data.js data/taiwan-collection-status.json .github/data-refresh-status.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Recover remaining regional data after initial publication'
+          for attempt in 1 2 3; do
+            git pull --rebase origin main || exit 1
+            python scripts/refresh_all_data.py verify-publication || exit 1
+            if git push origin HEAD:main; then
+              echo 'pushed=true' >> "$GITHUB_OUTPUT"
+              echo "recovery_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
+      - name: Deliver the improved repair
+        id: repair_delivery
+        if: success() && steps.repair_publish.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/ensure_pages_deployment.py
+      - name: Report optional repair failure
+        if: always() && (steps.repair.outcome == 'failure' || steps.repair_publish.outcome == 'failure')
+        run: echo 'Optional repair failed; the initially published data remains available. Outstanding securities retry next cycle.' >> "$GITHUB_STEP_SUMMARY"
   recovery:
     # Only explicit retryable outcomes may queue recovery. Test, setup, schema,
     # post-collection audit and publication-checkpoint errors cannot self-dispatch.

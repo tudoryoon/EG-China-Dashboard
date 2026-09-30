@@ -19,8 +19,10 @@ from hsci_constituents import parse_hsci
 from regional_supplements import ETF_SECIDS, ETF_SOURCE, parse_etf_history, build_regional_rs, build_regional_trend
 from market_price_sources import (
     INDEX_SECIDS,
+    TENCENT_URL,
     current_source,
     eastmoney_index_history,
+    pace_tencent_request,
     require_current,
     tencent_equity_history,
     tencent_history,
@@ -47,6 +49,8 @@ META = {
 
 def get(url, **kwargs):
     for attempt in range(3):
+        if url == TENCENT_URL:
+            pace_tencent_request()
         try:
             response = requests.get(url, impersonate="chrome", timeout=35, **kwargs)
             response.raise_for_status()
@@ -55,6 +59,9 @@ def get(url, **kwargs):
             if attempt == 2:
                 raise
             time.sleep(1 + attempt)
+
+
+get.paces_tencent_attempts = True
 
 
 def write_json(path, value):

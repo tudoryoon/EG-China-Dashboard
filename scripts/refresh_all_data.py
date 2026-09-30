@@ -20,6 +20,7 @@ DATA_FILES = ('data/dashboard-data.js', 'data/taiwan-collection-status.json') + 
     for kind in ('constituents', 'metadata', 'screening')
 )
 PIPELINE_FILES = ('requirements.txt', 'scripts/refresh_all_data.py',
+                  'scripts/repair_published_failures.py',
                   'scripts/collection_policy.py', 'scripts/regional_failure_retention.py',
                   'scripts/corporate_actions.py', 'scripts/validated_price_cache.py',
                   'scripts/hsci_constituents.py',
@@ -166,7 +167,8 @@ def refresh(root=ROOT, now=None, run=None, force=False):
     if os.getenv('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf8') as summary:
             summary.write(f"\nCollection failures: {collection['failureCount']} (no count-based publication limit). "
-                          "Accepted failures retry next refresh cycle.\n")
+                          "Publish valid data first; the workflow may attempt one bounded repair afterward. "
+                          "Unresolved failures retry next refresh cycle.\n")
             for ticker, error in collection['failures'].items():
                 summary.write(f'- {ticker}: {error.replace(chr(10), " ")}\n')
     return True
