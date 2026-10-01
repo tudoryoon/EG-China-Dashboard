@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "kstDate": "2026-10-01",
-  "refreshDate": "2026-09-30",
-  "completedAt": "2026-10-01T03:42:26.615451+09:00",
+  "kstDate": "2026-10-02",
+  "refreshDate": "2026-10-01",
+  "completedAt": "2026-10-02T03:30:05.113392+09:00",
   "marketSessions": {
     "hk": "2026-09-30",
     "cn": "2026-09-30"
@@ -55,13 +55,13 @@
   },
   "dataHashes": {
     "data/dashboard-data.js": "4dfc2ece67d5826e6ab9752cb3c45425818c19fab4b2de1f42bcd53630791e1a",
-    "data/taiwan-collection-status.json": "362f49543cc35624a129a37d563e886562cec89bf76129c99c2681aaf34d5fb2",
-    "data/asia-hk-constituents.json": "e80fda6767540ed4a36be85ea94031339302f2a65fd61983c4681e7ee68157f6",
+    "data/taiwan-collection-status.json": "c054a6fb3eec5cc5b61dc19d9d5a665de0fe548c9db201c2296aa935a8080155",
+    "data/asia-hk-constituents.json": "bfdcee137aac80ec414102750ec91b0da97b75d2d4e8378376812e2e734242c3",
     "data/asia-hk-metadata.json": "db7518b3282b16d374142345778b74242a6bebe4c2869337f28d181021c84518",
-    "data/asia-hk-screening.json": "cedd31a6f4df926be8b1ab42dfef7ecc663055cfa258c03365fdd47a7ffac1e3",
+    "data/asia-hk-screening.json": "5ab773469cdb87b8cf8cdc4ca0f45c43931eefa1103e2ea316a3b1dbd2c4c0fd",
     "data/asia-cn-constituents.json": "5cea5d79c87eb440f8d16b5845f0acff64ee8f5b6a017f4c212d6a4d2e155a05",
     "data/asia-cn-metadata.json": "aeca06d75e73065fae01b40e895854263dcf2c8461eaa5655bb18fe255da5bbe",
-    "data/asia-cn-screening.json": "2adea3d9c1f3a9f59d86b606d001d78a8b566d55614066c0bad34f2c65a8a880"
+    "data/asia-cn-screening.json": "b456955612868de558c6a39ad483723b73cd56edef768359a68b24aa4c62ba1b"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -81,7 +81,7 @@
     "scripts/validate_asia_screening.py": "bd4617661df8efa8ca9ebb47f30163a1e3dce840f846cc6aed5b3d523d6f0309",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "36755487372",
+  "runId": "36906204546",
   "collection": {
     "failurePolicy": "retain-and-publish",
     "failureCount": 0,
