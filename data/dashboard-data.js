@@ -6734,7 +6734,10 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    }
+    },
+    "dataStatus": "stale",
+    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2383 (Caused by NewConnectionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to establish a new connection: [Errno 111] Connection refused\"))",
+    "sourceCheckedAt": "2026-10-04T01:17:03.731909+09:00"
   },
   {
     "name": "Kinsus",
@@ -8057,16 +8060,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "PCB/기판",
     "currency": {
-      "USD": 0.17,
-      "NTD": 5.3527
+      "USD": 0.177,
+      "NTD": 5.5858
     },
     "marketCap": {
       "USD": 18.2,
       "NTD": 573.1
     },
-    "mom": -1.6,
-    "yoy": 40.6,
-    "month": "26/08",
+    "mom": 4.4,
+    "yoy": 57.8,
+    "month": "26/09",
     "bars": [
       null,
       null,
@@ -8135,7 +8138,8 @@ window.dashboardCompanies = [
       4.4403,
       4.6843,
       5.4398,
-      5.3527
+      5.3527,
+      5.5858
     ],
     "yoyLine": [
       null,
@@ -8205,7 +8209,8 @@ window.dashboardCompanies = [
       35.8,
       50.0,
       50.2,
-      40.6
+      40.6,
+      57.8
     ],
     "momLine": [
       null,
@@ -8275,7 +8280,8 @@ window.dashboardCompanies = [
       -0.2,
       5.5,
       16.1,
-      -1.6
+      -1.6,
+      4.4
     ],
     "yearly": {
       "labels": [
@@ -8372,7 +8378,7 @@ window.dashboardCompanies = [
             50.0,
             50.2,
             40.6,
-            null,
+            57.8,
             null,
             null,
             null
