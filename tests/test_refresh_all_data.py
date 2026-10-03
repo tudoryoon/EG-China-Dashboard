@@ -10,6 +10,7 @@ from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 import refresh_all_data as refresh
+import bump_data_cache_versions as versions
 
 
 class DailyRefreshTests(unittest.TestCase):
@@ -48,6 +49,21 @@ class DailyRefreshTests(unittest.TestCase):
     def test_next_kst_day_retries(self):
         self.successful_refresh()
         self.assertFalse(refresh.completed_today(self.root, self.now + timedelta(days=1)))
+
+    def test_published_version_is_checkpointed_and_backups_preserve_it(self):
+        index = self.root / 'index.html'
+        index.write_text('<script src="./data/dashboard-data.js?v=20260906-1"></script>', encoding='utf8')
+        with patch.object(versions, 'datetime') as clock:
+            clock.now.return_value = self.now
+            self.successful_refresh()
+        self.assertIn('dashboard-data.js?v=20260907-1', index.read_text(encoding='utf8'))
+        self.assertTrue(refresh.completed_today(self.root, self.now))
+        published = index.read_bytes()
+        for minute in (10, 17):
+            forbidden = Mock(side_effect=AssertionError('A backup must not collect again'))
+            self.assertFalse(refresh.refresh(self.root, self.now.replace(minute=minute), forbidden))
+            forbidden.assert_not_called()
+            self.assertEqual(index.read_bytes(), published)
 
     def test_any_count_of_accepted_failures_skips_backups_but_retries_next_cycle(self):
         for count in (0, 10, 11, 100, 1000):
@@ -91,7 +107,7 @@ class DailyRefreshTests(unittest.TestCase):
         self.assertFalse(refresh.completed_today(self.root, self.now))
 
     def test_modified_data_or_pipeline_invalidates_checkpoint(self):
-        for name in ('data/dashboard-data.js', 'scripts/update_market_rs.py'):
+        for name in ('index.html', 'data/dashboard-data.js', 'scripts/update_market_rs.py'):
             self.successful_refresh()
             (self.root / name).write_text('modified', encoding='utf-8')
             self.assertFalse(refresh.completed_today(self.root, self.now))
@@ -118,10 +134,14 @@ class DailyRefreshTests(unittest.TestCase):
         self.assertFalse(refresh.completed_today(self.root, self.now.replace(minute=10)))
 
     def test_validation_failure_never_records_success(self):
+        index = self.root / 'index.html'
+        index.write_bytes(b'<script src="./data/dashboard-data.js?v=20260906-1"></script>\r\n')
+        before = index.read_bytes()
         with patch.object(refresh, 'validate_freshness', side_effect=RuntimeError('stale session')):
             with self.assertRaisesRegex(RuntimeError, 'stale session'):
                 refresh.refresh(self.root, self.now, Mock())
         self.assertFalse((self.root / refresh.STATUS_PATH).exists())
+        self.assertEqual(index.read_bytes(), before)
 
     def test_validator_process_failure_is_nonretryable(self):
         runner = Mock(side_effect=[None, None, subprocess.CalledProcessError(1, 'schema')])

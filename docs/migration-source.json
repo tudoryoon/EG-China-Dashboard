@@ -36,5 +36,12 @@
   "originalBaselineHashes": {
     "scripts/update_asia_screening.py": "39a1f8988ccb54b020fe412f4769f9c18643c71f5731270dc6defaaa7824dc83",
     "scripts/validate_asia_screening.py": "94ffa3f4545e218828b8d40d438628bb4f252f52026fdb10a0fdd46ced832331"
+  },
+  "uiImports": {
+    "date": "2026-10-03",
+    "sourceCommit": "630d492eff1eb58ac9bea571b626d23bb4c95149",
+    "dashboard.js": "Header refresh controls, status, asset-signature checks, manual reload, five-minute polling and visibility recheck copied verbatim from EG Dashboard.",
+    "header-refresh.css": "Exact upstream header-refresh CSS block; original styles.css remains unchanged.",
+    "scripts/bump_data_cache_versions.py": "Upstream cache-version helper, with optional index_path for isolated roots. The accepted regional snapshot bumps the Taiwan script version, which the unchanged header signature check sees. Reloaded regional JSON uses the existing no-cache loader."
   }
 }

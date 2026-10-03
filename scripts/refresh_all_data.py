@@ -10,16 +10,18 @@ from pathlib import Path
 import subprocess
 import sys
 from collection_policy import summarize_failures, failure_map, FAILURE_POLICY
+from bump_data_cache_versions import bump_index_versions
 
 ROOT = Path(__file__).resolve().parents[1]
 KST = timezone(timedelta(hours=9))
 STATUS_PATH = Path('.github/data-refresh-status.json')
-DATA_FILES = ('data/dashboard-data.js', 'data/taiwan-collection-status.json') + tuple(
+DATA_FILES = ('index.html', 'data/dashboard-data.js', 'data/taiwan-collection-status.json') + tuple(
     f'data/asia-{region}-{kind}.json'
     for region in ('hk', 'cn')
     for kind in ('constituents', 'metadata', 'screening')
 )
 PIPELINE_FILES = ('requirements.txt', 'scripts/refresh_all_data.py',
+                  'scripts/bump_data_cache_versions.py',
                   'scripts/repair_published_failures.py',
                   'scripts/collection_policy.py', 'scripts/regional_failure_retention.py',
                   'scripts/corporate_actions.py', 'scripts/validated_price_cache.py',
@@ -144,6 +146,9 @@ def refresh(root=ROOT, now=None, run=None, force=False):
         dates = validate_freshness(root, started)
         months = validate_taiwan(root)
         collection = validate_collection_policy(root, started)
+        # The upstream refresh button compares asset URLs in index.html. Change
+        # one shared data script version only after accepting the whole snapshot.
+        bump_index_versions(['data/dashboard-data.js'], index_path=root / 'index.html')
     except Exception as error:
         raise NonRetryableRefreshError(f'Publication validation failed: {error}') from error
     completed = now or datetime.now(KST)

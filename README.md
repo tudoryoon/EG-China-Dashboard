@@ -16,6 +16,8 @@ Independent regional dashboard migrated from [EG Dashboard](https://tudoryoon.gi
 
 Switching between RS and 추세스코어 retains the selected market. Taiwan remains an independent tab. Existing `#/taiwan/...` bookmarks redirect to the corresponding canonical URLs above.
 
+The top-right refresh button uses EG Dashboard's original controls, status labels, asset-version check and reload behavior. It checks for a new published version on load, every five minutes and when returning to the tab. Accepted data publications bump the shared data-script URL version; the button can then reload the latest data while preserving the active view. First visits without a route open RS / 중국.
+
 The source's Taiwan view is monthly revenue; Taiwan equity RS/Trend is not part of this initial migration. Snapshot dates above describe imported data, not a newly completed market refresh.
 
 ## Shared calculation engines

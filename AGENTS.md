@@ -9,6 +9,7 @@
 - Keep the reference EG_Dashboard repository unchanged when working on this repository.
 - User correction on 2026-09-07: remove the large `China & HK & Taiwan` parent tab. The main tabs are **RS → 추세스코어 → Taiwan**. RS and 추세스코어 each contain **중국 → 홍콩** subtabs; Taiwan has no country subtabs. Keep the original visual components and styling with this explicitly requested navigation change.
 - Default entry is **RS / 중국** (`#/rs/china`). Never use Taiwan as the default route or the parent route of Chinese/Hong Kong screening. Preserve the selected market when switching between RS and 추세스코어.
+- October 3 user request: keep the top-right refresh button identical to EG Dashboard. The controls, status/check/reload logic and header-refresh CSS are imported from upstream commit `630d492eff1eb58ac9bea571b626d23bb4c95149`; provenance is in `docs/migration-source.json`. Keep the base stylesheet and regional navigation intact. The root/default entry remains RS / 중국; explicit deep links retain their selected view.
 
 ## Calculations and data
 
@@ -46,3 +47,4 @@
 - Carry over the source project's authorized workflow: validate, create a scoped commit, and normally push to `origin/main` without asking again. Respect explicit no-push or review-only requests. Never force-push.
 - Deployment uses this repository's GitHub Pages. Only the regional refresh workflow is migrated; do not enable unrelated US-market jobs.
 - Publication runs check Pages delivery even when collection is skipped. A successful or active deployment for committed `main` suppresses duplicate dispatch; otherwise dispatch it. Pages checks out `main` after its concurrency lock. Failed/timed-out Pages runs retry delivery after five minutes without recollecting or pushing data; deliberate manual cancellations stay stopped.
+- Every accepted snapshot bumps the data-script URL version in index.html with the upstream cache-version helper so the refresh button detects new regional/Taiwan publications. index.html belongs to the checkpoint hashes and exact rollback snapshot; publish it with the data. Skip/no-improvement runs must not keep or push a new version. Button reloads preserve the active route; first root visits open RS / 중국.

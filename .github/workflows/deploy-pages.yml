@@ -39,7 +39,7 @@ jobs:
       - name: Package static site
         run: |
           mkdir -p _site/data
-          cp index.html dashboard.js styles.css .nojekyll _site/
+          cp index.html dashboard.js styles.css header-refresh.css .nojekyll _site/
           cp data/dashboard-data.js data/asia-*-screening.json _site/data/
           if [ -f data/taiwan-collection-status.json ]; then cp data/taiwan-collection-status.json _site/data/; fi
       - uses: actions/upload-pages-artifact@v3

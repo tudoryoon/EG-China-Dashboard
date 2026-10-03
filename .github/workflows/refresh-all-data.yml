@@ -83,7 +83,7 @@ jobs:
         shell: bash
         run: |
           echo 'recovery_retryable=false' >> "$GITHUB_OUTPUT"
-          git add data/asia-*.json data/dashboard-data.js data/taiwan-collection-status.json .github/data-refresh-status.json
+          git add index.html data/asia-*.json data/dashboard-data.js data/taiwan-collection-status.json .github/data-refresh-status.json
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -124,7 +124,7 @@ jobs:
         shell: bash
         run: |
           python scripts/refresh_all_data.py verify-publication || exit 1
-          git add data/asia-*.json data/dashboard-data.js data/taiwan-collection-status.json .github/data-refresh-status.json
+          git add index.html data/asia-*.json data/dashboard-data.js data/taiwan-collection-status.json .github/data-refresh-status.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Recover remaining regional data after initial publication'
           for attempt in 1 2 3; do
