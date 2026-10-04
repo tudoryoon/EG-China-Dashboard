@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "kstDate": "2026-10-04",
-  "refreshDate": "2026-10-03",
-  "completedAt": "2026-10-04T01:20:31.756741+09:00",
+  "kstDate": "2026-10-05",
+  "refreshDate": "2026-10-04",
+  "completedAt": "2026-10-05T01:54:39.776153+09:00",
   "marketSessions": {
     "hk": "2026-10-02",
     "cn": "2026-09-30"
@@ -54,15 +54,15 @@
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "index.html": "5c96ed74627ebe4f822d04efe7e61f354a466ee76d899874d2f3cb235f00522a",
-    "data/dashboard-data.js": "adf1333047280cde825842bc90d0964e9ddfb2368720560635f722856d89e1f5",
-    "data/taiwan-collection-status.json": "7c0eb1cd5fbfadd7971bde860163761a304132d5e727fbd463ae2b3f1b868e2c",
-    "data/asia-hk-constituents.json": "0d584d9523e2ffae8bcd9afbfcdab67c3498676e397866ee5d2b9ecc232545c8",
+    "index.html": "b695379948385558fba1cc9edd279444af24937e8201535f18eb90c00caaa0cd",
+    "data/dashboard-data.js": "affbf4807f877fc32ce88d633b2c2fba094420f2ba1f7f8411859522eca6d4d3",
+    "data/taiwan-collection-status.json": "6f2bba8ec3f2eb7b1e1d4a949037f498567146d13ede13f246c3a85b0a181283",
+    "data/asia-hk-constituents.json": "cd76d747694695b219db2a8dd1c0b89e59505ded1449b4f080eed581e97477d1",
     "data/asia-hk-metadata.json": "e1c557d6b4d22b3f940a2759c15329832fe455b62374586d05c5942d4ae48456",
-    "data/asia-hk-screening.json": "291970d4a942c074c94468bf2ef8c893e27bf6fe65f62c960264cefee46426ba",
+    "data/asia-hk-screening.json": "89d2f2febe3ac36a74917fc7381e9932ed04639b29f9731d4014b321f971c6cd",
     "data/asia-cn-constituents.json": "5cea5d79c87eb440f8d16b5845f0acff64ee8f5b6a017f4c212d6a4d2e155a05",
     "data/asia-cn-metadata.json": "aeca06d75e73065fae01b40e895854263dcf2c8461eaa5655bb18fe255da5bbe",
-    "data/asia-cn-screening.json": "7dc7af49d0b89775ad903fa6b98e37f9a2a4261da66e2ee6f6da0f72ede00a10"
+    "data/asia-cn-screening.json": "7cb3def7b1ce980727bdea114d08c47fdd9a9eb7e8ba0e0402cd76198ce3c30d"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -83,18 +83,12 @@
     "scripts/validate_asia_screening.py": "bd4617661df8efa8ca9ebb47f30163a1e3dce840f846cc6aed5b3d523d6f0309",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "37135641938",
+  "runId": "37217986155",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 7,
+    "failureCount": 1,
     "failures": {
-      "hk:3033.HK": "No current source for 3033.HK: Tencent: HTTP Error 501: ; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
-      "hk:3109.HK": "No current source for 3109.HK: Tencent: HTTP Error 501: ; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
-      "cn:000688.SS": "No current source for 000688.SS: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
-      "cn:562500.SS": "No current source for 562500.SS: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
-      "cn:588200.SS": "No current source for 588200.SS: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
-      "cn:159819.SZ": "No current source for 159819.SZ: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
-      "tw:2383": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2383 (Caused by NewConnectionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to establish a new connection: [Errno 111] Connection refused\"))"
+      "tw:6274": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=6274 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))"
     },
     "retry": "next-refresh-cycle"
   }
