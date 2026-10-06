@@ -10,6 +10,10 @@ on:
         description: Validate automation without downloading or publishing data
         type: boolean
         default: false
+      force:
+        description: Recheck reported missing securities even when today's checkpoint is complete
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -20,3 +24,4 @@ jobs:
     uses: ./.github/workflows/refresh-all-data.yml
     with:
       check_only: ${{ inputs.check_only || false }}
+      force: ${{ inputs.force || false }}

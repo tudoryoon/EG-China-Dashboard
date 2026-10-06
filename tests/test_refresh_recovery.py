@@ -154,6 +154,18 @@ class WorkflowOutcomeContractTests(unittest.TestCase):
     def condition(self, step):
         return re.search(r"(?m)^        if: (.+)$", self.steps[step]).group(1)
 
+    def test_manual_force_bypasses_only_the_completed_checkpoint(self):
+        workflows = Path(__file__).resolve().parents[1] / ".github" / "workflows"
+        caller = (workflows / "update-all-data-backup-1.yml").read_text(encoding="utf8")
+        self.assertIn("force: ${{ inputs.force || false }}", caller)
+        self.assertIn("'skip=false' >> \"$GITHUB_OUTPUT\"", self.steps["freshness"])
+        self.assertIn("python scripts/refresh_all_data.py check", self.steps["freshness"])
+        refresh = self.steps["refresh"]
+        self.assertIn("timeout 1500s python scripts/refresh_all_data.py refresh --force", refresh)
+        self.assertIn("python scripts/retry_data_refresh.py", refresh)
+        self.assertIn("python scripts/validate_asia_screening.py", self.refresh)
+        self.assertIn("python scripts/refresh_all_data.py verify-publication", self.refresh)
+
     def test_optional_repair_cannot_delay_initial_delivery_or_run_after_skip(self):
         order = list(self.steps)
         self.assertLess(order.index("publish"), order.index("delivery"))

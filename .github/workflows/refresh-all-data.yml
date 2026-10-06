@@ -6,6 +6,9 @@ on:
       check_only:
         type: boolean
         default: false
+      force:
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -40,7 +43,18 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Check today's complete refresh
         id: freshness
-        run: python scripts/refresh_all_data.py check
+        shell: bash
+        run: |
+          if [[ "${{ inputs.force }}" == "true" && "${{ inputs.check_only }}" == "true" ]]; then
+            echo 'Force and check-only cannot be combined.' >&2
+            exit 2
+          fi
+          if [[ "${{ inputs.force }}" == "true" ]]; then
+            echo 'skip=false' >> "$GITHUB_OUTPUT"
+            echo 'Manually rechecking reported missing securities despite the checkpoint.'
+          else
+            python scripts/refresh_all_data.py check
+          fi
       - name: Explain skipped update
         if: steps.freshness.outputs.skip == 'true' || inputs.check_only
         run: echo 'Data collection, commit and push are skipped. Publication runs still check whether committed main needs Pages delivery.' >> "$GITHUB_STEP_SUMMARY"
@@ -65,7 +79,11 @@ jobs:
         run: |
           set -o pipefail
           log="$RUNNER_TEMP/refresh-data.log"
-          python scripts/retry_data_refresh.py 2>&1 | tee "$log"
+          if [[ "${{ inputs.force }}" == "true" ]]; then
+            timeout 1500s python scripts/refresh_all_data.py refresh --force 2>&1 | tee "$log"
+          else
+            python scripts/retry_data_refresh.py 2>&1 | tee "$log"
+          fi
       - name: Audit every regional security date before publication
         if: steps.freshness.outputs.skip != 'true' && !inputs.check_only
         run: python scripts/validate_asia_screening.py
