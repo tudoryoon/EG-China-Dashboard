@@ -2127,16 +2127,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "서버/ODM",
     "currency": {
-      "USD": 13.481,
-      "NTD": 423.9709
+      "USD": 10.344,
+      "NTD": 325.2995
     },
     "marketCap": {
       "USD": 41.8,
       "NTD": 1316.3
     },
-    "mom": 15.8,
-    "yoy": 177.4,
-    "month": "26/08",
+    "mom": -23.3,
+    "yoy": 76.7,
+    "month": "26/09",
     "bars": [
       94.3545,
       80.1469,
@@ -2205,7 +2205,8 @@ window.dashboardCompanies = [
       311.481,
       385.1908,
       366.2741,
-      423.9709
+      423.9709,
+      325.2995
     ],
     "yoyLine": [
       null,
@@ -2275,7 +2276,8 @@ window.dashboardCompanies = [
       94.4,
       102.9,
       131.3,
-      177.4
+      177.4,
+      76.7
     ],
     "momLine": [
       null,
@@ -2345,7 +2347,8 @@ window.dashboardCompanies = [
       -8.4,
       23.7,
       -4.9,
-      15.8
+      15.8,
+      -23.3
     ],
     "yearly": {
       "labels": [
@@ -2442,7 +2445,7 @@ window.dashboardCompanies = [
             102.9,
             131.3,
             177.4,
-            null,
+            76.7,
             null,
             null,
             null
@@ -6773,7 +6776,10 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    }
+    },
+    "dataStatus": "stale",
+    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2383 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
+    "sourceCheckedAt": "2026-10-08T03:53:17.499444+09:00"
   },
   {
     "name": "Kinsus",
@@ -9092,16 +9098,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "PCB소재/공구",
     "currency": {
-      "USD": 0.025,
-      "NTD": 0.7707
+      "USD": 0.027,
+      "NTD": 0.8297
     },
     "marketCap": {
       "USD": 2.1,
       "NTD": 64.7
     },
-    "mom": 5.5,
-    "yoy": 97.8,
-    "month": "26/08",
+    "mom": 7.7,
+    "yoy": 98.3,
+    "month": "26/09",
     "bars": [
       0.2669,
       0.257,
@@ -9170,7 +9176,8 @@ window.dashboardCompanies = [
       0.6205,
       0.6806,
       0.7305,
-      0.7707
+      0.7707,
+      0.8297
     ],
     "yoyLine": [
       null,
@@ -9240,7 +9247,8 @@ window.dashboardCompanies = [
       86.3,
       90.1,
       102.6,
-      97.8
+      97.8,
+      98.3
     ],
     "momLine": [
       null,
@@ -9310,7 +9318,8 @@ window.dashboardCompanies = [
       18.2,
       9.7,
       7.3,
-      5.5
+      5.5,
+      7.7
     ],
     "yearly": {
       "labels": [
@@ -9407,7 +9416,7 @@ window.dashboardCompanies = [
             90.1,
             102.6,
             97.8,
-            null,
+            98.3,
             null,
             null,
             null
@@ -10414,16 +10423,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "쿨링/방열",
     "currency": {
-      "USD": 0.619,
-      "NTD": 19.4811
+      "USD": 0.668,
+      "NTD": 21.0181
     },
     "marketCap": {
       "USD": 32.7,
       "NTD": 1029.5
     },
-    "mom": 4.8,
-    "yoy": 54.3,
-    "month": "26/08",
+    "mom": 7.9,
+    "yoy": 44.9,
+    "month": "26/09",
     "bars": [
       3.5518,
       2.7132,
@@ -10492,7 +10501,8 @@ window.dashboardCompanies = [
       15.8714,
       17.6181,
       18.5902,
-      19.4811
+      19.4811,
+      21.0181
     ],
     "yoyLine": [
       null,
@@ -10562,7 +10572,8 @@ window.dashboardCompanies = [
       60.6,
       66.1,
       57.4,
-      54.3
+      54.3,
+      44.9
     ],
     "momLine": [
       null,
@@ -10632,7 +10643,8 @@ window.dashboardCompanies = [
       1.5,
       11.0,
       5.5,
-      4.8
+      4.8,
+      7.9
     ],
     "yearly": {
       "labels": [
@@ -10729,7 +10741,7 @@ window.dashboardCompanies = [
             66.1,
             57.4,
             54.3,
-            null,
+            44.9,
             null,
             null,
             null
@@ -10743,16 +10755,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "쿨링/방열",
     "currency": {
-      "USD": 0.099,
-      "NTD": 3.1412
+      "USD": 0.091,
+      "NTD": 2.8841
     },
     "marketCap": {
       "USD": 3.1,
       "NTD": 96.6
     },
-    "mom": -16.6,
-    "yoy": 67.2,
-    "month": "26/08",
+    "mom": -8.2,
+    "yoy": 23.2,
+    "month": "26/09",
     "bars": [
       1.3411,
       0.8626,
@@ -10821,7 +10833,8 @@ window.dashboardCompanies = [
       3.1389,
       2.718,
       3.7655,
-      3.1412
+      3.1412,
+      2.8841
     ],
     "yoyLine": [
       null,
@@ -10891,7 +10904,8 @@ window.dashboardCompanies = [
       93.8,
       62.1,
       116.7,
-      67.2
+      67.2,
+      23.2
     ],
     "momLine": [
       null,
@@ -10961,7 +10975,8 @@ window.dashboardCompanies = [
       10.4,
       -13.4,
       38.5,
-      -16.6
+      -16.6,
+      -8.2
     ],
     "yearly": {
       "labels": [
@@ -11058,7 +11073,7 @@ window.dashboardCompanies = [
             62.1,
             116.7,
             67.2,
-            null,
+            23.2,
             null,
             null,
             null
@@ -11397,7 +11412,10 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    }
+    },
+    "dataStatus": "stale",
+    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=8996 (Caused by ConnectTimeoutError(<HTTPSConnection(host='emops.twse.com.tw', port=443) at 0x7f46d14154f0>, 'Connection to emops.twse.com.tw timed out. (connect timeout=30)'))",
+    "sourceCheckedAt": "2026-10-08T03:53:17.499444+09:00"
   },
   {
     "name": "Jentech",
@@ -11726,7 +11744,10 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    }
+    },
+    "dataStatus": "stale",
+    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=3653 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
+    "sourceCheckedAt": "2026-10-08T03:53:17.499444+09:00"
   },
   {
     "name": "SunoWealth",
@@ -12397,16 +12418,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "기구/커넥터",
     "currency": {
-      "USD": 0.048,
-      "NTD": 1.5283
+      "USD": 0.051,
+      "NTD": 1.6133
     },
     "marketCap": {
       "USD": 4,
       "NTD": 125.8
     },
-    "mom": 12.4,
-    "yoy": 29.1,
-    "month": "26/08",
+    "mom": 5.6,
+    "yoy": 32.2,
+    "month": "26/09",
     "bars": [
       0.2867,
       0.3134,
@@ -12475,7 +12496,8 @@ window.dashboardCompanies = [
       1.1803,
       1.2063,
       1.36,
-      1.5283
+      1.5283,
+      1.6133
     ],
     "yoyLine": [
       null,
@@ -12545,7 +12567,8 @@ window.dashboardCompanies = [
       37.2,
       32.7,
       17.1,
-      29.1
+      29.1,
+      32.2
     ],
     "momLine": [
       null,
@@ -12615,7 +12638,8 @@ window.dashboardCompanies = [
       -12.8,
       2.2,
       12.7,
-      12.4
+      12.4,
+      5.6
     ],
     "yearly": {
       "labels": [
@@ -12712,7 +12736,7 @@ window.dashboardCompanies = [
             32.7,
             17.1,
             29.1,
-            null,
+            32.2,
             null,
             null,
             null
@@ -12726,16 +12750,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "MLCC",
     "currency": {
-      "USD": 0.519,
-      "NTD": 16.3322
+      "USD": 0.542,
+      "NTD": 17.0682
     },
     "marketCap": {
       "USD": 27.5,
       "NTD": 867.8
     },
-    "mom": 1.2,
-    "yoy": 51.8,
-    "month": "26/08",
+    "mom": 4.5,
+    "yoy": 46.1,
+    "month": "26/09",
     "bars": [
       8.0122,
       7.0056,
@@ -12804,7 +12828,8 @@ window.dashboardCompanies = [
       15.0582,
       15.359,
       16.1312,
-      16.3322
+      16.3322,
+      17.0682
     ],
     "yoyLine": [
       null,
@@ -12874,7 +12899,8 @@ window.dashboardCompanies = [
       47.5,
       38.9,
       51.5,
-      51.8
+      51.8,
+      46.1
     ],
     "momLine": [
       null,
@@ -12944,7 +12970,8 @@ window.dashboardCompanies = [
       7.3,
       2.0,
       5.0,
-      1.2
+      1.2,
+      4.5
     ],
     "yearly": {
       "labels": [
@@ -13041,7 +13068,7 @@ window.dashboardCompanies = [
             38.9,
             51.5,
             51.8,
-            null,
+            46.1,
             null,
             null,
             null
@@ -13056,15 +13083,15 @@ window.dashboardCompanies = [
     "sector": "테스트/OSAT",
     "currency": {
       "USD": 0.13,
-      "NTD": 4.0801
+      "NTD": 4.0715
     },
     "marketCap": {
       "USD": 11.8,
       "NTD": 372.3
     },
-    "mom": 2.2,
-    "yoy": 31.6,
-    "month": "26/08",
+    "mom": -0.2,
+    "yoy": 24.5,
+    "month": "26/09",
     "bars": [
       2.5598,
       2.405,
@@ -13133,7 +13160,8 @@ window.dashboardCompanies = [
       3.7769,
       3.6217,
       3.9907,
-      4.0801
+      4.0801,
+      4.0715
     ],
     "yoyLine": [
       null,
@@ -13203,7 +13231,8 @@ window.dashboardCompanies = [
       36.6,
       28.6,
       36.8,
-      31.6
+      31.6,
+      24.5
     ],
     "momLine": [
       null,
@@ -13273,7 +13302,8 @@ window.dashboardCompanies = [
       0.9,
       -4.1,
       10.2,
-      2.2
+      2.2,
+      -0.2
     ],
     "yearly": {
       "labels": [
@@ -13370,7 +13400,7 @@ window.dashboardCompanies = [
             28.6,
             36.8,
             31.6,
-            null,
+            24.5,
             null,
             null,
             null

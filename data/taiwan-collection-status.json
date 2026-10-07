@@ -1,9 +1,17 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-07T07:32:18.569848+09:00",
-  "scope": "github:37540674470:1",
-  "failures": {},
-  "retained": [],
+  "checkedAt": "2026-10-08T03:53:17.499444+09:00",
+  "scope": "github:37669608535:1",
+  "failures": {
+    "2383": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2383 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
+    "8996": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=8996 (Caused by ConnectTimeoutError(<HTTPSConnection(host='emops.twse.com.tw', port=443) at 0x7f46d14154f0>, 'Connection to emops.twse.com.tw timed out. (connect timeout=30)'))",
+    "3653": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=3653 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))"
+  },
+  "retained": [
+    "2383",
+    "3653",
+    "8996"
+  ],
   "successful": [
     "1815",
     "2059",
@@ -17,7 +25,6 @@
     "2356",
     "2368",
     "2382",
-    "2383",
     "2408",
     "2421",
     "2449",
@@ -33,7 +40,6 @@
     "3231",
     "3260",
     "3324",
-    "3653",
     "3715",
     "5274",
     "5289",
@@ -47,7 +53,6 @@
     "8046",
     "8271",
     "8299",
-    "8358",
-    "8996"
+    "8358"
   ]
 }
