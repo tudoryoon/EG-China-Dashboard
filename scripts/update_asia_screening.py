@@ -16,7 +16,7 @@ import yfinance as yf
 import update_market_rs as rs
 import update_market_trend_score as trend
 from hsci_constituents import parse_hsci
-from regional_supplements import ETF_SECIDS, ETF_SOURCE, parse_etf_history, build_regional_rs, build_regional_trend
+from regional_supplements import ETF_SECIDS, ETF_NAMES, ETF_SOURCE, parse_etf_history, build_regional_rs, build_regional_trend
 from market_price_sources import (
     INDEX_SECIDS,
     TENCENT_URL,
@@ -36,10 +36,10 @@ CACHE = ROOT / ".asia-screening-cache"
 HS_SOURCE = "https://origin-www.hsi.com.hk/data/eng/rt/index-series/hsci/constituents.do"
 CSI_SOURCE = "https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/file/autofile/cons/{}cons.xls"
 WATCH = {
-    "hk": "9988.HK 0700.HK 0992.HK 3033.HK 1810.HK 0100.HK 1347.HK 0981.HK 3109.HK 6082.HK 6083.HK 9660.HK 2026.HK 9999.HK".split(),
+    "hk": "9988.HK 0700.HK 0992.HK 2820.HK 3033.HK 1810.HK 0100.HK 1347.HK 0981.HK 3109.HK 6082.HK 6083.HK 9660.HK 2026.HK 9999.HK".split(),
     "cn": "000688.SS 588200.SS 002371.SZ 600183.SS 562500.SS 688072.SS 000977.SZ 688702.SS 159819.SZ 301377.SZ 601869.SS".split(),
 }
-ETFS = {"3033.HK", "3109.HK", "588200.SS", "562500.SS", "159819.SZ"}
+ETFS = set(ETF_SECIDS)
 INDEXES = {"000688.SS"}
 META = {
     "hk": {"label": "Hong Kong", "currency": "HKD", "benchmark": "^HSI", "benchmarkLabel": "Hang Seng Index", "fx": "HKD=X"},
@@ -96,10 +96,12 @@ def constituents(region, cached=False):
             sources.append({"label": label, "url": url, "asOf": str(table.iloc[0, 0]), "count": len(table)})
         assert len(members) == 800
     for symbol in WATCH[region]:
-        members.setdefault(symbol, {"ticker": symbol, "name": symbol, "groups": []})
+        members.setdefault(symbol, {"ticker": symbol, "name": ETF_NAMES.get(symbol, symbol), "groups": []})
     for symbol, row in members.items():
         asset_type = "ETF" if symbol in ETFS else "Index" if symbol in INDEXES else "Equity"
         row.update({"watchlist": symbol in WATCH[region], "assetType": asset_type})
+        if symbol in ETF_NAMES:
+            row["name"] = ETF_NAMES[symbol]
     return list(members.values()), sources
 
 
@@ -300,6 +302,8 @@ def run(region, full=False, recalculate=False):
                 info = {"marketCapLocal": cap, "name": item.get("longName") or data["name"], "asOf": latest.date().isoformat()}
             except Exception:
                 info = {"name": data["name"], "marketCapLocal": None}
+        if symbol in ETF_NAMES:
+            info = {**info, "name": ETF_NAMES[symbol]}
         frame = pd.DataFrame(data["records"])
         frame.index = pd.to_datetime(frame.pop("date"))
         frame = frame.reindex(dates)

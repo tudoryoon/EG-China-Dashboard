@@ -3,10 +3,11 @@ from datetime import date
 import math
 
 ETF_SECIDS = {
-    "3033.HK": "116.03033", "3109.HK": "116.03109",
+    "2820.HK": "116.02820", "3033.HK": "116.03033", "3109.HK": "116.03109",
     "588200.SS": "1.588200", "562500.SS": "1.562500", "159819.SZ": "0.159819",
 }
 ETF_SOURCE = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
+ETF_NAMES = {"2820.HK": "Global X China Biotech ETF"}
 PROVISIONAL_TREND = {"6082.HK": 60, "0100.HK": 60}
 DEFAULT_PROVISIONAL_TREND_MIN_PERIODS = 20
 

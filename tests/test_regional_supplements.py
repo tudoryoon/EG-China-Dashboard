@@ -29,8 +29,12 @@ class QuoteTests(unittest.TestCase):
         self.assertEqual(records[0]["close"], 1.005)
         self.assertEqual(records[0]["adjClose"], 1.005)
         self.assertEqual(records[0]["volume"], 2584770000)
-        hk = {**self.raw, "code": "03033"}
-        self.assertEqual(parse_etf_history("3033.HK", hk, hk, "2026-09-07")["records"][0]["volume"], 25847700)
+        for ticker, code in [("3033.HK", "03033"), ("2820.HK", "02820")]:
+            with self.subTest(ticker=ticker):
+                hk = {**self.raw, "code": code}
+                self.assertEqual(parse_etf_history(ticker, hk, hk, "2026-09-07")["records"][0]["volume"], 25847700)
+        with self.assertRaisesRegex(ValueError, 'Wrong or empty ETF response'):
+            parse_etf_history("2820.HK", {**self.raw, "code": "09820"}, self.raw, "2026-09-07")
 
     def test_wrong_symbol_duplicate_invalid_and_missing_adjustments_fail(self):
         invalids = [{**self.raw, "code": "999999"},
