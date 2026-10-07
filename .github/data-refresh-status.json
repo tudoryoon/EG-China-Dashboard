@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "kstDate": "2026-10-08",
   "refreshDate": "2026-10-07",
-  "completedAt": "2026-10-08T04:04:25.195849+09:00",
+  "completedAt": "2026-10-08T07:30:38.747571+09:00",
   "marketSessions": {
     "hk": "2026-10-07",
     "cn": "2026-09-30"
@@ -54,12 +54,12 @@
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "index.html": "3c38bccb13c52596a33c81cbee2520886fee340e9fdd18560defa3e2c36dec62",
+    "index.html": "cc2f004e9bc0e430f671ade0fa798176406608725f8e139f389ac1987f3971e8",
     "data/dashboard-data.js": "592655ca63eafae7715c4b7454c00b8aa9e0d7081a7b61f136068b4a153db2a8",
-    "data/taiwan-collection-status.json": "4ddc61509bb52dfbf8e5b52e64235ffd39c3d073673bb1265ca0237309382c51",
-    "data/asia-hk-constituents.json": "0ce941df424abd4b100c7fe4c3cd3991c287e1464499ef97802064d794d35712",
-    "data/asia-hk-metadata.json": "cdf71b4a4cc2eb314709fc64620a265670fa6203bbf24ab2ffe079ff44bf406b",
-    "data/asia-hk-screening.json": "ae1e6e01c756e0dd20d43466b825c1d76deff09a30799512f4da65c01b0fcec3",
+    "data/taiwan-collection-status.json": "851605492138eb5234ed41e944f3ed7de0738a221b6e6485a177994b4c3ebfdc",
+    "data/asia-hk-constituents.json": "c621a8a05cca7b76e7cb8e1eede27acb4786b77797e53c42ceff01648c4c268f",
+    "data/asia-hk-metadata.json": "89db9cd5c27d315cdcef25f96a505d2ab94eb2fb302a97da2892f6772f82e374",
+    "data/asia-hk-screening.json": "a1dd1f821619ec13adc7c8add33b605d981ca5ea2221369dfbcabf91adb3b843",
     "data/asia-cn-constituents.json": "5cea5d79c87eb440f8d16b5845f0acff64ee8f5b6a017f4c212d6a4d2e155a05",
     "data/asia-cn-metadata.json": "aeca06d75e73065fae01b40e895854263dcf2c8461eaa5655bb18fe255da5bbe",
     "data/asia-cn-screening.json": "7cb3def7b1ce980727bdea114d08c47fdd9a9eb7e8ba0e0402cd76198ce3c30d"
@@ -83,13 +83,11 @@
     "scripts/validate_asia_screening.py": "bd4617661df8efa8ca9ebb47f30163a1e3dce840f846cc6aed5b3d523d6f0309",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "37669608535",
+  "runId": "37695803634",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 1,
-    "failures": {
-      "hk:1196.HK": "No current source for 1196.HK: Tencent: HTTP Error 501: "
-    },
+    "failureCount": 0,
+    "failures": {},
     "retry": "next-refresh-cycle"
   }
 }
