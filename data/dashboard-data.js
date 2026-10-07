@@ -6776,10 +6776,7 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    },
-    "dataStatus": "stale",
-    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2383 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
-    "sourceCheckedAt": "2026-10-08T03:53:17.499444+09:00"
+    }
   },
   {
     "name": "Kinsus",
@@ -11412,26 +11409,23 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    },
-    "dataStatus": "stale",
-    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=8996 (Caused by ConnectTimeoutError(<HTTPSConnection(host='emops.twse.com.tw', port=443) at 0x7f46d14154f0>, 'Connection to emops.twse.com.tw timed out. (connect timeout=30)'))",
-    "sourceCheckedAt": "2026-10-08T03:53:17.499444+09:00"
+    }
   },
   {
     "name": "Jentech",
     "country": "Taiwan",
     "sector": "쿨링/방열",
     "currency": {
-      "USD": 0.102,
-      "NTD": 3.2259
+      "USD": 0.097,
+      "NTD": 3.0542
     },
     "marketCap": {
       "USD": 16.4,
       "NTD": 518
     },
-    "mom": 0.4,
-    "yoy": 90.9,
-    "month": "26/08",
+    "mom": -5.3,
+    "yoy": 80.0,
+    "month": "26/09",
     "bars": [
       0.6265,
       0.5561,
@@ -11500,7 +11494,8 @@ window.dashboardCompanies = [
       2.3134,
       2.6499,
       3.2132,
-      3.2259
+      3.2259,
+      3.0542
     ],
     "yoyLine": [
       null,
@@ -11570,7 +11565,8 @@ window.dashboardCompanies = [
       37.8,
       57.6,
       91.0,
-      90.9
+      90.9,
+      80.0
     ],
     "momLine": [
       null,
@@ -11640,7 +11636,8 @@ window.dashboardCompanies = [
       0.1,
       14.5,
       21.3,
-      0.4
+      0.4,
+      -5.3
     ],
     "yearly": {
       "labels": [
@@ -11737,17 +11734,14 @@ window.dashboardCompanies = [
             57.6,
             91.0,
             90.9,
-            null,
+            80.0,
             null,
             null,
             null
           ]
         }
       ]
-    },
-    "dataStatus": "stale",
-    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=3653 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
-    "sourceCheckedAt": "2026-10-08T03:53:17.499444+09:00"
+    }
   },
   {
     "name": "SunoWealth",

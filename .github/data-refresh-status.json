@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "kstDate": "2026-10-08",
   "refreshDate": "2026-10-07",
-  "completedAt": "2026-10-08T03:56:56.300208+09:00",
+  "completedAt": "2026-10-08T04:04:25.195849+09:00",
   "marketSessions": {
     "hk": "2026-10-07",
     "cn": "2026-09-30"
@@ -40,7 +40,7 @@
     "Asia Vital Components": "26/09",
     "Auras Technology": "26/09",
     "Kaori Heat": "26/09",
-    "Jentech": "26/08",
+    "Jentech": "26/09",
     "SunoWealth": "26/09",
     "King Slide Works": "26/09",
     "Fositek": "26/09",
@@ -54,12 +54,12 @@
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "index.html": "36f3a02cb8c6b77124bcc505848808bdc733f36576b5737c522b879dcfe3b2a8",
-    "data/dashboard-data.js": "73152b64a614b5e1f2bb79834e459a900e1453cc7bba39f45e2c9849652710c5",
-    "data/taiwan-collection-status.json": "e13820e71c274b660fd9f9b002b85a515194d33a7ca83fd3a2df7c132d5b077c",
-    "data/asia-hk-constituents.json": "f4085f54af893ae97a0fdb998ad824255aa4e8af4cafbde95fc484c8bf16daef",
+    "index.html": "3c38bccb13c52596a33c81cbee2520886fee340e9fdd18560defa3e2c36dec62",
+    "data/dashboard-data.js": "592655ca63eafae7715c4b7454c00b8aa9e0d7081a7b61f136068b4a153db2a8",
+    "data/taiwan-collection-status.json": "4ddc61509bb52dfbf8e5b52e64235ffd39c3d073673bb1265ca0237309382c51",
+    "data/asia-hk-constituents.json": "0ce941df424abd4b100c7fe4c3cd3991c287e1464499ef97802064d794d35712",
     "data/asia-hk-metadata.json": "cdf71b4a4cc2eb314709fc64620a265670fa6203bbf24ab2ffe079ff44bf406b",
-    "data/asia-hk-screening.json": "a4f7694955302897f77739be746b60d8fded398e108d5a49734e14f580227b3c",
+    "data/asia-hk-screening.json": "ae1e6e01c756e0dd20d43466b825c1d76deff09a30799512f4da65c01b0fcec3",
     "data/asia-cn-constituents.json": "5cea5d79c87eb440f8d16b5845f0acff64ee8f5b6a017f4c212d6a4d2e155a05",
     "data/asia-cn-metadata.json": "aeca06d75e73065fae01b40e895854263dcf2c8461eaa5655bb18fe255da5bbe",
     "data/asia-cn-screening.json": "7cb3def7b1ce980727bdea114d08c47fdd9a9eb7e8ba0e0402cd76198ce3c30d"
@@ -86,12 +86,9 @@
   "runId": "37669608535",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 4,
+    "failureCount": 1,
     "failures": {
-      "hk:1196.HK": "No current source for 1196.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown",
-      "tw:2383": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2383 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
-      "tw:8996": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=8996 (Caused by ConnectTimeoutError(<HTTPSConnection(host='emops.twse.com.tw', port=443) at 0x7f46d14154f0>, 'Connection to emops.twse.com.tw timed out. (connect timeout=30)'))",
-      "tw:3653": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=3653 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))"
+      "hk:1196.HK": "No current source for 1196.HK: Tencent: HTTP Error 501: "
     },
     "retry": "next-refresh-cycle"
   }
