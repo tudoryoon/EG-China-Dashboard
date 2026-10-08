@@ -7,6 +7,7 @@ from datetime import datetime, timezone, timedelta
 from io import BytesIO
 import json
 from pathlib import Path
+import tempfile
 import time
 
 from curl_cffi import requests
@@ -66,9 +67,23 @@ get.paces_tencent_attempts = True
 
 def write_json(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False), encoding="utf-8")
-    temp.replace(path)
+    # OneDrive can briefly hold the destination open while syncing. Give each
+    # writer its own temporary file and retry only that transient Windows lock.
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent,
+                                     prefix=path.stem + ".", suffix=".tmp", delete=False) as stream:
+        temp = Path(stream.name)
+        json.dump(value, stream, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+    try:
+        for attempt in range(6):
+            try:
+                temp.replace(path)
+                return
+            except PermissionError:
+                if attempt == 5:
+                    raise
+                time.sleep(min(2.0, 0.25 * 2 ** attempt))
+    finally:
+        temp.unlink(missing_ok=True)
 
 
 def constituents(region, cached=False):

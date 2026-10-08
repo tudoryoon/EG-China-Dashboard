@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "kstDate": "2026-10-09",
   "refreshDate": "2026-10-08",
-  "completedAt": "2026-10-09T03:54:27.815841+09:00",
+  "completedAt": "2026-10-09T07:53:33.590788+09:00",
   "marketSessions": {
     "hk": "2026-10-08",
     "cn": "2026-10-08"
@@ -54,15 +54,15 @@
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "index.html": "9497b5ad43d6032c88bc9bc40a91fce9cdbbe84fc9aaf8b7b87f24dbd3a34fd9",
+    "index.html": "1c017d216c1772ddadd47425b640416c5512a7eb3736914bd3f6cbf8a3439628",
     "data/dashboard-data.js": "02ac59efaf2ebc84c3eb83c7b3e4617865bdf87c4df8697c450e6ce02c8bd5db",
-    "data/taiwan-collection-status.json": "c2bcfdb1399b52c94070fc9473ae14a9aaf3b6b28ca15339c1e8075bf493622a",
-    "data/asia-hk-constituents.json": "834d929aa5caa53c2423ab5148515a8a775e8e0571f17a0da81894671364edab",
+    "data/taiwan-collection-status.json": "201c5395fa66cd46596668f036f005538586b345b45a26a136f651e725d69e13",
+    "data/asia-hk-constituents.json": "e005e3cd7c5d8744eaa5591ec329a5f9c7b1fef460641da0c38a701f6d67c918",
     "data/asia-hk-metadata.json": "27527a03be178fecef1100595d2c8e0256430d9c3ecd47071c49432194f706ca",
-    "data/asia-hk-screening.json": "168ee93b29682fa8b94a0c35406259185bfb580089884cb05acbde4f52f98c04",
+    "data/asia-hk-screening.json": "7e99ea8efe27c849ffa2eaf7c65b9d2b538a601db1fe05e37af0a4be912a2669",
     "data/asia-cn-constituents.json": "322a900609215393cd3ef3df0a1735dc89e049216a91d7618c3602d315891323",
     "data/asia-cn-metadata.json": "f311d9664b45d4b49847e1452a74ea3593c0f72dfb71b1fc8537978ccbab2cdd",
-    "data/asia-cn-screening.json": "e193b412bea98b90562c684b52ad000c70ee3f25f8c37def25a8180bb0c3c438"
+    "data/asia-cn-screening.json": "b28f1d97b782826a0db6ba3ff4913ffb36e391af89321f37517b52e249f4250a"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -76,14 +76,14 @@
     "scripts/hsci_constituents.py": "180109eed7765605dfb01cd4dc4d2737f69ff05c6564051671d3dbf07423e402",
     "scripts/regional_supplements.py": "5e3c80898868382d286200e23d0d6277b85d28f4ca694f4a71162c089241bb13",
     "scripts/market_price_sources.py": "ce847537f396c44a955f955d4923364af47da6af051be1a8b6776792a1579e57",
-    "scripts/update_asia_screening.py": "4f08d0ecd466cace85d52284b68af21111f982dd58fe2c897f60d5fa54650ff9",
+    "scripts/update_asia_screening.py": "323a322080ab441db35f84ca81961a76ccad29cdc3882b1f5b1dd1a86817cf0b",
     "scripts/update_market_rs.py": "cbce41358d78b0859332e5b8a50250a3f2682d1846f7d2296b50722c990ddd6c",
     "scripts/update_market_trend_score.py": "50e79cc9dd04aded4ac690e0d9df2c272b4276e2031dbc1d8adc46bfa868a7c3",
     "scripts/update_taiwan_revenue.py": "e9a3ba0b0f214b125f42bc8be5863a6e1290c8cf4f73fe413c293bf3b4250750",
     "scripts/validate_asia_screening.py": "bd4617661df8efa8ca9ebb47f30163a1e3dce840f846cc6aed5b3d523d6f0309",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "37826835099",
+  "runId": "local",
   "collection": {
     "failurePolicy": "retain-and-publish",
     "failureCount": 1,
