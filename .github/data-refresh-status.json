@@ -1,24 +1,24 @@
 {
   "schemaVersion": 4,
-  "kstDate": "2026-10-08",
-  "refreshDate": "2026-10-07",
-  "completedAt": "2026-10-08T07:30:38.747571+09:00",
+  "kstDate": "2026-10-09",
+  "refreshDate": "2026-10-08",
+  "completedAt": "2026-10-09T03:54:27.815841+09:00",
   "marketSessions": {
-    "hk": "2026-10-07",
-    "cn": "2026-09-30"
+    "hk": "2026-10-08",
+    "cn": "2026-10-08"
   },
   "taiwanRevenueMonths": {
-    "TSMC": "26/08",
+    "TSMC": "26/09",
     "UMC": "26/09",
     "Win Semiconductor": "26/09",
     "Hon Hai(Foxconn)": "26/09",
-    "Inventec": "26/08",
+    "Inventec": "26/09",
     "Quanta": "26/09",
-    "Wiwynn": "26/08",
-    "Wistron": "26/08",
+    "Wiwynn": "26/09",
+    "Wistron": "26/09",
     "Nanya": "26/09",
     "Winbond": "26/09",
-    "Phison": "26/08",
+    "Phison": "26/09",
     "Innodisk": "26/09",
     "ADATA": "26/09",
     "Apacer": "26/09",
@@ -27,12 +27,12 @@
     "ITEQ": "26/09",
     "EMC": "26/09",
     "Kinsus": "26/09",
-    "Unimicron": "26/08",
-    "Gold Circuit": "26/08",
+    "Unimicron": "26/09",
+    "Gold Circuit": "26/09",
     "Dynamic Electronics": "26/09",
     "Nanya PCB": "26/09",
-    "Fulltech": "26/08",
-    "Co-Tech": "26/08",
+    "Fulltech": "26/09",
+    "Co-Tech": "26/09",
     "Topoint": "26/09",
     "Aspeed": "26/09",
     "Delta Electronics": "26/08",
@@ -47,22 +47,22 @@
     "Yageo": "26/09",
     "King Yuan": "26/09",
     "Winway": "26/09",
-    "MPI": "26/08",
+    "MPI": "26/09",
     "Landmark Opto": "26/09",
     "VPEC": "26/09",
-    "Browave": "26/08",
+    "Browave": "26/09",
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "index.html": "cc2f004e9bc0e430f671ade0fa798176406608725f8e139f389ac1987f3971e8",
-    "data/dashboard-data.js": "592655ca63eafae7715c4b7454c00b8aa9e0d7081a7b61f136068b4a153db2a8",
-    "data/taiwan-collection-status.json": "851605492138eb5234ed41e944f3ed7de0738a221b6e6485a177994b4c3ebfdc",
-    "data/asia-hk-constituents.json": "c621a8a05cca7b76e7cb8e1eede27acb4786b77797e53c42ceff01648c4c268f",
-    "data/asia-hk-metadata.json": "89db9cd5c27d315cdcef25f96a505d2ab94eb2fb302a97da2892f6772f82e374",
-    "data/asia-hk-screening.json": "a1dd1f821619ec13adc7c8add33b605d981ca5ea2221369dfbcabf91adb3b843",
-    "data/asia-cn-constituents.json": "5cea5d79c87eb440f8d16b5845f0acff64ee8f5b6a017f4c212d6a4d2e155a05",
-    "data/asia-cn-metadata.json": "aeca06d75e73065fae01b40e895854263dcf2c8461eaa5655bb18fe255da5bbe",
-    "data/asia-cn-screening.json": "7cb3def7b1ce980727bdea114d08c47fdd9a9eb7e8ba0e0402cd76198ce3c30d"
+    "index.html": "9497b5ad43d6032c88bc9bc40a91fce9cdbbe84fc9aaf8b7b87f24dbd3a34fd9",
+    "data/dashboard-data.js": "02ac59efaf2ebc84c3eb83c7b3e4617865bdf87c4df8697c450e6ce02c8bd5db",
+    "data/taiwan-collection-status.json": "c2bcfdb1399b52c94070fc9473ae14a9aaf3b6b28ca15339c1e8075bf493622a",
+    "data/asia-hk-constituents.json": "834d929aa5caa53c2423ab5148515a8a775e8e0571f17a0da81894671364edab",
+    "data/asia-hk-metadata.json": "27527a03be178fecef1100595d2c8e0256430d9c3ecd47071c49432194f706ca",
+    "data/asia-hk-screening.json": "168ee93b29682fa8b94a0c35406259185bfb580089884cb05acbde4f52f98c04",
+    "data/asia-cn-constituents.json": "322a900609215393cd3ef3df0a1735dc89e049216a91d7618c3602d315891323",
+    "data/asia-cn-metadata.json": "f311d9664b45d4b49847e1452a74ea3593c0f72dfb71b1fc8537978ccbab2cdd",
+    "data/asia-cn-screening.json": "e193b412bea98b90562c684b52ad000c70ee3f25f8c37def25a8180bb0c3c438"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -83,11 +83,13 @@
     "scripts/validate_asia_screening.py": "bd4617661df8efa8ca9ebb47f30163a1e3dce840f846cc6aed5b3d523d6f0309",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "37695803634",
+  "runId": "37826835099",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 0,
-    "failures": {},
+    "failureCount": 1,
+    "failures": {
+      "hk:1196.HK": "No current source for 1196.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown"
+    },
     "retry": "next-refresh-cycle"
   }
 }
