@@ -1,4 +1,5 @@
 """An intermittent OneDrive lock must not turn a valid quote into a stale row."""
+import importlib.util
 from pathlib import Path
 import sys
 import tempfile
@@ -6,9 +7,12 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-import update_asia_screening as collector
+HAS_DATA_DEPENDENCIES = all(importlib.util.find_spec(module) for module in ("pandas", "curl_cffi", "yfinance"))
+if HAS_DATA_DEPENDENCIES:
+    import update_asia_screening as collector
 
 
+@unittest.skipUnless(HAS_DATA_DEPENDENCIES, "Requires data dependencies")
 class AtomicCacheWriteTests(unittest.TestCase):
     def test_retries_transient_destination_lock_without_partial_json(self):
         with tempfile.TemporaryDirectory() as directory:
