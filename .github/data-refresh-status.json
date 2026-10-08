@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "kstDate": "2026-10-09",
   "refreshDate": "2026-10-08",
-  "completedAt": "2026-10-09T07:53:33.590788+09:00",
+  "completedAt": "2026-10-09T08:01:53.534488+09:00",
   "marketSessions": {
     "hk": "2026-10-08",
     "cn": "2026-10-08"
@@ -54,12 +54,12 @@
     "Grand Process Tech": "26/08"
   },
   "dataHashes": {
-    "index.html": "1c017d216c1772ddadd47425b640416c5512a7eb3736914bd3f6cbf8a3439628",
+    "index.html": "d040ff27f90c13355b2510d5811f994270eeea01bf5bdb4fd2e4703d7ae83288",
     "data/dashboard-data.js": "02ac59efaf2ebc84c3eb83c7b3e4617865bdf87c4df8697c450e6ce02c8bd5db",
-    "data/taiwan-collection-status.json": "201c5395fa66cd46596668f036f005538586b345b45a26a136f651e725d69e13",
-    "data/asia-hk-constituents.json": "e005e3cd7c5d8744eaa5591ec329a5f9c7b1fef460641da0c38a701f6d67c918",
+    "data/taiwan-collection-status.json": "90ec9bb1952ec34488180f733f0a73d354a3346bd48304a5a24544f4a44a7457",
+    "data/asia-hk-constituents.json": "1a0ef1c3fac702b584926c632faa0186088df2092af4a67a530c6a73c84d423d",
     "data/asia-hk-metadata.json": "27527a03be178fecef1100595d2c8e0256430d9c3ecd47071c49432194f706ca",
-    "data/asia-hk-screening.json": "7e99ea8efe27c849ffa2eaf7c65b9d2b538a601db1fe05e37af0a4be912a2669",
+    "data/asia-hk-screening.json": "74f38b9b32460c98816c45b759a112d5035cbad5dccc87b283e720930222bbc5",
     "data/asia-cn-constituents.json": "322a900609215393cd3ef3df0a1735dc89e049216a91d7618c3602d315891323",
     "data/asia-cn-metadata.json": "f311d9664b45d4b49847e1452a74ea3593c0f72dfb71b1fc8537978ccbab2cdd",
     "data/asia-cn-screening.json": "b28f1d97b782826a0db6ba3ff4913ffb36e391af89321f37517b52e249f4250a"
@@ -86,10 +86,8 @@
   "runId": "local",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 1,
-    "failures": {
-      "hk:1196.HK": "No current source for 1196.HK: Tencent: temporarily paused after repeated failures; recovery probe after cooldown"
-    },
+    "failureCount": 0,
+    "failures": {},
     "retry": "next-refresh-cycle"
   }
 }

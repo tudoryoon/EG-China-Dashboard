@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-09T07:50:45.237787+09:00",
-  "scope": null,
+  "checkedAt": "2026-10-09T07:59:30.900857+09:00",
+  "scope": "local:heartbeat-20261009-verified-1196",
   "failures": {},
   "retained": [],
   "successful": [
