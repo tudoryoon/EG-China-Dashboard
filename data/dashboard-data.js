@@ -11107,10 +11107,7 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    },
-    "dataStatus": "stale",
-    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=3324 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
-    "sourceCheckedAt": "2026-10-10T03:21:22.368514+09:00"
+    }
   },
   {
     "name": "Kaori Heat",
