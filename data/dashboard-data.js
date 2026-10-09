@@ -11107,7 +11107,10 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    }
+    },
+    "dataStatus": "stale",
+    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=3324 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
+    "sourceCheckedAt": "2026-10-10T03:21:22.368514+09:00"
   },
   {
     "name": "Kaori Heat",
@@ -15098,16 +15101,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "반도체 장비",
     "currency": {
-      "USD": 0.021,
-      "NTD": 0.6814
+      "USD": 0.023,
+      "NTD": 0.7471
     },
     "marketCap": {
       "USD": 2.7,
       "NTD": 86.6
     },
-    "mom": -14.1,
-    "yoy": 43.4,
-    "month": "26/08",
+    "mom": 9.6,
+    "yoy": 61.9,
+    "month": "26/09",
     "bars": [
       null,
       null,
@@ -15176,7 +15179,8 @@ window.dashboardCompanies = [
       0.5591,
       0.6311,
       0.7929,
-      0.6814
+      0.6814,
+      0.7471
     ],
     "yoyLine": [
       null,
@@ -15246,7 +15250,8 @@ window.dashboardCompanies = [
       7.2,
       15.2,
       42.4,
-      43.4
+      43.4,
+      61.9
     ],
     "momLine": [
       null,
@@ -15316,7 +15321,8 @@ window.dashboardCompanies = [
       4.2,
       12.9,
       25.6,
-      -14.1
+      -14.1,
+      9.6
     ],
     "yearly": {
       "labels": [
@@ -15413,7 +15419,7 @@ window.dashboardCompanies = [
             15.2,
             42.4,
             43.4,
-            null,
+            61.9,
             null,
             null,
             null
