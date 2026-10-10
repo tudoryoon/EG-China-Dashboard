@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "kstDate": "2026-10-11",
   "refreshDate": "2026-10-10",
-  "completedAt": "2026-10-11T02:52:14.089731+09:00",
+  "completedAt": "2026-10-11T02:59:39.564943+09:00",
   "marketSessions": {
     "hk": "2026-10-09",
     "cn": "2026-10-09"
@@ -54,12 +54,12 @@
     "Grand Process Tech": "26/09"
   },
   "dataHashes": {
-    "index.html": "0cf6268a0c55593a4071b614bb345a90d08b159549bc7ae6a75eaeea71059d88",
-    "data/dashboard-data.js": "15cd49d737abda65b56b92f400fe73fa507a7fcb67ad1f319eb2d392d91bc0a7",
-    "data/taiwan-collection-status.json": "7db78f2232cef44dcabfb78b1d9b086d5d4712603e795a1d5c56fbe47a61676e",
-    "data/asia-hk-constituents.json": "5784169bff00c4a1444d189908db603876d64621282dfac87dda93845aeaaaa4",
+    "index.html": "285f3b44b84bfe980a90cb6e3d6c70c9957d9c354efc6407dd9be607e6bc6add",
+    "data/dashboard-data.js": "3348bc946a88209f44bf2386c66248ee0a653de65861d99d36b880449dfe0d12",
+    "data/taiwan-collection-status.json": "3544b0fcfc23ce17ece16ce9e10a49905a5ccae318bb06bb933c2f6e1fdc1ff9",
+    "data/asia-hk-constituents.json": "b79a5558fce469c2906ad997fbafca700087931edb2919e338232a708dda7a09",
     "data/asia-hk-metadata.json": "80ccbebf700dca395a4fb2af5ed34112771e4649a8b4d1bdc23a721ac48cc117",
-    "data/asia-hk-screening.json": "796ffd6017512b25c42ca0ba5506aa5c18ffe205b4e33248468c9faf43276c2b",
+    "data/asia-hk-screening.json": "cf14aaae5ccdbe77d0e36e4b947e758b97460946775713cb1f336aa91c52d4ce",
     "data/asia-cn-constituents.json": "13f93974c0be13ec68d4a3ec4832a95d70665fecc2e5bd364bc2eb206c1750ee",
     "data/asia-cn-metadata.json": "0e0b9fd78bdb1c2bba105aa736014ca294b6d4885573a19a612b819356e93863",
     "data/asia-cn-screening.json": "d45e1204c43bf315d179ed58bd6d1a8a8095d28c62ec62a16ca9a0929f8767a6"
@@ -86,10 +86,8 @@
   "runId": "38071269973",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 1,
-    "failures": {
-      "tw:3163": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=3163 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))"
-    },
+    "failureCount": 0,
+    "failures": {},
     "retry": "next-refresh-cycle"
   }
 }
