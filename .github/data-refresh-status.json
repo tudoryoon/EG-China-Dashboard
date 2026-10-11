@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "kstDate": "2026-10-11",
-  "refreshDate": "2026-10-10",
-  "completedAt": "2026-10-11T02:59:39.564943+09:00",
+  "kstDate": "2026-10-12",
+  "refreshDate": "2026-10-11",
+  "completedAt": "2026-10-12T02:48:58.614539+09:00",
   "marketSessions": {
     "hk": "2026-10-09",
     "cn": "2026-10-09"
@@ -54,12 +54,12 @@
     "Grand Process Tech": "26/09"
   },
   "dataHashes": {
-    "index.html": "285f3b44b84bfe980a90cb6e3d6c70c9957d9c354efc6407dd9be607e6bc6add",
+    "index.html": "0997120073801b1fe1908cd0429ff6b498dfe433ed69ab1e29b42addfc9edf5d",
     "data/dashboard-data.js": "3348bc946a88209f44bf2386c66248ee0a653de65861d99d36b880449dfe0d12",
-    "data/taiwan-collection-status.json": "3544b0fcfc23ce17ece16ce9e10a49905a5ccae318bb06bb933c2f6e1fdc1ff9",
-    "data/asia-hk-constituents.json": "b79a5558fce469c2906ad997fbafca700087931edb2919e338232a708dda7a09",
+    "data/taiwan-collection-status.json": "fc6d54b4106e90cabf712a1a4e8acafc3188d8a6d9c5232b94dffdc878b0686e",
+    "data/asia-hk-constituents.json": "1ac43fd0e78dff0681e169c43058fd9aee6404edf9c45c9e5c2c644d78cfb70a",
     "data/asia-hk-metadata.json": "80ccbebf700dca395a4fb2af5ed34112771e4649a8b4d1bdc23a721ac48cc117",
-    "data/asia-hk-screening.json": "cf14aaae5ccdbe77d0e36e4b947e758b97460946775713cb1f336aa91c52d4ce",
+    "data/asia-hk-screening.json": "1d3728ce103afdd5af2e3a2e995dc6ba4d807f24aacb9dc5b6d95f2aab866ef7",
     "data/asia-cn-constituents.json": "13f93974c0be13ec68d4a3ec4832a95d70665fecc2e5bd364bc2eb206c1750ee",
     "data/asia-cn-metadata.json": "0e0b9fd78bdb1c2bba105aa736014ca294b6d4885573a19a612b819356e93863",
     "data/asia-cn-screening.json": "d45e1204c43bf315d179ed58bd6d1a8a8095d28c62ec62a16ca9a0929f8767a6"
@@ -83,7 +83,7 @@
     "scripts/validate_asia_screening.py": "bd4617661df8efa8ca9ebb47f30163a1e3dce840f846cc6aed5b3d523d6f0309",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "38071269973",
+  "runId": "38160459643",
   "collection": {
     "failurePolicy": "retain-and-publish",
     "failureCount": 0,
