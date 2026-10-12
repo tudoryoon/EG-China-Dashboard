@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "kstDate": "2026-10-13",
   "refreshDate": "2026-10-12",
-  "completedAt": "2026-10-13T08:01:54.889351+09:00",
+  "completedAt": "2026-10-13T08:10:56.616706+09:00",
   "marketSessions": {
     "hk": "2026-10-12",
     "cn": "2026-10-12"
@@ -54,12 +54,12 @@
     "Grand Process Tech": "26/09"
   },
   "dataHashes": {
-    "index.html": "5c55e719d8932531753b0d8bbe02b16d068018f54fea1f9a7fa8ccd56b947a18",
+    "index.html": "9121d43b9f7bf436220a6b7dd0836ed66a6772bf204ef03e6fde7f6d5c46a082",
     "data/dashboard-data.js": "d366cd3060fb68fa0291bc4d51dd1c5d4608426e0912ecaccc624ee6c42ecb9c",
-    "data/taiwan-collection-status.json": "0fca58c7b8d9aeda3333e9b347bbf6fe5a9059dc03134af3c8b1107d09b073d9",
+    "data/taiwan-collection-status.json": "3dca937134df3586d417d92573364462ea2cf4ba11e20609d9a7e2f6a50f7c7f",
     "data/asia-hk-constituents.json": "16e41dc01135236d45c096a7464182e2af6ea1b5802e463dd380c50f3885fc5e",
     "data/asia-hk-metadata.json": "b7d0215c1af58e41307ff0c985a73c083ffde4de3c83b8cece410e8e08800fa2",
-    "data/asia-hk-screening.json": "d98d68af3dc057164340e249e4384947694879ce0cea94633d258f8f1498c32b",
+    "data/asia-hk-screening.json": "bbc824e7964dd25bd903adb1b13e6eec171c7e7b45b53519e67b7c50f5601088",
     "data/asia-cn-constituents.json": "8439f20139fecd0dfa856c16e0d8a3f7d84ecbdd7704f43af3fdb1fd8f6a6b42",
     "data/asia-cn-metadata.json": "abc64fb5741d0a0d263badef57c48f0588d2573ca392ed491c8f9ff5b5ea6eb4",
     "data/asia-cn-screening.json": "82e513cd1968e374d9bb9b2c70a46e13dd075e9072d51d6d9449b8efc530c064"
@@ -86,11 +86,10 @@
   "runId": "local",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 13,
+    "failureCount": 12,
     "failures": {
       "hk:0853.HK": "Quote behind benchmark: 0853.HK; retry needed",
       "hk:1698.HK": "Quote behind benchmark: 1698.HK; retry needed",
-      "hk:2007.HK": "Quote behind benchmark: 2007.HK; retry needed",
       "hk:2172.HK": "Quote behind benchmark: 2172.HK; retry needed",
       "hk:2252.HK": "Quote behind benchmark: 2252.HK; retry needed",
       "hk:3288.HK": "Quote behind benchmark: 3288.HK; retry needed",
