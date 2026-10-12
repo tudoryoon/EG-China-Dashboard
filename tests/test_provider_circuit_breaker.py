@@ -28,6 +28,17 @@ class ProviderCircuitBreakerTests(unittest.TestCase):
         self.now = 300.0
         self.assertIsNotNone(self.breaker.acquire())
 
+    def test_eastmoney_equity_outage_is_bounded_without_blocking_index_source(self):
+        broken = Mock(side_effect=ConnectionError('connection closed'))
+        current = {'records': [{'date': '2026-10-12'}]}
+        with patch.object(sources, '_EASTMONEY_EQUITY_CIRCUIT', self.breaker):
+            for _ in range(7):
+                self.assertIs(sources.current_source('000001.SZ', '2026-10-12', [
+                    ('Eastmoney Equity', broken), ('Yahoo Finance', lambda: current)], minimum=1), current)
+            self.assertEqual(broken.call_count, 5)
+            self.assertIs(sources.current_source('000906', '2026-10-12', [
+                ('Eastmoney', lambda: current)], minimum=1), current)
+
     def test_success_resets_consecutive_failure_count(self):
         for _ in range(4):
             self.breaker.failure(self.breaker.acquire())

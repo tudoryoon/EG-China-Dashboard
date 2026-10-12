@@ -22,6 +22,7 @@ from market_price_sources import (
     INDEX_SECIDS,
     TENCENT_URL,
     current_source,
+    eastmoney_equity_history,
     eastmoney_index_history,
     pace_tencent_request,
     require_current,
@@ -213,6 +214,19 @@ def equity_chart(symbol, expected, full=False):
     providers = [("Tencent", tencent)]
     # Only the verified permanent-counter series has the explicit split repair.
     if symbol != REALORD_SYMBOL or expected < REALORD_SPLIT_DATE:
+        def eastmoney():
+            payload = eastmoney_equity_history(symbol, expected, get)
+            cache_path = CACHE / (symbol + ".json")
+            if cache_path.exists():
+                previous = json.loads(cache_path.read_text(encoding="utf8"))
+                old = {row["date"]: row["close"] for row in previous.get("records", [])}
+                new = {row["date"]: row["close"] for row in payload["records"]}
+                overlap = sorted(old.keys() & new.keys())[-5:]
+                for day in overlap:
+                    if abs(old[day] - new[day]) > max(0.0005, abs(old[day]) * 0.0002):
+                        raise ValueError(f"Eastmoney/Tencent raw close conflict: {symbol} {day}")
+            return payload
+        providers.append(("Eastmoney Equity", eastmoney))
         providers.append(("Yahoo Finance", lambda: require_current(chart(symbol, full), expected, minimum=1)))
     # Newly listed official constituents can have fewer observations than the
     # scoring engine needs. Keep their current prices and explicit null scores.

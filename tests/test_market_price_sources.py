@@ -96,3 +96,41 @@ class PriceSourceTests(unittest.TestCase):
         get = Mock(side_effect=[Mock(json=lambda: raw), Mock(json=lambda: adjusted)])
         with self.assertRaises(ValueError):
             sources.tencent_equity_history('600519.SS', '2026-09-09', get)
+
+    def test_eastmoney_equity_keeps_raw_close_and_coherent_adjustment(self):
+        raw = {'data': {'code': '000001', 'market': 0, 'name': 'Sample', 'klines': [
+            '2026-10-09,11.78,11.59,11.89,11.58,1078106',
+            '2026-10-12,11.62,11.73,11.83,11.62,1058635']}}
+        adjusted = {'data': {**raw['data'], 'klines': [
+            '2026-10-09,11.78,11.57,11.89,11.56,1078106',
+            '2026-10-12,11.62,11.73,11.83,11.62,1058635']}}
+        get = Mock(side_effect=[Mock(json=lambda: raw), Mock(json=lambda: adjusted)])
+        result = sources.eastmoney_equity_history('000001.SZ', '2026-10-12', get)
+        self.assertEqual([r['date'] for r in result['records']], ['2026-10-09', '2026-10-12'])
+        self.assertEqual(result['records'][0]['close'], 11.59)
+        self.assertEqual(result['records'][0]['adjClose'], 11.57)
+        self.assertEqual(result['records'][-1]['volume'], 105863500)
+        self.assertEqual(result['priceSource']['secid'], '0.000001')
+        self.assertEqual(result['priceSource']['provider'], 'Eastmoney')
+        self.assertEqual(get.call_args_list[0].kwargs['params']['end'], '20261012')
+
+        wrong = {'data': {**raw['data'], 'code': '000002'}}
+        with self.assertRaises(ValueError):
+            sources.eastmoney_equity_history('000001.SZ', '2026-10-12',
+                                             Mock(return_value=Mock(json=lambda: wrong)))
+        gap = {'data': {**adjusted['data'], 'klines': adjusted['data']['klines'][:1]}}
+        with self.assertRaises(ValueError):
+            sources.eastmoney_equity_history('000001.SZ', '2026-10-12',
+                                             Mock(side_effect=[Mock(json=lambda: raw), Mock(json=lambda: gap)]))
+
+    def test_eastmoney_hong_kong_identity_and_volume(self):
+        data = {'data': {'code': '03355', 'market': 116, 'name': 'Sample',
+                         'klines': ['2026-10-12,32.02,33.30,37.00,32.02,213900']}}
+        result = sources.eastmoney_equity_history('3355.HK', '2026-10-12',
+                                                  Mock(return_value=Mock(json=lambda: data)))
+        self.assertEqual(result['records'][-1]['volume'], 213900)
+        self.assertEqual(result['priceSource']['secid'], '116.03355')
+        bad = {'data': {**data['data'], 'market': 0}}
+        with self.assertRaises(ValueError):
+            sources.eastmoney_equity_history('3355.HK', '2026-10-12',
+                                             Mock(return_value=Mock(json=lambda: bad)))

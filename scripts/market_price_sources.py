@@ -58,6 +58,7 @@ class ProviderCircuitBreaker:
 # This state lasts only for this collector process. Other providers always keep
 # their normal fallback order, and every accepted payload still passes freshness.
 _TENCENT_CIRCUIT = ProviderCircuitBreaker()
+_EASTMONEY_EQUITY_CIRCUIT = ProviderCircuitBreaker()
 
 
 def pace_tencent_request():
@@ -121,7 +122,8 @@ def require_current(payload, expected, minimum=400):
 def current_source(symbol, expected, providers, minimum=400):
     errors = []
     for name, fetch in providers:
-        circuit = _TENCENT_CIRCUIT if name == "Tencent" else None
+        circuit = (_TENCENT_CIRCUIT if name == "Tencent" else
+                   _EASTMONEY_EQUITY_CIRCUIT if name == "Eastmoney Equity" else None)
         ticket = circuit.acquire() if circuit is not None else None
         if circuit is not None and ticket is None:
             reason = f"{name}: temporarily paused after repeated failures; recovery probe after cooldown"
@@ -241,3 +243,60 @@ def eastmoney_index_history(symbol, expected, get):
               "priceSource": {"provider": "Eastmoney", "url": EASTMONEY_URL,
                               "secid": secid, "adjustment": "unadjusted index OHLCV"}}
     return require_current(result, expected)
+
+
+def eastmoney_equity_history(symbol, expected, get):
+    """Use matching raw and forward-adjusted Eastmoney daily equity histories."""
+    if symbol in ETF_SECIDS or symbol in INDEX_SECIDS or not symbol.endswith((".HK", ".SS", ".SZ")):
+        raise ValueError(f"Not a regional equity: {symbol}")
+    code, suffix = symbol.split(".")
+    market = {"HK": 116, "SS": 1, "SZ": 0}[suffix]
+    secid = f"{market}.{int(code):0{5 if suffix == 'HK' else 6}d}"
+
+    def fetch(adjustment):
+        response = get(EASTMONEY_URL, params={
+            "secid": secid, "klt": "101", "fqt": adjustment,
+            "beg": "20240101", "end": expected.replace("-", ""),
+            "fields1": "f1,f2,f3,f4,f5,f6", "fields2": "f51,f52,f53,f54,f55,f56,f57",
+        }).json()
+        data = response.get("data") or {}
+        if str(data.get("code", "")).zfill(len(secid.split(".")[1])) != secid.split(".")[1] or data.get("market") != market:
+            raise ValueError(f"Wrong Eastmoney equity identity: {symbol}")
+        records = {}
+        for line in data.get("klines") or []:
+            values = line.split(",")
+            if len(values) < 6:
+                raise ValueError(f"Malformed Eastmoney equity quote: {symbol}")
+            day = values[0]
+            date.fromisoformat(day)
+            if day > expected:
+                continue
+            opening, close, high, low, volume = map(float, values[1:6])
+            if not all(math.isfinite(x) for x in (opening, close, high, low, volume)) or not (opening > 0 and 0 < low <= close <= high and volume >= 0):
+                raise ValueError(f"Invalid Eastmoney equity OHLCV: {symbol} {day}")
+            if day in records:
+                raise ValueError(f"Duplicate Eastmoney equity session: {symbol} {day}")
+            records[day] = {"date": day, "open": opening, "close": close,
+                            "high": high, "low": low, "volume": volume}
+        if not records:
+            raise ValueError(f"Empty Eastmoney equity history: {symbol}")
+        return data, records
+
+    raw_data, raw = fetch("0")
+    _, adjusted = fetch("1")
+    start = max(min(raw), min(adjusted))
+    raw = {day: row for day, row in raw.items() if day >= start}
+    adjusted = {day: row for day, row in adjusted.items() if day >= start}
+    if raw.keys() != adjusted.keys():
+        raise ValueError(f"Eastmoney equity adjusted/raw dates differ: {symbol}")
+    mainland = suffix != "HK"
+    records = []
+    for day in sorted(raw):
+        row = {**raw[day], "adjClose": adjusted[day]["close"]}
+        if mainland:
+            row["volume"] *= 100
+        records.append(row)
+    return require_current({"name": raw_data.get("name") or symbol, "records": records,
+                            "priceSource": {"provider": "Eastmoney", "url": EASTMONEY_URL,
+                                            "secid": secid, "adjustment": "fqt=0 raw OHLC; fqt=1 adjusted close for RS",
+                                            "volumeUnit": "shares"}}, expected, minimum=1)
