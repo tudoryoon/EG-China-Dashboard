@@ -9789,16 +9789,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "파워/PSU",
     "currency": {
-      "USD": 2.054,
-      "NTD": 64.586
+      "USD": 2.08,
+      "NTD": 65.3996
     },
     "marketCap": {
       "USD": 180.1,
       "NTD": 5675.6
     },
-    "mom": -3.7,
-    "yoy": 35.0,
-    "month": "26/08",
+    "mom": 1.3,
+    "yoy": 14.6,
+    "month": "26/09",
     "bars": [
       25.1152,
       20.3442,
@@ -9867,7 +9867,8 @@ window.dashboardCompanies = [
       58.9618,
       65.6026,
       67.0732,
-      64.586
+      64.586,
+      65.3996
     ],
     "yoyLine": [
       null,
@@ -9937,7 +9938,8 @@ window.dashboardCompanies = [
       43.6,
       55.4,
       47.8,
-      35.0
+      35.0,
+      14.6
     ],
     "momLine": [
       null,
@@ -10007,7 +10009,8 @@ window.dashboardCompanies = [
       0.5,
       11.3,
       2.2,
-      -3.7
+      -3.7,
+      1.3
     ],
     "yearly": {
       "labels": [
@@ -10104,7 +10107,7 @@ window.dashboardCompanies = [
             55.4,
             47.8,
             35.0,
-            null,
+            14.6,
             null,
             null,
             null
