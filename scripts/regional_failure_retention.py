@@ -47,6 +47,8 @@ def _align_history(history, previous_dates, next_dates, required, as_of):
     price = history["price"][last_index]
     if not _finite(price) or price <= 0:
         raise ValueError("Previous asOfDate has no valid price")
+    if "volume" in required and (not _finite(history["volume"][last_index]) or history["volume"][last_index] <= 0):
+        raise ValueError("Previous asOfDate has no real trading volume")
     return result
 
 

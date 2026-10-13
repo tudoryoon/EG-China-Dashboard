@@ -139,7 +139,9 @@ def chart(symbol, full=False):
     result = get("https://query1.finance.yahoo.com/v8/finance/chart/" + symbol, params=params).json()["chart"]["result"][0]
     quote = result["indicators"]["quote"][0]
     adjusted = (result["indicators"].get("adjclose") or [{}])[0].get("adjclose", quote.get("close", []))
-    records = {r["date"]: r for r in (saved or {}).get("records", [])} if not full else {}
+    equity = symbol.endswith((".HK", ".SS", ".SZ"))
+    records = {r["date"]: r for r in (saved or {}).get("records", [])
+               if not equity or (r.get("volume") is not None and float(r["volume"]) > 0)} if not full else {}
     # Both exchanges are UTC+8. Only publish completed sessions, with a 30-minute buffer.
     now = datetime.now(timezone(timedelta(hours=8)))
     for i, timestamp in enumerate(result.get("timestamp") or []):
@@ -147,7 +149,7 @@ def chart(symbol, full=False):
         if date == now.date().isoformat() and now.hour * 60 + now.minute < 16 * 60 + 30:
             continue
         row = {k: quote.get(k, [None] * len(result["timestamp"]))[i] for k in ["open", "high", "low", "close", "volume"]}
-        if row["close"] is None:
+        if row["close"] is None or (equity and (row["volume"] is None or row["volume"] <= 0)):
             continue
         previous = records.get(date)
         if previous and saved and not full:
@@ -321,6 +323,12 @@ def run(region, full=False, recalculate=False):
             data = equity_chart(symbol, latest.date().isoformat(), full)
         else:
             data = chart(symbol, full)
+        if member["assetType"] == "Equity":
+            # Some providers emit a flat zero-volume bar on a suspended stock
+            # or a market holiday. It is not an actual price observation.
+            data["records"] = [row for row in data["records"] if row.get("volume") is not None and row["volume"] > 0]
+            if not data["records"]:
+                raise ValueError(f"No traded equity history: {symbol}")
         if symbol in ETFS and ("rawClose" not in data["records"][-1] or data["records"][-1]["date"] < latest.date().isoformat()):
             data = etf_chart(symbol)
         if symbol in INDEXES and data["records"][-1]["date"] < latest.date().isoformat():

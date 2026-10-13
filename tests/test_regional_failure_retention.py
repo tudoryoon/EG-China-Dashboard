@@ -154,6 +154,9 @@ class RegionalFailureRetentionTests(unittest.TestCase):
         old = previous_snapshot()
         old["rs"]["rows"][0]["price"] = float("nan")
         scenarios.append(old)
+        old = previous_snapshot()
+        old["rs"]["histories"]["FAIL.HK"]["volume"][-1] = 0
+        scenarios.append(old)
         for previous in scenarios:
             with self.subTest(previous=previous):
                 output = fresh_snapshot()

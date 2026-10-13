@@ -30,6 +30,10 @@ def validate_region(data, region, members):
         history = rs["histories"][ticker]
         for key in ["price", "open", "high", "low", "volume", "rsRatingAll"]:
             assert len(history[key]) == len(rs["historyDates"]), (ticker, key)
+        if row["assetType"] == "Equity":
+            assert all(volume is not None and volume > 0
+                       for price, volume in zip(history["price"], history["volume"])
+                       if price is not None), ticker
         if ticker in retained:
             assert row.get("dataStatus") == "stale" and row.get("collectionError") == missing[ticker], ticker
             assert row["asOfDate"] <= rs["updatedAt"], ticker

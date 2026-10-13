@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "kstDate": "2026-10-13",
   "refreshDate": "2026-10-12",
-  "completedAt": "2026-10-13T08:10:56.616706+09:00",
+  "completedAt": "2026-10-13T10:38:53.317675+09:00",
   "marketSessions": {
     "hk": "2026-10-12",
     "cn": "2026-10-12"
@@ -54,15 +54,15 @@
     "Grand Process Tech": "26/09"
   },
   "dataHashes": {
-    "index.html": "9121d43b9f7bf436220a6b7dd0836ed66a6772bf204ef03e6fde7f6d5c46a082",
+    "index.html": "734f0ee6b6a82e0a2d7d9e01f7c922d39e152ece38aa32393fe04800a97c1627",
     "data/dashboard-data.js": "d366cd3060fb68fa0291bc4d51dd1c5d4608426e0912ecaccc624ee6c42ecb9c",
-    "data/taiwan-collection-status.json": "3dca937134df3586d417d92573364462ea2cf4ba11e20609d9a7e2f6a50f7c7f",
+    "data/taiwan-collection-status.json": "487e669a1f900027cbeb688f8a5858d0f37264d6185dba682bb915ff8d5fbe04",
     "data/asia-hk-constituents.json": "16e41dc01135236d45c096a7464182e2af6ea1b5802e463dd380c50f3885fc5e",
     "data/asia-hk-metadata.json": "b7d0215c1af58e41307ff0c985a73c083ffde4de3c83b8cece410e8e08800fa2",
-    "data/asia-hk-screening.json": "bbc824e7964dd25bd903adb1b13e6eec171c7e7b45b53519e67b7c50f5601088",
+    "data/asia-hk-screening.json": "ea7d3be86b34e0a398c97b27f43c3379da65eb7bc27101aa134c4f972593acb7",
     "data/asia-cn-constituents.json": "8439f20139fecd0dfa856c16e0d8a3f7d84ecbdd7704f43af3fdb1fd8f6a6b42",
     "data/asia-cn-metadata.json": "abc64fb5741d0a0d263badef57c48f0588d2573ca392ed491c8f9ff5b5ea6eb4",
-    "data/asia-cn-screening.json": "82e513cd1968e374d9bb9b2c70a46e13dd075e9072d51d6d9449b8efc530c064"
+    "data/asia-cn-screening.json": "8ae3fb7c3d0c0dc88163dbdd2f41015981707d0d1a231f36e97b4efd61506fcc"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -70,36 +70,29 @@
     "scripts/bump_data_cache_versions.py": "b2486cc132071e593fa8c8c328816a1c2d269641596bf930782e1ba69cc4c38e",
     "scripts/repair_published_failures.py": "bee1e5a3abdf11cf933565c5e6ca9df4c39b26adea6f4c38fbe947be13ad15b3",
     "scripts/collection_policy.py": "c566f346834da2d915f60865bbbe47cf82952239f387ab53369f5e7c1292cc47",
-    "scripts/regional_failure_retention.py": "956ab4f211ac53942ab688ed7f7261b007806cd663366dde478082223f4e62e8",
+    "scripts/regional_failure_retention.py": "410bc904861f9071d87b20863b68e1eab7109aac2600e582a85ecfb4b9cd5be1",
     "scripts/corporate_actions.py": "6f467a45173888a7fab7c33b23617349d03516d36f68e88bc5434f1feed3c104",
     "scripts/validated_price_cache.py": "a0780fe5f66c3537a36d7bfa1cd7126ac437963ec55f095a3c5505255673f458",
     "scripts/hsci_constituents.py": "180109eed7765605dfb01cd4dc4d2737f69ff05c6564051671d3dbf07423e402",
     "scripts/regional_supplements.py": "5e3c80898868382d286200e23d0d6277b85d28f4ca694f4a71162c089241bb13",
     "scripts/market_price_sources.py": "b082d6c029dfbf7b21123ac23d3836775be378990726a508771fce6f68e11651",
-    "scripts/update_asia_screening.py": "381cda187eae9437b4724412d966d7fc3307edb7cffc2060384202b11b379b43",
+    "scripts/update_asia_screening.py": "9e4b1b13c7144b106fc889219f04b3cbc5536d87784c5d7e4da3dfbb8dade735",
     "scripts/update_market_rs.py": "cbce41358d78b0859332e5b8a50250a3f2682d1846f7d2296b50722c990ddd6c",
     "scripts/update_market_trend_score.py": "50e79cc9dd04aded4ac690e0d9df2c272b4276e2031dbc1d8adc46bfa868a7c3",
     "scripts/update_taiwan_revenue.py": "e9a3ba0b0f214b125f42bc8be5863a6e1290c8cf4f73fe413c293bf3b4250750",
-    "scripts/validate_asia_screening.py": "bd4617661df8efa8ca9ebb47f30163a1e3dce840f846cc6aed5b3d523d6f0309",
+    "scripts/validate_asia_screening.py": "cb095404d93a95fb1ecf073fca53cbc343862def4b33469bec52bb1c8f3d3a62",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
   "runId": "local",
   "collection": {
     "failurePolicy": "retain-and-publish",
-    "failureCount": 12,
+    "failureCount": 5,
     "failures": {
-      "hk:0853.HK": "Quote behind benchmark: 0853.HK; retry needed",
-      "hk:1698.HK": "Quote behind benchmark: 1698.HK; retry needed",
-      "hk:2172.HK": "Quote behind benchmark: 2172.HK; retry needed",
-      "hk:2252.HK": "Quote behind benchmark: 2252.HK; retry needed",
-      "hk:3288.HK": "Quote behind benchmark: 3288.HK; retry needed",
-      "hk:3939.HK": "Quote behind benchmark: 3939.HK; retry needed",
-      "cn:300308.SZ": "Quote behind benchmark: 300308.SZ; retry needed",
-      "cn:302132.SZ": "Quote behind benchmark: 302132.SZ; retry needed",
-      "cn:601059.SS": "Quote behind benchmark: 601059.SS; retry needed",
-      "cn:688072.SS": "Quote behind benchmark: 688072.SS; retry needed",
-      "cn:002056.SZ": "Quote behind benchmark: 002056.SZ; retry needed",
-      "cn:601198.SS": "Quote behind benchmark: 601198.SS; retry needed"
+      "hk:0853.HK": "Trading suspended since 2026-09-01; last real close 2026-08-31; exchange notice: https://www1.hkexnews.hk/search/titlesearch.xhtml?category=0&market=SEHK&stockId=52492",
+      "hk:2172.HK": "Trading suspended since 2026-09-01; last real close 2026-08-31; exchange notice: https://www1.hkexnews.hk/search/titlesearch.xhtml?category=0&lang=EN&market=SEHK&stockId=1000157447",
+      "hk:2252.HK": "Trading suspended since 2026-09-01; last real close 2026-08-31; exchange notice: https://www1.hkexnews.hk/search/titlesearch.xhtml?category=0&market=SEHK&stockId=1000118830",
+      "cn:601059.SS": "Trading suspended since 2026-09-15; last real close 2026-09-14; exchange notice: https://www.sse.com.cn/assortment/stock/list/info/announcement/index.shtml?productId=601059",
+      "cn:601198.SS": "Trading suspended since 2026-09-15; last real close 2026-09-14; exchange notice: https://static.cninfo.com.cn/finalpage/2026-09-11/1225557793.PDF"
     },
     "retry": "next-refresh-cycle"
   }
