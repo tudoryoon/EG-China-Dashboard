@@ -97,6 +97,19 @@ class PriceSourceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             sources.tencent_equity_history('600519.SS', '2026-09-09', get)
 
+    def test_tencent_mirror_keeps_identity_adjustment_and_source_url(self):
+        raw = self.payload(symbol='sz300308')
+        adjusted = self.payload('qfqday', 'sz300308')
+        get = Mock(side_effect=[Mock(json=lambda: raw), Mock(json=lambda: adjusted)])
+        result = sources.tencent_equity_history('300308.SZ', '2026-09-09', get, sources.TENCENT_MIRROR_URL)
+        self.assertEqual(result['priceSource']['url'], sources.TENCENT_MIRROR_URL)
+        self.assertEqual(result['priceSource']['symbol'], 'sz300308')
+        self.assertEqual(result['records'][-1]['date'], '2026-09-09')
+        self.assertEqual([call.args[0] for call in get.call_args_list], [sources.TENCENT_MIRROR_URL] * 2)
+        with self.assertRaisesRegex(ValueError, 'Wrong Tencent security'):
+            sources.tencent_equity_history('688072.SS', '2026-09-09',
+                Mock(return_value=Mock(json=lambda: raw)), sources.TENCENT_MIRROR_URL)
+
     def test_eastmoney_equity_keeps_raw_close_and_coherent_adjustment(self):
         raw = {'data': {'code': '000001', 'market': 0, 'name': 'Sample', 'klines': [
             '2026-10-09,11.78,11.59,11.89,11.58,1078106',

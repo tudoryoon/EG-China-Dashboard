@@ -6,6 +6,7 @@ import time
 from regional_supplements import ETF_SECIDS, parse_etf_history
 
 TENCENT_URL = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
+TENCENT_MIRROR_URL = "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get"
 EASTMONEY_URL = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
 INDEX_SECIDS = {"000688.SS": "1.000688", "^HSI": "100.HSI"}
 TENCENT_REQUEST_INTERVAL_SECONDS = 0.25
@@ -58,6 +59,7 @@ class ProviderCircuitBreaker:
 # This state lasts only for this collector process. Other providers always keep
 # their normal fallback order, and every accepted payload still passes freshness.
 _TENCENT_CIRCUIT = ProviderCircuitBreaker()
+_TENCENT_MIRROR_CIRCUIT = ProviderCircuitBreaker()
 _EASTMONEY_EQUITY_CIRCUIT = ProviderCircuitBreaker()
 
 
@@ -71,12 +73,12 @@ def pace_tencent_request():
         _tencent_last_started = time.monotonic()
 
 
-def tencent_get(get, params):
+def tencent_get(get, params, url=TENCENT_URL):
     # The production client paces inside its retry loop. Keep injected clients
     # paced here unless they explicitly provide the same per-attempt contract.
     if getattr(get, "paces_tencent_attempts", False) is not True:
         pace_tencent_request()
-    return get(TENCENT_URL, params=params)
+    return get(url, params=params)
 
 
 def tencent_symbol(symbol):
@@ -123,6 +125,7 @@ def current_source(symbol, expected, providers, minimum=400):
     errors = []
     for name, fetch in providers:
         circuit = (_TENCENT_CIRCUIT if name == "Tencent" else
+                   _TENCENT_MIRROR_CIRCUIT if name == "Tencent Mirror" else
                    _EASTMONEY_EQUITY_CIRCUIT if name == "Eastmoney Equity" else None)
         ticket = circuit.acquire() if circuit is not None else None
         if circuit is not None and ticket is None:
@@ -153,10 +156,10 @@ def current_source(symbol, expected, providers, minimum=400):
     raise RuntimeError(f"No current source for {symbol}: {'; '.join(errors)}")
 
 
-def tencent_history(symbol, expected, get):
+def tencent_history(symbol, expected, get, url=TENCENT_URL):
     code = tencent_symbol(symbol)
     def fetch(adjustment):
-        response = tencent_get(get, {"param": f"{code},day,2024-01-01,{expected},1000,{adjustment}"})
+        response = tencent_get(get, {"param": f"{code},day,2024-01-01,{expected},1000,{adjustment}"}, url)
         return parse_tencent(response.json(), symbol, adjustment, expected)
     raw = fetch("")
     if symbol in ETF_SECIDS:
@@ -174,21 +177,21 @@ def tencent_history(symbol, expected, get):
         result = parse_etf_history(symbol, common(raw), common(adjusted), expected)
     else:
         result = raw
-    result["priceSource"] = {**result.get("priceSource", {}), "provider": "Tencent", "url": TENCENT_URL, "symbol": code,
+    result["priceSource"] = {**result.get("priceSource", {}), "provider": "Tencent", "url": url, "symbol": code,
                              "adjustment": "qfq adjusted OHLC; rawClose and raw volume retained" if symbol in ETF_SECIDS else "unadjusted index close",
                              "volumeUnit": "shares" if symbol in ETF_SECIDS else "provider index volume"}
     result["priceSource"].pop("secid", None)
     return require_current(result, expected)
 
 
-def tencent_equity_history(symbol, expected, get):
+def tencent_equity_history(symbol, expected, get, url=TENCENT_URL):
     """Return raw OHLC with a coherent Tencent qfq close series for RS."""
     if symbol in ETF_SECIDS or symbol in INDEX_SECIDS or not symbol.endswith((".HK", ".SS", ".SZ")):
         raise ValueError(f"Not a regional equity: {symbol}")
     code = tencent_symbol(symbol)
 
     def fetch(adjustment):
-        response = tencent_get(get, {"param": f"{code},day,2024-01-01,{expected},1000,{adjustment}"})
+        response = tencent_get(get, {"param": f"{code},day,2024-01-01,{expected},1000,{adjustment}"}, url)
         return parse_tencent(response.json(), symbol, adjustment, expected)
 
     raw, adjusted = fetch(""), fetch("qfq")
@@ -211,7 +214,7 @@ def tencent_equity_history(symbol, expected, get):
         "records": records,
         "priceSource": {
             "provider": "Tencent",
-            "url": TENCENT_URL,
+            "url": url,
             "symbol": code,
             "adjustment": "raw OHLC; qfq adjusted close for RS",
             "volumeUnit": "shares",

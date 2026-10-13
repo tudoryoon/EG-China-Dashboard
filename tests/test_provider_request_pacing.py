@@ -60,6 +60,16 @@ class ProductionRequestPacingTests(unittest.TestCase):
         self.assertEqual(broken.call_count, 5)
         self.assertIsNone(breaker.acquire())
 
+    def test_mirror_retries_use_the_shared_tencent_request_budget(self):
+        response = Mock()
+        with patch.object(collector, 'pace_tencent_request') as pace, \
+                patch.object(collector.requests, 'get', side_effect=[
+                    collector.requests.exceptions.HTTPError('HTTP 501'), response]) as request, \
+                patch.object(collector.time, 'sleep'):
+            self.assertIs(collector.get(sources.TENCENT_MIRROR_URL), response)
+        self.assertEqual(pace.call_count, 2)
+        self.assertEqual([call.args[0] for call in request.call_args_list], [sources.TENCENT_MIRROR_URL] * 2)
+
     def test_other_providers_do_not_use_tencent_pacer(self):
         response = Mock()
         with patch.object(collector, 'pace_tencent_request') as pace, \

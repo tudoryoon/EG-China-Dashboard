@@ -30,3 +30,20 @@ def read_current(path, expected, minimum):
 def mark(data, expected):
     data['_verified'] = {'scope': scope(), 'session': expected}
     return data
+
+
+def read_recalculation(path, expected, minimum=1):
+    """Explicit recalculation may reuse history only for the completed session.
+
+    Daily collection still uses read_current's stricter same-run requirement.
+    A stale/corrupt cache returns None so the collector tries live providers.
+    """
+    try:
+        data = json.loads(path.read_text(encoding='utf8'))
+        if (len(data['records']) >= minimum
+                and data['records'][-1]['date'] == expected
+                and data.get('priceSource')):
+            return data
+    except (OSError, ValueError, KeyError, TypeError, IndexError):
+        pass
+    return None

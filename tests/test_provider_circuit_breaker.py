@@ -89,6 +89,21 @@ class ProviderCircuitBreakerTests(unittest.TestCase):
                 ('Tencent', recovered)], minimum=1), fresh)
             recovered.assert_called_once()
 
+    def test_primary_pause_does_not_disable_tencent_mirror(self):
+        fresh = {'records': [{'date': '2026-10-12'}]}
+        broken = Mock(side_effect=ConnectionError('HTTP 501'))
+        mirror = Mock(return_value=fresh)
+        mirror_circuit = sources.ProviderCircuitBreaker(clock=lambda: 0)
+        with patch.object(sources, '_TENCENT_CIRCUIT', self.breaker), \
+                patch.object(sources, '_TENCENT_MIRROR_CIRCUIT', mirror_circuit):
+            for _ in range(7):
+                self.assertIs(sources.current_source('300308.SZ', '2026-10-12',
+                    [('Tencent', broken), ('Tencent Mirror', mirror)], minimum=1), fresh)
+        self.assertEqual(broken.call_count, 5)
+        self.assertEqual(mirror.call_count, 7)
+        self.assertIsNone(self.breaker.acquire())
+        self.assertIsNotNone(mirror_circuit.acquire())
+
     def test_security_validation_failures_do_not_pause_other_securities(self):
         fresh = {'records': [{'date': '2026-09-29'}]}
         rejected = Mock(side_effect=ValueError('Wrong Tencent security'))

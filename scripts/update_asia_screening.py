@@ -21,6 +21,7 @@ from regional_supplements import ETF_SECIDS, ETF_NAMES, ETF_SOURCE, parse_etf_hi
 from market_price_sources import (
     INDEX_SECIDS,
     TENCENT_URL,
+    TENCENT_MIRROR_URL,
     current_source,
     eastmoney_equity_history,
     eastmoney_index_history,
@@ -51,7 +52,7 @@ META = {
 
 def get(url, **kwargs):
     for attempt in range(3):
-        if url == TENCENT_URL:
+        if url in (TENCENT_URL, TENCENT_MIRROR_URL):
             pace_tencent_request()
         try:
             response = requests.get(url, impersonate="chrome", timeout=35, **kwargs)
@@ -187,6 +188,7 @@ def etf_chart(symbol):
     expected = completed_session(symbol)
     payload = current_source(symbol, expected, [
         ("Tencent", lambda: tencent_history(symbol, expected, get)),
+        ("Tencent Mirror", lambda: tencent_history(symbol, expected, get, TENCENT_MIRROR_URL)),
         ("Eastmoney", lambda: eastmoney_etf_chart(symbol)),
     ])
     write_json(CACHE / (symbol + ".json"), payload)
@@ -197,6 +199,7 @@ def index_chart(symbol):
     expected = completed_session(symbol)
     payload = current_source(symbol, expected, [
         ("Tencent", lambda: tencent_history(symbol, expected, get)),
+        ("Tencent Mirror", lambda: tencent_history(symbol, expected, get, TENCENT_MIRROR_URL)),
         ("Eastmoney", lambda: eastmoney_index_history(symbol, expected, get)),
     ])
     payload["name"] = "STAR 50 Index" if symbol == "000688.SS" else payload["name"]
@@ -211,7 +214,10 @@ def equity_chart(symbol, expected, full=False):
     def tencent():
         from corporate_actions import normalize_equity_history
         return normalize_equity_history(symbol, tencent_equity_history(symbol, expected, get), expected)
-    providers = [("Tencent", tencent)]
+    def mirror():
+        from corporate_actions import normalize_equity_history
+        return normalize_equity_history(symbol, tencent_equity_history(symbol, expected, get, TENCENT_MIRROR_URL), expected)
+    providers = [("Tencent", tencent), ("Tencent Mirror", mirror)]
     # Only the verified permanent-counter series has the explicit split repair.
     if symbol != REALORD_SYMBOL or expected < REALORD_SPLIT_DATE:
         def eastmoney():
@@ -257,11 +263,13 @@ def legacy_benchmark(region, full=False):
 
 def regional_benchmark(region, full=False, cached=False):
     cache_path = CACHE / f"benchmark-{region}.json"
-    if cached and cache_path.exists():
-        return json.loads(cache_path.read_text(encoding="utf8"))
     symbol = META[region]["benchmark"]
     expected = completed_session(symbol)
-    providers = [("Tencent", lambda: tencent_history(symbol, expected, get))]
+    previous = price_cache.read_recalculation(cache_path, expected, 400) if cached else None
+    if previous is not None:
+        return previous
+    providers = [("Tencent", lambda: tencent_history(symbol, expected, get)),
+                 ("Tencent Mirror", lambda: tencent_history(symbol, expected, get, TENCENT_MIRROR_URL))]
     if region == "hk":
         providers.extend([
             ("Eastmoney", lambda: eastmoney_index_history(symbol, expected, get)),
@@ -304,8 +312,9 @@ def run(region, full=False, recalculate=False):
         cache_path = CACHE / (symbol + ".json")
         expected = latest.date().isoformat()
         verified = None if full or recalculate else price_cache.read_current(cache_path, expected, 1 if member["assetType"] == "Equity" else 400)
-        if recalculate and cache_path.exists():
-            data = json.loads(cache_path.read_text(encoding="utf8"))
+        cached = price_cache.read_recalculation(cache_path, expected, 1 if member["assetType"] == "Equity" else 400) if recalculate else None
+        if cached is not None:
+            data = cached
         elif verified is not None:
             data = verified
         elif member["assetType"] == "Equity":
@@ -343,7 +352,11 @@ def run(region, full=False, recalculate=False):
         return symbol, frame, info, data.get("priceSource", {"provider": "Yahoo Finance"})
 
     with ThreadPoolExecutor(max_workers=6) as pool:
-        futures = {pool.submit(fetch, m): m["ticker"] for m in members}
+        # Retry retained securities before a transient provider outage can
+        # exhaust its circuit later in a large universe. Membership is unchanged.
+        failed = previous.get("meta", {}).get("missing", {})
+        fetch_order = sorted(members, key=lambda member: member["ticker"] not in failed)
+        futures = {pool.submit(fetch, m): m["ticker"] for m in fetch_order}
         for i, future in enumerate(as_completed(futures), 1):
             symbol = futures[future]
             try:
@@ -419,7 +432,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--region", choices=["hk", "cn", "all"], default="all")
     parser.add_argument("--full", action="store_true")
-    parser.add_argument("--recalculate", action="store_true", help="Rebuild scores from cached stock prices without downloading them again")
+    parser.add_argument("--recalculate", action="store_true", help="Reuse current-session cached prices; refetch stale or unusable histories")
     args = parser.parse_args()
     for region in (["hk", "cn"] if args.region == "all" else [args.region]):
         run(region, args.full, args.recalculate)
