@@ -1,5 +1,6 @@
 """A Yahoo quote without trades must not become a completed equity session."""
 from datetime import datetime, timezone
+import importlib.util
 import json
 from pathlib import Path
 import sys
@@ -8,11 +9,11 @@ import unittest
 from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-import update_asia_screening as collector
-
-
+@unittest.skipUnless(all(importlib.util.find_spec(name) for name in ("pandas", "yfinance", "curl_cffi")),
+                     "Requires collector dependencies")
 class YahooEquityChartTests(unittest.TestCase):
     def test_zero_volume_dates_are_dropped_from_saved_and_new_history(self):
+        import update_asia_screening as collector
         with tempfile.TemporaryDirectory() as directory:
             cache = Path(directory)
             (cache / "601059.SS.json").write_text(json.dumps({
