@@ -1,9 +1,13 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-13T10:42:55.861451+09:00",
-  "scope": null,
-  "failures": {},
-  "retained": [],
+  "checkedAt": "2026-10-14T04:24:39.919419+09:00",
+  "scope": "github:38452754250:1",
+  "failures": {
+    "2345": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2345 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))"
+  },
+  "retained": [
+    "2345"
+  ],
   "successful": [
     "1815",
     "2059",
@@ -13,7 +17,6 @@
     "2327",
     "2330",
     "2344",
-    "2345",
     "2356",
     "2368",
     "2382",
