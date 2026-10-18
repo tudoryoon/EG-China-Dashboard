@@ -37,6 +37,7 @@ from regional_failure_retention import require_collection_coverage, retain_faile
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".asia-screening-cache"
 HS_SOURCE = "https://origin-www.hsi.com.hk/data/eng/rt/index-series/hsci/constituents.do"
+HS_COUNT_SOURCE = "https://www.hsi.com.hk/api/wsit-hsi-ddoc-ea-public-website-proxy/v1/product-data/pub/constituent/metadata/v2"
 CSI_SOURCE = "https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/file/autofile/cons/{}cons.xls"
 WATCH = {
     "hk": "9988.HK 0700.HK 0992.HK 2820.HK 3033.HK 1810.HK 0100.HK 1347.HK 0981.HK 3109.HK 6082.HK 6083.HK 9660.HK 2026.HK 9999.HK".split(),
@@ -97,10 +98,35 @@ def constituents(region, cached=False):
         members = {row["ticker"]: row for row in snapshot["members"]}
         sources = snapshot["sources"]
     elif region == "hk":
-        data = get(HS_SOURCE).json()
-        members, diagnostics = parse_hsci(data)
-        print(f'HSCI constituents: {json.dumps(diagnostics)}', flush=True)
-        sources.append({"label": "Hang Seng Composite", "url": HS_SOURCE, "asOf": data["requestDate"], "count": len(members), **diagnostics})
+        try:
+            data = get(HS_SOURCE).json()
+        except Exception as source_error:
+            if not snapshot_path.exists():
+                raise RuntimeError("HSCI source unavailable and no verified snapshot exists") from source_error
+            snapshot = json.loads(snapshot_path.read_text(encoding="utf8"))
+            previous = next((item for item in snapshot["sources"]
+                             if item.get("label") == "Hang Seng Composite"), None)
+            target = expected_session("XHKG", datetime.now(timezone.utc))
+            if not previous or str(previous.get("asOf", ""))[:10] != target:
+                raise RuntimeError(f"HSCI source unavailable; snapshot is not from target session {target}") from source_error
+            official = get(HS_COUNT_SOURCE, params={"data": "rt", "seriesCode": "hsci",
+                                                    "language": "en-hk"}).json()
+            counts = official.get("data", {}).get("numOfConsList", [])
+            if (official.get("code") != "0" or len(counts) != 1
+                    or counts[0].get("indexCode") != "00011.00"
+                    or counts[0].get("count") != previous.get("count")):
+                raise RuntimeError("HSCI official count does not validate the exact-session snapshot") from source_error
+            members = {row["ticker"]: row for row in snapshot["members"]
+                       if "HSCI" in row.get("groups", [])}
+            if len(members) != previous["count"]:
+                raise RuntimeError("HSCI snapshot member count is inconsistent") from source_error
+            sources.append({**previous, "countVerifiedAt": datetime.now(timezone.utc).isoformat(),
+                            "countVerificationUrl": HS_COUNT_SOURCE})
+            print(f'HSCI exact-session snapshot: {target}, {len(members)} official members', flush=True)
+        else:
+            members, diagnostics = parse_hsci(data)
+            print(f'HSCI constituents: {json.dumps(diagnostics)}', flush=True)
+            sources.append({"label": "Hang Seng Composite", "url": HS_SOURCE, "asOf": data["requestDate"], "count": len(members), **diagnostics})
     else:
         for code, label, expected in [("000300", "CSI 300", 300), ("000905", "CSI 500", 500)]:
             url = CSI_SOURCE.format(code)
