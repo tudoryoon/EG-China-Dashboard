@@ -1,11 +1,11 @@
 {
   "schemaVersion": 4,
-  "kstDate": "2026-10-19",
-  "refreshDate": "2026-10-18",
-  "completedAt": "2026-10-19T08:00:28.927688+09:00",
+  "kstDate": "2026-10-20",
+  "refreshDate": "2026-10-19",
+  "completedAt": "2026-10-20T03:56:11.662768+09:00",
   "marketSessions": {
     "hk": "2026-10-16",
-    "cn": "2026-10-16"
+    "cn": "2026-10-19"
   },
   "taiwanRevenueMonths": {
     "TSMC": "26/09",
@@ -54,15 +54,15 @@
     "Grand Process Tech": "26/09"
   },
   "dataHashes": {
-    "index.html": "b57a5f7ead4d82cbc077446ea7a0034be068f9926789d0ba46ee0bc05008edd5",
-    "data/dashboard-data.js": "d366cd3060fb68fa0291bc4d51dd1c5d4608426e0912ecaccc624ee6c42ecb9c",
-    "data/taiwan-collection-status.json": "d61e28830dde7520e0f01df521ef4ac092c70cf0e02874357ecc87980d1a09df",
-    "data/asia-hk-constituents.json": "7494ec258dbb26e3009f1ad293c0fd02da2983a03086d57ebe4398b48908f722",
+    "index.html": "42d52006a6f4083b7920dbc3e31dc0d9e85519795edcf29801ff4ee4f399ad24",
+    "data/dashboard-data.js": "7618b9fd786dfee8d01f05180fe7fed7052a577e360c230a036f9ad6767778bf",
+    "data/taiwan-collection-status.json": "7689456c2d1fe8ee6c892b91e9bf5cb7d00031640314bd58bf21c48bcbd5a884",
+    "data/asia-hk-constituents.json": "467c0a1c4d06a9283635b907f5c185871f7212cfaab2e541b7c062c681369bf6",
     "data/asia-hk-metadata.json": "a68870c7e0ea800185224012df800ee488cf70568b7f9612bc8fba2a1aa7b98f",
-    "data/asia-hk-screening.json": "459fb1a8e75c98b4fd0f762187bbe3fff871f07508fc6530985d0b33621b0997",
-    "data/asia-cn-constituents.json": "7ea7b807acd37bf3f586f1d192c19a52ec3828eef699dc8cc86a85c59ef84a58",
-    "data/asia-cn-metadata.json": "c24f00667d0cc089109e174287d4323d8e44b5904f0671781d55d7ad74e4795f",
-    "data/asia-cn-screening.json": "a0a11054e1f8402f521642db9db514e1791d8a0b04a8f9fa3a4d92198d1d5921"
+    "data/asia-hk-screening.json": "b826f4790a2c95cbef6c4b325f1491c108f79a7a0318c24f3537a07206d6edae",
+    "data/asia-cn-constituents.json": "21f543af30e234703d4acac4675da6039b64b5efd3043c011c376ee4de89e63a",
+    "data/asia-cn-metadata.json": "6c50d55f70401ad41ccc8b7202ecb50b101db3d101ac2ca481583aeb32a2e43e",
+    "data/asia-cn-screening.json": "6b2d11867676260c6ab5e7ca68109e185115e6be60bf5b6e3eb0f664956a9b90"
   },
   "pipelineHashes": {
     "requirements.txt": "3c20ecbdacc56988eb048b10221a95ef0021d71d6637fdcbe590e7c3f9beea98",
@@ -83,17 +83,17 @@
     "scripts/validate_asia_screening.py": "cb095404d93a95fb1ecf073fca53cbc343862def4b33469bec52bb1c8f3d3a62",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "39173357698",
+  "runId": "39304264419",
   "collection": {
     "failurePolicy": "retain-and-publish",
     "failureCount": 6,
     "failures": {
-      "hk:0853.HK": "No current source for 0853.HK: Tencent: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (648 sessions)",
       "hk:2252.HK": "No current source for 2252.HK: Tencent: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (647 sessions)",
       "hk:2172.HK": "No current source for 2172.HK: Tencent: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (652 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (645 sessions)",
+      "hk:0853.HK": "No current source for 0853.HK: Tencent: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-10-16, received 2026-08-31 (648 sessions)",
       "hk:2555.HK": "No current source for 2555.HK: Tencent: Incomplete/stale history: expected 2026-10-16, received 2026-10-12 (608 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-10-16, received 2026-10-12 (608 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-10-16, received 2026-10-12 (608 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-10-16, received 2026-10-12 (602 sessions)",
-      "cn:601198.SS": "No current source for 601198.SS: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Tencent Mirror: Incomplete/stale history: expected 2026-10-16, received 2026-09-14 (635 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-10-16, received 2026-09-14 (635 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-10-16, received 2026-09-14 (634 sessions)",
-      "cn:601059.SS": "No current source for 601059.SS: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Tencent Mirror: Incomplete/stale history: expected 2026-10-16, received 2026-09-14 (635 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-10-16, received 2026-09-14 (635 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-10-16, received 2026-09-14 (633 sessions)"
+      "tw:6805": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=6805 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
+      "tw:2327": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=2327 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))"
     },
     "retry": "next-refresh-cycle"
   }
