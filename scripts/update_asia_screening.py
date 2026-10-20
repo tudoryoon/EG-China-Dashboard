@@ -38,6 +38,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".asia-screening-cache"
 HS_SOURCE = "https://origin-www.hsi.com.hk/data/eng/rt/index-series/hsci/constituents.do"
 HS_COUNT_SOURCE = "https://www.hsi.com.hk/api/wsit-hsi-ddoc-ea-public-website-proxy/v1/product-data/pub/constituent/metadata/v2"
+HS_CHANGE_HISTORY_SOURCE = "https://www.hsi.com.hk/api/wsit-hsi-ddoc-ea-public-website-proxy/v1/content/gcs/download"
+HS_CHANGE_HISTORY_RESOURCE = "/public-website/webapp/contents/en/indexes/hisConstituent/hsci/hist_hsci.xlsx"
 CSI_SOURCE = "https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/file/autofile/cons/{}cons.xls"
 WATCH = {
     "hk": "9988.HK 0700.HK 0992.HK 2820.HK 3033.HK 1810.HK 0100.HK 1347.HK 0981.HK 3109.HK 6082.HK 6083.HK 9660.HK 2026.HK 9999.HK".split(),
@@ -66,6 +68,30 @@ def get(url, **kwargs):
 
 
 get.paces_tencent_attempts = True
+
+
+def verify_hsci_unchanged(snapshot_day: str, target: str, expected_count: int) -> str:
+    """Prove an older official list is still current using HSI's full change log."""
+    response = get(HS_CHANGE_HISTORY_SOURCE,
+                   params={"resource": HS_CHANGE_HISTORY_RESOURCE})
+    table = pd.read_excel(BytesIO(response.content), sheet_name="HSCI", header=None)
+    if table.shape[0] < 100 or table.shape[1] < 5 or "Effective Date" not in str(table.iat[4, 0]):
+        raise RuntimeError("HSCI official change history has an unexpected format")
+    rows = table.iloc[6:]
+    changes = rows[rows.iloc[:, 2].astype(str).str.match(r"^(Add|Delete)\b")].copy()
+    dates = pd.to_datetime(changes.iloc[:, 0], format="%Y-%m-%d", errors="coerce")
+    if len(changes) < 100 or dates.isna().any():
+        raise RuntimeError("HSCI official change history is incomplete")
+    current = changes.loc[dates.dt.strftime("%Y-%m-%d") <= target]
+    current_dates = dates.loc[current.index]
+    if current.empty:
+        raise RuntimeError("HSCI official change history has no effective constituents")
+    latest = current_dates.max()
+    latest_day = latest.strftime("%Y-%m-%d")
+    counts = pd.to_numeric(current.loc[current_dates == latest].iloc[:, 1], errors="coerce")
+    if latest_day > snapshot_day or counts.isna().any() or set(counts.astype(int)) != {expected_count}:
+        raise RuntimeError("HSCI official change history does not validate the older snapshot")
+    return latest_day
 
 
 def write_json(path, value):
@@ -107,8 +133,9 @@ def constituents(region, cached=False):
             previous = next((item for item in snapshot["sources"]
                              if item.get("label") == "Hang Seng Composite"), None)
             target = expected_session("XHKG", datetime.now(timezone.utc))
-            if not previous or str(previous.get("asOf", ""))[:10] != target:
-                raise RuntimeError(f"HSCI source unavailable; snapshot is not from target session {target}") from source_error
+            snapshot_day = str((previous or {}).get("asOf", ""))[:10]
+            if not previous or not snapshot_day or snapshot_day > target:
+                raise RuntimeError(f"HSCI source unavailable; no usable snapshot for target session {target}") from source_error
             official = get(HS_COUNT_SOURCE, params={"data": "rt", "seriesCode": "hsci",
                                                     "language": "en-hk"}).json()
             counts = official.get("data", {}).get("numOfConsList", [])
@@ -120,9 +147,21 @@ def constituents(region, cached=False):
                        if "HSCI" in row.get("groups", [])}
             if len(members) != previous["count"]:
                 raise RuntimeError("HSCI snapshot member count is inconsistent") from source_error
-            sources.append({**previous, "countVerifiedAt": datetime.now(timezone.utc).isoformat(),
+            verification = {}
+            if snapshot_day != target:
+                try:
+                    latest_change = verify_hsci_unchanged(snapshot_day, target, previous["count"])
+                except Exception as history_error:
+                    raise RuntimeError("HSCI official history does not verify the older snapshot") from history_error
+                verification = {"changeHistoryUrl": HS_CHANGE_HISTORY_SOURCE,
+                                "changeHistoryResource": HS_CHANGE_HISTORY_RESOURCE,
+                                "changeHistoryLatestEffective": latest_change,
+                                "unchangedVerifiedThrough": target}
+            sources.append({**previous, **verification,
+                            "countVerifiedAt": datetime.now(timezone.utc).isoformat(),
                             "countVerificationUrl": HS_COUNT_SOURCE})
-            print(f'HSCI exact-session snapshot: {target}, {len(members)} official members', flush=True)
+            print(f'HSCI officially verified snapshot: {snapshot_day} through {target}, '
+                  f'{len(members)} members', flush=True)
         else:
             members, diagnostics = parse_hsci(data)
             print(f'HSCI constituents: {json.dumps(diagnostics)}', flush=True)

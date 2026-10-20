@@ -47,6 +47,14 @@ class HSCIExactSessionFallbackTests(unittest.TestCase):
                     {"indexCode": "00011.00", "count": count}]}}
         return Response()
 
+    def history_frame(self, latest="2026-09-15", count=581):
+        rows = [[None] * 8 for _ in range(6)]
+        rows[4][0] = "Effective Date 生效日期"
+        rows += [[latest if index == 0 else "2026-09-01", count,
+                  "Add 加入", "+1", index + 1, "Hong Kong", "Member", ""]
+                 for index in range(105)]
+        return screening.pd.DataFrame(rows)
+
     def test_matching_official_count_allows_exact_session_snapshot(self):
         def fetch(url, **kwargs):
             if url == screening.HS_SOURCE:
@@ -64,8 +72,8 @@ class HSCIExactSessionFallbackTests(unittest.TestCase):
     def test_old_snapshot_or_changed_count_fails_closed(self):
         self.snapshot["sources"][0]["asOf"] = "2026-10-15 01:08:56"
         self.write_snapshot()
-        with patch.object(screening, "get", side_effect=ConnectionError("old host unavailable")):
-            with self.assertRaisesRegex(RuntimeError, "not from target session"):
+        with patch.object(screening, "get", side_effect=ConnectionError("official source unavailable")):
+            with self.assertRaises(ConnectionError):
                 screening.constituents("hk")
         self.snapshot["sources"][0]["asOf"] = "2026-10-16 01:08:56"
         self.write_snapshot()
@@ -73,6 +81,38 @@ class HSCIExactSessionFallbackTests(unittest.TestCase):
                                                          self.count_response(580)]):
             with self.assertRaisesRegex(RuntimeError, "official count does not validate"):
                 screening.constituents("hk")
+
+    def test_official_history_and_count_validate_unchanged_prior_session(self):
+        class HistoryResponse:
+            content = b"official workbook bytes"
+
+        def fetch(url, **kwargs):
+            if url == screening.HS_SOURCE:
+                raise ConnectionError("old host unavailable")
+            if url == screening.HS_COUNT_SOURCE:
+                return self.count_response()
+            self.assertEqual(url, screening.HS_CHANGE_HISTORY_SOURCE)
+            self.assertEqual(kwargs["params"]["resource"], screening.HS_CHANGE_HISTORY_RESOURCE)
+            return HistoryResponse()
+
+        with patch.object(screening, "expected_session", return_value="2026-10-20"), \
+             patch.object(screening, "get", side_effect=fetch), \
+             patch.object(screening.pd, "read_excel", return_value=self.history_frame()):
+            members, sources = screening.constituents("hk")
+        self.assertEqual(len(members), 581 + len(set(screening.WATCH["hk"]) -
+                                                 {row["ticker"] for row in self.snapshot["members"]}))
+        self.assertEqual(sources[0]["asOf"], "2026-10-16 01:08:56")
+        self.assertEqual(sources[0]["unchangedVerifiedThrough"], "2026-10-20")
+        self.assertEqual(sources[0]["changeHistoryLatestEffective"], "2026-09-15")
+
+    def test_same_count_constituent_swap_after_snapshot_fails_closed(self):
+        class HistoryResponse:
+            content = b"official workbook bytes"
+
+        with patch.object(screening, "get", return_value=HistoryResponse()), \
+             patch.object(screening.pd, "read_excel", return_value=self.history_frame(latest="2026-10-20")):
+            with self.assertRaisesRegex(RuntimeError, "does not validate"):
+                screening.verify_hsci_unchanged("2026-10-16", "2026-10-20", 581)
 
 
 if __name__ == "__main__":
