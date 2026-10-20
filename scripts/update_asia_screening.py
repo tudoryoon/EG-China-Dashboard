@@ -40,6 +40,8 @@ HS_SOURCE = "https://origin-www.hsi.com.hk/data/eng/rt/index-series/hsci/constit
 HS_COUNT_SOURCE = "https://www.hsi.com.hk/api/wsit-hsi-ddoc-ea-public-website-proxy/v1/product-data/pub/constituent/metadata/v2"
 HS_CHANGE_HISTORY_SOURCE = "https://www.hsi.com.hk/api/wsit-hsi-ddoc-ea-public-website-proxy/v1/content/gcs/download"
 HS_CHANGE_HISTORY_RESOURCE = "/public-website/webapp/contents/en/indexes/hisConstituent/hsci/hist_hsci.xlsx"
+HS_SERIES_SOURCE = "https://www.hsi.com.hk/api/wsit-hsi-ddoc-ea-public-website-proxy/v1/product-data/pub/series/metadata/v2"
+HS_HISTORY_SOURCE = "https://www.hsi.com.hk/api/wsit-hsi-ddoc-ea-public-website-proxy/v1/product-data/pub/indexes/metadata/v2"
 CSI_SOURCE = "https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/file/autofile/cons/{}cons.xls"
 WATCH = {
     "hk": "9988.HK 0700.HK 0992.HK 2820.HK 3033.HK 1810.HK 0100.HK 1347.HK 0981.HK 3109.HK 6082.HK 6083.HK 9660.HK 2026.HK 9999.HK".split(),
@@ -92,6 +94,36 @@ def verify_hsci_unchanged(snapshot_day: str, target: str, expected_count: int) -
     if latest_day > snapshot_day or counts.isna().any() or set(counts.astype(int)) != {expected_count}:
         raise RuntimeError("HSCI official change history does not validate the older snapshot")
     return latest_day
+
+
+def official_hsi_history(expected: str) -> dict:
+    """Get the price-index closing series published by Hang Seng Indexes."""
+    values = get(HS_SERIES_SOURCE, params={"data": "values", "seriesCode": "hsi",
+                                           "language": "en-hk"}).json()
+    if values.get("code") != "0":
+        raise ValueError("Official HSI values request failed")
+    current = next((item for item in values.get("data", [])
+                    if item.get("indexCode") == "00001.00" and item.get("indexType") == "PI"), None)
+    if not current or str(current.get("indexTime", ""))[:10] != expected or str(current.get("indexTime", ""))[11:16] < "16:00":
+        raise ValueError("Official HSI current value is not a completed target session")
+    history = get(HS_HISTORY_SOURCE, params={"data": "valueHistoryPub",
+                                             "indexCodes": "00001.00", "language": "en-hk"}).json()
+    if history.get("code") != "0" or len(history.get("data", [])) != 1 or history["data"][0].get("indexCode") != "00001.00":
+        raise ValueError("Official HSI history response is invalid")
+    records = []
+    for row in history["data"][0].get("valueHistory", []):
+        day = str(row.get("date", ""))
+        close = float(row["close"])
+        if len(day) != 10 or datetime.fromisoformat(day).date().isoformat() != day or not 0 < close < 100000:
+            raise ValueError("Official HSI history contains an invalid observation")
+        if records and day <= records[-1]["date"]:
+            raise ValueError("Official HSI history dates are not increasing")
+        records.append({"date": day, "close": close})
+    if len(records) < 400 or records[-1]["date"] != expected or records[-1]["close"] != float(current["indexValue"]):
+        raise ValueError("Official HSI history does not match the completed target session")
+    return {"records": records, "priceSource": {"provider": "Hang Seng Indexes",
+            "url": HS_HISTORY_SOURCE, "indexCode": "00001.00",
+            "adjustment": "official price index close", "volumeUnit": None}}
 
 
 def write_json(path, value):
@@ -338,6 +370,7 @@ def regional_benchmark(region, full=False, cached=False):
     providers = [("Tencent", lambda: tencent_history(symbol, expected, get)),
                  ("Tencent Mirror", lambda: tencent_history(symbol, expected, get, TENCENT_MIRROR_URL))]
     if region == "hk":
+        providers = [("Hang Seng Indexes", lambda: official_hsi_history(expected)), *providers]
         providers.extend([
             ("Eastmoney", lambda: eastmoney_index_history(symbol, expected, get)),
             ("Yahoo Finance", lambda: legacy_benchmark(region, full)),
