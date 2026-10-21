@@ -8,6 +8,7 @@ from regional_supplements import ETF_SECIDS, parse_etf_history
 TENCENT_URL = "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
 TENCENT_MIRROR_URL = "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/fqkline/get"
 EASTMONEY_URL = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
+SSE_STAR50_URL = "http://yunhq.sse.com.cn:32041/v1/sh1/dayk/000688"
 INDEX_SECIDS = {"000688.SS": "1.000688", "^HSI": "100.HSI"}
 TENCENT_REQUEST_INTERVAL_SECONDS = 0.25
 _TENCENT_REQUEST_LOCK = Lock()
@@ -220,6 +221,37 @@ def tencent_equity_history(symbol, expected, get, url=TENCENT_URL):
             "volumeUnit": "shares",
         },
     }
+
+
+def sse_star50_history(expected, get):
+    """Read full unadjusted STAR50 bars directly from its listing exchange."""
+    payload = get(SSE_STAR50_URL, params={"begin": -1000, "end": -1}).json()
+    if payload.get("code") != "000688":
+        raise ValueError("Wrong Shanghai Stock Exchange index identity")
+    records = []
+    previous = None
+    for values in payload.get("kline") or []:
+        if not isinstance(values, list) or len(values) < 7:
+            raise ValueError("Malformed Shanghai Stock Exchange index bar")
+        compact_day = str(values[0])
+        if len(compact_day) != 8 or not compact_day.isdigit():
+            raise ValueError("Invalid Shanghai Stock Exchange index date")
+        day = date.fromisoformat(f"{compact_day[:4]}-{compact_day[4:6]}-{compact_day[6:]}").isoformat()
+        if previous is not None and day <= previous:
+            raise ValueError("Shanghai Stock Exchange index dates are not increasing")
+        previous = day
+        # The API also returns today's unfinished/zero-volume bar.
+        if day > expected:
+            continue
+        opening, high, low, close, volume = map(float, values[1:6])
+        if not all(math.isfinite(x) for x in (opening, high, low, close, volume)) or not (0 < low <= close <= high and 0 < low <= opening <= high and volume >= 0):
+            raise ValueError("Invalid Shanghai Stock Exchange index OHLCV")
+        records.append({"date": day, "open": opening, "high": high, "low": low,
+                        "close": close, "adjClose": close, "volume": volume})
+    return require_current({"name": "STAR 50 Index", "records": records,
+                            "priceSource": {"provider": "Shanghai Stock Exchange", "url": SSE_STAR50_URL,
+                                            "adjustment": "unadjusted index OHLCV",
+                                            "volumeUnit": "provider index volume"}}, expected)
 
 
 def eastmoney_index_history(symbol, expected, get):

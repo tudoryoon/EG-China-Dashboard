@@ -46,6 +46,24 @@ class OfficialHSIBenchmarkTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     screening.official_hsi_history("2026-10-20")
 
+    def test_next_session_preopen_uses_corroborated_previous_close(self):
+        responses = self.responses()
+        quote = responses[0].payload['data'][0]
+        quote.update(indexTime='2026-10-21 09:23:00', indexValue='24139.11', previousClose='23867.74')
+        # A later daily bar must not change the requested completed session.
+        responses[1].payload['data'][0]['valueHistory'].append({'date': '2026-10-21', 'close': '24139.11'})
+        with patch.object(screening, 'get', side_effect=responses):
+            result = screening.official_hsi_history('2026-10-20')
+        self.assertEqual(result['records'][-1], {'date': '2026-10-20', 'close': 23867.74})
+
+    def test_next_session_still_rejects_wrong_previous_close_and_skipped_sessions(self):
+        for day, previous in [('2026-10-21', '23800.00'), ('2026-10-22', '23867.74')]:
+            responses = self.responses()
+            responses[0].payload['data'][0].update(indexTime=day+' 09:23:00', previousClose=previous)
+            with self.subTest(day=day), patch.object(screening, 'get', side_effect=responses):
+                with self.assertRaises(ValueError):
+                    screening.official_hsi_history('2026-10-20')
+
 
 if __name__ == "__main__":
     unittest.main()

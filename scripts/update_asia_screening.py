@@ -25,6 +25,7 @@ from market_price_sources import (
     current_source,
     eastmoney_equity_history,
     eastmoney_index_history,
+    sse_star50_history,
     pace_tencent_request,
     require_current,
     tencent_equity_history,
@@ -105,22 +106,42 @@ def official_hsi_history(expected: str) -> dict:
         raise ValueError("Official HSI values request failed")
     current = next((item for item in values.get("data", [])
                     if item.get("indexCode") == "00001.00" and item.get("indexType") == "PI"), None)
-    if not current or str(current.get("indexTime", ""))[:10] != expected or str(current.get("indexTime", ""))[11:16] < "16:00":
+    if not current:
+        raise ValueError("Official HSI current value is not a completed target session")
+    quote_time = datetime.fromisoformat(str(current.get("indexTime", "")))
+    quote_day = quote_time.date().isoformat()
+    if quote_day == expected and quote_time.strftime("%H:%M") >= "16:00":
+        reference_close = float(current["indexValue"])
+    elif quote_day > expected:
+        import exchange_calendars as calendars
+        next_session = calendars.get_calendar("XHKG").next_session(expected).date().isoformat()
+        if quote_day != next_session:
+            raise ValueError("Official HSI quote is not the next trading session")
+        # During pre-open/intraday the live value belongs to the new day. Its
+        # previousClose must corroborate the requested published daily close.
+        reference_close = float(current["previousClose"])
+    else:
         raise ValueError("Official HSI current value is not a completed target session")
     history = get(HS_HISTORY_SOURCE, params={"data": "valueHistoryPub",
                                              "indexCodes": "00001.00", "language": "en-hk"}).json()
     if history.get("code") != "0" or len(history.get("data", [])) != 1 or history["data"][0].get("indexCode") != "00001.00":
         raise ValueError("Official HSI history response is invalid")
     records = []
+    previous_day = None
     for row in history["data"][0].get("valueHistory", []):
         day = str(row.get("date", ""))
-        close = float(row["close"])
-        if len(day) != 10 or datetime.fromisoformat(day).date().isoformat() != day or not 0 < close < 100000:
+        if len(day) != 10 or datetime.fromisoformat(day).date().isoformat() != day:
             raise ValueError("Official HSI history contains an invalid observation")
-        if records and day <= records[-1]["date"]:
+        if previous_day is not None and day <= previous_day:
             raise ValueError("Official HSI history dates are not increasing")
+        previous_day = day
+        if day > expected:
+            continue
+        close = float(row["close"])
+        if not 0 < close < 100000:
+            raise ValueError("Official HSI history contains an invalid observation")
         records.append({"date": day, "close": close})
-    if len(records) < 400 or records[-1]["date"] != expected or records[-1]["close"] != float(current["indexValue"]):
+    if len(records) < 400 or records[-1]["date"] != expected or records[-1]["close"] != reference_close:
         raise ValueError("Official HSI history does not match the completed target session")
     return {"records": records, "priceSource": {"provider": "Hang Seng Indexes",
             "url": HS_HISTORY_SOURCE, "indexCode": "00001.00",
@@ -319,11 +340,14 @@ def etf_chart(symbol):
 
 def index_chart(symbol):
     expected = completed_session(symbol)
-    payload = current_source(symbol, expected, [
+    providers = [
         ("Tencent", lambda: tencent_history(symbol, expected, get)),
         ("Tencent Mirror", lambda: tencent_history(symbol, expected, get, TENCENT_MIRROR_URL)),
         ("Eastmoney", lambda: eastmoney_index_history(symbol, expected, get)),
-    ])
+    ]
+    if symbol == "000688.SS":
+        providers.insert(0, ("Shanghai Stock Exchange", lambda: sse_star50_history(expected, get)))
+    payload = current_source(symbol, expected, providers)
     payload["name"] = "STAR 50 Index" if symbol == "000688.SS" else payload["name"]
     for row in payload["records"]:
         row.setdefault("adjClose", row["close"])
