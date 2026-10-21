@@ -4,6 +4,59 @@ from datetime import date
 import math
 
 
+HESAI_SYMBOL = "2525.HK"
+HESAI_SPLIT_DATE = "2026-07-10"
+HESAI_ACTION_ID = "2525.HK:2026-07-10:split-1-into-8"
+HESAI_SOURCE = "https://www.sec.gov/Archives/edgar/data/1861737/000110465926082435/tm2620203d2_ex99-1.htm"
+
+
+def normalize_hesai_history(payload):
+    """Apply Hesai's documented 1-into-8 subdivision to Tencent raw history."""
+    source = payload.get("priceSource", {})
+    if source.get("provider") != "Tencent" or source.get("symbol") != "hk02525":
+        raise ValueError("Hesai split normalization requires Tencent's hk02525 series")
+    applied = source.get("corporateActions", [])
+    if any(action.get("id") == HESAI_ACTION_ID for action in applied):
+        return payload
+    records = payload.get("records", [])
+    before = [row for row in records if row["date"] == "2026-07-09"]
+    after = [row for row in records if row["date"] == HESAI_SPLIT_DATE]
+    if (len(before) != 1 or len(after) != 1
+            or not math.isclose(before[0]["close"], 128.8, abs_tol=0.001)
+            or not math.isclose(after[0]["close"], 16.57, abs_tol=0.001)):
+        raise ValueError("Hesai split: unknown or missing raw 2026-07-09/10 anchors")
+    adjusted_anchor = before[0].get("adjClose", float("nan"))
+    if math.isclose(adjusted_anchor, 128.8, abs_tol=0.001):
+        adjust_qfq = True
+    elif math.isclose(adjusted_anchor, 16.1, abs_tol=0.001):
+        adjust_qfq = False
+    else:
+        raise ValueError("Hesai split: ambiguous qfq/raw adjustment")
+    result = deepcopy(payload)
+    for row in result["records"]:
+        if row["date"] >= HESAI_SPLIT_DATE:
+            continue
+        if "rawClose" in row or "rawVolume" in row:
+            raise ValueError("Hesai split: unexplained prior adjustment metadata")
+        row["rawClose"], row["rawVolume"] = row["close"], row["volume"]
+        for key in ("open", "high", "low", "close"):
+            row[key] /= 8
+        row["volume"] *= 8
+        if adjust_qfq:
+            row["adjClose"] /= 8
+    result["priceSource"]["adjustment"] = (
+        "pre-2026-07-10 OHLC and volume normalized for 1-into-8 split; "
+        "rawClose/rawVolume retained; qfq adjusted close for RS"
+    )
+    result["priceSource"]["corporateActions"] = [*applied, {
+        "id": HESAI_ACTION_ID, "type": "share-split", "effectiveDate": HESAI_SPLIT_DATE,
+        "oldShares": 1, "newShares": 8, "providerQfqAlreadyAdjusted": not adjust_qfq,
+        "anchorDate": "2026-07-09", "anchorRawClose": 128.8,
+        "anchorSplitAdjustedClose": 16.1, "source": HESAI_SOURCE,
+    }]
+    return result
+
+
 REALORD_SYMBOL = "1196.HK"
 REALORD_TEMPORARY_SYMBOL = "2922.HK"
 REALORD_NAME = "Realord Technology Company Limited"
@@ -62,6 +115,8 @@ def normalize_equity_history(symbol, payload, expected):
     HKEX's official formula fixes the new-unit reference close at 2.7125.
     Unknown provider scales fail rather than guessing a correction.
     """
+    if symbol == HESAI_SYMBOL and expected >= HESAI_SPLIT_DATE:
+        return normalize_hesai_history(payload)
     if symbol != REALORD_SYMBOL or expected < REALORD_SPLIT_DATE:
         return payload
     source = payload.get("priceSource", {})

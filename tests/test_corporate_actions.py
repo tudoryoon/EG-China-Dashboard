@@ -97,5 +97,39 @@ class RealordSplitTests(unittest.TestCase):
                 normalize_equity_history('1196.HK', self.payload, '2026-09-29')
 
 
+class HesaiSplitTests(unittest.TestCase):
+    def setUp(self):
+        self.payload = {
+            'name': 'Hesai Group',
+            'priceSource': {'provider': 'Tencent', 'symbol': 'hk02525'},
+            'records': [
+                {'date': '2026-07-09', 'open': 130.0, 'high': 132.0, 'low': 127.0,
+                 'close': 128.8, 'adjClose': 128.8, 'volume': 1112378.0},
+                {'date': '2026-07-10', 'open': 16.53, 'high': 17.17, 'low': 15.64,
+                 'close': 16.57, 'adjClose': 16.57, 'volume': 2640331.0},
+            ],
+        }
+
+    def test_unadjusted_qfq_is_normalized_once(self):
+        original = deepcopy(self.payload)
+        fixed = normalize_equity_history('2525.HK', self.payload, '2026-10-20')
+        self.assertEqual(self.payload, original)
+        self.assertEqual(fixed['records'][0]['close'], 16.1)
+        self.assertEqual(fixed['records'][0]['adjClose'], 16.1)
+        self.assertEqual(fixed['records'][0]['volume'], 8899024.0)
+        self.assertEqual(fixed['records'][0]['rawClose'], 128.8)
+        self.assertEqual(fixed['records'][1], original['records'][1])
+        self.assertEqual(normalize_equity_history('2525.HK', fixed, '2026-10-20'), fixed)
+
+    def test_already_adjusted_qfq_and_wrong_anchor(self):
+        self.payload['records'][0]['adjClose'] = 16.1
+        fixed = normalize_equity_history('2525.HK', self.payload, '2026-10-20')
+        self.assertEqual(fixed['records'][0]['adjClose'], 16.1)
+        self.assertTrue(fixed['priceSource']['corporateActions'][0]['providerQfqAlreadyAdjusted'])
+        self.payload['records'][0]['close'] = 100.0
+        with self.assertRaisesRegex(ValueError, 'unknown or missing raw'):
+            normalize_equity_history('2525.HK', self.payload, '2026-10-20')
+
+
 if __name__ == '__main__':
     unittest.main()

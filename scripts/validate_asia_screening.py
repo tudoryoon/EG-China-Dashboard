@@ -48,7 +48,11 @@ def validate_region(data, region, members):
             assert history["price"][-1] is not None, ticker
         if row["assetType"] in ("ETF", "Index"):
             assert row["rsBasis"] == "equity-reference-percentile"
-            assert row["priceSource"]["provider"] in ("Tencent", "Eastmoney")
+            source = row["priceSource"]
+            official_star50 = (ticker == "000688.SS" and row["assetType"] == "Index"
+                               and source.get("provider") == "Shanghai Stock Exchange"
+                               and source.get("url") == "http://yunhq.sse.com.cn:32041/v1/sh1/dayk/000688")
+            assert source.get("provider") in ("Tencent", "Eastmoney") or official_star50
             if ticker not in retained:
                 assert row["returns"]["1d"] is not None and row["rsRatingAll"] is not None, ticker
         if row["assetType"] == "Index":
