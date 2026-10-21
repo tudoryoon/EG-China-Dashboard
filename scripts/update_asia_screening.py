@@ -263,7 +263,7 @@ def constituents(region, cached=False):
     return list(members.values()), sources
 
 
-def chart(symbol, full=False):
+def chart(symbol, full=False, require_session=None):
     if symbol in ETFS:
         return etf_chart(symbol)
     if symbol in INDEXES:
@@ -298,7 +298,7 @@ def chart(symbol, full=False):
             changed = any(previous.get(key) and value and abs(value / previous[key] - 1) > 0.0001
                           for key, value in [("close", row["close"]), ("adjClose", adjusted[i])])
             if changed:
-                return chart(symbol, full=True)
+                return chart(symbol, full=True, require_session=require_session)
         row.update({"date": date, "adjClose": adjusted[i]})
         records[date] = row
     if not records:
@@ -306,6 +306,9 @@ def chart(symbol, full=False):
     meta = result["meta"]
     payload = {"records": sorted(records.values(), key=lambda r: r["date"]), "name": meta.get("longName") or meta.get("shortName") or symbol}
     payload["priceSource"] = {"provider": "Yahoo Finance", "symbol": symbol}
+    # A stale fallback must not replace an otherwise verified local history.
+    if require_session is not None:
+        require_current(payload, require_session, minimum=1)
     write_json(path, payload)
     return payload
 
@@ -379,7 +382,7 @@ def equity_chart(symbol, expected, full=False):
                         raise ValueError(f"Eastmoney/Tencent raw close conflict: {symbol} {day}")
             return payload
         providers.append(("Eastmoney Equity", eastmoney))
-        providers.append(("Yahoo Finance", lambda: require_current(chart(symbol, full), expected, minimum=1)))
+        providers.append(("Yahoo Finance", lambda: chart(symbol, full, require_session=expected)))
     # Newly listed official constituents can have fewer observations than the
     # scoring engine needs. Keep their current prices and explicit null scores.
     payload = current_source(symbol, expected, providers, minimum=1)
