@@ -1,16 +1,20 @@
 """The offline HSCI list may advance only through the official dated change log."""
 from io import BytesIO
+import importlib.util
 from pathlib import Path
 import sys
 import unittest
 from unittest.mock import patch
 
-import pandas as pd
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-import update_asia_screening as screening
+HAS_COLLECTOR_DEPENDENCIES = all(importlib.util.find_spec(name)
+                                 for name in ("pandas", "yfinance", "curl_cffi"))
+if HAS_COLLECTOR_DEPENDENCIES:
+    import pandas as pd
+    import update_asia_screening as screening
 
 
+@unittest.skipUnless(HAS_COLLECTOR_DEPENDENCIES, "Requires collector dependencies")
 class HsciChangeReplayTests(unittest.TestCase):
     def official_history(self, latest_count):
         rows = [[None] * 7 for _ in range(6)]
