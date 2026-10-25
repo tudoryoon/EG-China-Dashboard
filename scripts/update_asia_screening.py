@@ -98,6 +98,62 @@ def verify_hsci_unchanged(snapshot_day: str, target: str, expected_count: int) -
     return latest_day
 
 
+def reconcile_hsci_changes(members: dict, snapshot_day: str, target: str,
+                           official_count: int) -> tuple[dict, str, list]:
+    """Replay HSI's dated constituent changes when its live list is unavailable.
+
+    Each effective day's resulting count must match the official change log,
+    and the final count must independently match HSI's current count endpoint.
+    An incomplete or unexpected event fails closed.
+    """
+    response = get(HS_CHANGE_HISTORY_SOURCE,
+                   params={"resource": HS_CHANGE_HISTORY_RESOURCE})
+    table = pd.read_excel(BytesIO(response.content), sheet_name="HSCI", header=None)
+    if table.shape[0] < 100 or table.shape[1] < 7 or "Effective Date" not in str(table.iat[4, 0]):
+        raise RuntimeError("HSCI official change history has an unexpected format")
+    rows = table.iloc[6:]
+    changes = rows[rows.iloc[:, 2].astype(str).str.match(r"^(Add|Delete)\b")].copy()
+    dates = pd.to_datetime(changes.iloc[:, 0], format="%Y-%m-%d", errors="coerce")
+    if len(changes) < 100 or dates.isna().any():
+        raise RuntimeError("HSCI official change history is incomplete")
+    changes = changes.assign(_effective=dates.dt.strftime("%Y-%m-%d"))
+    changes = changes[(changes._effective > snapshot_day) & (changes._effective <= target)]
+    result = {ticker: dict(row) for ticker, row in members.items()}
+    applied = []
+    latest = snapshot_day
+    for day, events in changes.sort_values("_effective").groupby("_effective", sort=True):
+        counts = pd.to_numeric(events.iloc[:, 1], errors="coerce")
+        if counts.isna().any() or len(set(counts.astype(int))) != 1:
+            raise RuntimeError(f"HSCI change log count is inconsistent on {day}")
+        for _, event in events.iterrows():
+            raw_code = str(event.iloc[4]).strip()
+            try:
+                code = str(int(float(raw_code))).zfill(4) + ".HK"
+            except (ValueError, OverflowError) as exc:
+                raise RuntimeError(f"HSCI change log has an invalid code on {day}") from exc
+            operation = str(event.iloc[2]).split()[0]
+            if operation == "Delete":
+                if code not in result or "HSCI" not in result[code].get("groups", []):
+                    raise RuntimeError(f"HSCI deletion {code} is absent from the snapshot")
+                del result[code]
+            elif operation == "Add":
+                if code in result:
+                    raise RuntimeError(f"HSCI addition {code} already exists in the snapshot")
+                name = str(event.iloc[6]).strip()
+                if not name or name.lower() == "nan":
+                    raise RuntimeError(f"HSCI addition {code} has no official name")
+                result[code] = {"ticker": code, "name": name, "groups": ["HSCI"]}
+            else:
+                raise RuntimeError(f"Unsupported HSCI operation {operation}")
+            applied.append({"date": day, "action": operation, "ticker": code})
+        if len(result) != int(counts.iloc[0]):
+            raise RuntimeError(f"HSCI change log count does not match replayed members on {day}")
+        latest = day
+    if len(result) != official_count:
+        raise RuntimeError("HSCI official count does not match replayed change history")
+    return result, latest, applied
+
+
 def official_hsi_history(expected: str) -> dict:
     """Get the price-index closing series published by Hang Seng Indexes."""
     values = get(HS_SERIES_SOURCE, params={"data": "values", "seriesCode": "hsi",
@@ -217,8 +273,9 @@ def constituents(region, cached=False):
             counts = official.get("data", {}).get("numOfConsList", [])
             if (official.get("code") != "0" or len(counts) != 1
                     or counts[0].get("indexCode") != "00011.00"
-                    or counts[0].get("count") != previous.get("count")):
-                raise RuntimeError("HSCI official count does not validate the exact-session snapshot") from source_error
+                    or not isinstance(counts[0].get("count"), int)):
+                raise RuntimeError("HSCI official count response is invalid") from source_error
+            official_count = counts[0]["count"]
             members = {row["ticker"]: row for row in snapshot["members"]
                        if "HSCI" in row.get("groups", [])}
             if len(members) != previous["count"]:
@@ -226,14 +283,23 @@ def constituents(region, cached=False):
             verification = {}
             if snapshot_day != target:
                 try:
-                    latest_change = verify_hsci_unchanged(snapshot_day, target, previous["count"])
+                    members, latest_change, applied = reconcile_hsci_changes(
+                        members, snapshot_day, target, official_count)
                 except Exception as history_error:
-                    raise RuntimeError("HSCI official history does not verify the older snapshot") from history_error
+                    raise RuntimeError("HSCI official history does not reconcile the older snapshot") from history_error
                 verification = {"changeHistoryUrl": HS_CHANGE_HISTORY_SOURCE,
                                 "changeHistoryResource": HS_CHANGE_HISTORY_RESOURCE,
                                 "changeHistoryLatestEffective": latest_change,
-                                "unchangedVerifiedThrough": target}
-            sources.append({**previous, **verification,
+                                "verifiedThrough": target,
+                                "appliedChanges": applied}
+            elif len(members) != official_count:
+                raise RuntimeError("HSCI same-session snapshot count does not match official count")
+            prior_source = {key: value for key, value in previous.items()
+                            if key not in {"rawCount", "unchangedVerifiedThrough"}}
+            sources.append({**prior_source, **verification, "count": len(members),
+                            "reportedCount": official_count,
+                            "asOf": target,
+                            "reconciledFrom": previous.get("reconciledFrom", previous["asOf"]),
                             "countVerifiedAt": datetime.now(timezone.utc).isoformat(),
                             "countVerificationUrl": HS_COUNT_SOURCE})
             print(f'HSCI officially verified snapshot: {snapshot_day} through {target}, '
