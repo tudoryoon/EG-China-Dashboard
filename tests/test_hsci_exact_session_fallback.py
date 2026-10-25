@@ -79,7 +79,7 @@ class HSCIExactSessionFallbackTests(unittest.TestCase):
         self.write_snapshot()
         with patch.object(screening, "get", side_effect=[ConnectionError("old host unavailable"),
                                                          self.count_response(580)]):
-            with self.assertRaisesRegex(RuntimeError, "official count does not validate"):
+            with self.assertRaisesRegex(RuntimeError, "snapshot count does not match official count"):
                 screening.constituents("hk")
 
     def test_official_history_and_count_validate_unchanged_prior_session(self):
@@ -101,8 +101,9 @@ class HSCIExactSessionFallbackTests(unittest.TestCase):
             members, sources = screening.constituents("hk")
         self.assertEqual(len(members), 581 + len(set(screening.WATCH["hk"]) -
                                                  {row["ticker"] for row in self.snapshot["members"]}))
-        self.assertEqual(sources[0]["asOf"], "2026-10-16 01:08:56")
-        self.assertEqual(sources[0]["unchangedVerifiedThrough"], "2026-10-20")
+        self.assertEqual(sources[0]["asOf"], "2026-10-20")
+        self.assertEqual(sources[0]["reconciledFrom"], "2026-10-16 01:08:56")
+        self.assertEqual(sources[0]["verifiedThrough"], "2026-10-20")
         self.assertEqual(sources[0]["changeHistoryLatestEffective"], "2026-09-15")
 
     def test_same_count_constituent_swap_after_snapshot_fails_closed(self):

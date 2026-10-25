@@ -120,7 +120,8 @@ def reconcile_hsci_changes(members: dict, snapshot_day: str, target: str,
     changes = changes[(changes._effective > snapshot_day) & (changes._effective <= target)]
     result = {ticker: dict(row) for ticker, row in members.items()}
     applied = []
-    latest = snapshot_day
+    effective_through_target = dates[dates.dt.strftime("%Y-%m-%d") <= target]
+    latest = effective_through_target.max().strftime("%Y-%m-%d") if not effective_through_target.empty else snapshot_day
     for day, events in changes.sort_values("_effective").groupby("_effective", sort=True):
         counts = pd.to_numeric(events.iloc[:, 1], errors="coerce")
         if counts.isna().any() or len(set(counts.astype(int))) != 1:
@@ -298,7 +299,7 @@ def constituents(region, cached=False):
                             if key not in {"rawCount", "unchangedVerifiedThrough"}}
             sources.append({**prior_source, **verification, "count": len(members),
                             "reportedCount": official_count,
-                            "asOf": target,
+                            "asOf": target if snapshot_day != target else previous["asOf"],
                             "reconciledFrom": previous.get("reconciledFrom", previous["asOf"]),
                             "countVerifiedAt": datetime.now(timezone.utc).isoformat(),
                             "countVerificationUrl": HS_COUNT_SOURCE})

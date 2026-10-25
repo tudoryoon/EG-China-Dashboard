@@ -1,10 +1,13 @@
 """The offline HSCI list may advance only through the official dated change log."""
 from io import BytesIO
+from pathlib import Path
+import sys
 import unittest
 from unittest.mock import patch
 
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import update_asia_screening as screening
 
 
