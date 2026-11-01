@@ -8,7 +8,12 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from official_china_latest import latest_from_cache
+try:
+    from official_china_latest import latest_from_cache
+except ModuleNotFoundError as error:
+    if error.name != "exchange_calendars":
+        raise
+    latest_from_cache = None
 
 
 class Response:
@@ -19,6 +24,7 @@ class Response:
         return self.value
 
 
+@unittest.skipIf(latest_from_cache is None, "Requires collector dependencies")
 class OfficialChinaLatestTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
