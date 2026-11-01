@@ -31,6 +31,7 @@ from market_price_sources import (
     tencent_equity_history,
     tencent_history,
 )
+from official_china_latest import SUPPORTED as OFFICIAL_CHINA_FALLBACKS, latest_from_cache
 from refresh_all_data import expected_session
 import validated_price_cache as price_cache
 from regional_failure_retention import require_collection_coverage, retain_failed_securities
@@ -399,11 +400,14 @@ def completed_session(symbol):
 
 def etf_chart(symbol):
     expected = completed_session(symbol)
-    payload = current_source(symbol, expected, [
+    providers = [
         ("Tencent", lambda: tencent_history(symbol, expected, get)),
         ("Tencent Mirror", lambda: tencent_history(symbol, expected, get, TENCENT_MIRROR_URL)),
         ("Eastmoney", lambda: eastmoney_etf_chart(symbol)),
-    ])
+    ]
+    if symbol in OFFICIAL_CHINA_FALLBACKS:
+        providers.append(("Official exchange", lambda: latest_from_cache(symbol, expected, CACHE / (symbol + ".json"), get)))
+    payload = current_source(symbol, expected, providers)
     write_json(CACHE / (symbol + ".json"), payload)
     return payload
 
@@ -450,6 +454,8 @@ def equity_chart(symbol, expected, full=False):
             return payload
         providers.append(("Eastmoney Equity", eastmoney))
         providers.append(("Yahoo Finance", lambda: chart(symbol, full, require_session=expected)))
+    if symbol == "302132.SZ":
+        providers.append(("SZSE official", lambda: latest_from_cache(symbol, expected, CACHE / (symbol + ".json"), get)))
     # Newly listed official constituents can have fewer observations than the
     # scoring engine needs. Keep their current prices and explicit null scores.
     payload = current_source(symbol, expected, providers, minimum=1)
