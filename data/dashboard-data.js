@@ -3132,16 +3132,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "메모리/스토리지",
     "currency": {
-      "USD": 1.435,
-      "NTD": 45.0911
+      "USD": 1.479,
+      "NTD": 46.4761
     },
     "marketCap": {
       "USD": 31.6,
       "NTD": 994.7
     },
-    "mom": 0.9,
-    "yoy": 576.6,
-    "month": "26/09",
+    "mom": 3.1,
+    "yoy": 487.7,
+    "month": "26/10",
     "bars": [
       5.5322,
       5.7908,
@@ -3211,7 +3211,8 @@ window.dashboardCompanies = [
       29.3883,
       43.8676,
       44.6903,
-      45.0911
+      45.0911,
+      46.4761
     ],
     "yoyLine": [
       null,
@@ -3282,7 +3283,8 @@ window.dashboardCompanies = [
       621.3,
       719.6,
       560.9,
-      576.6
+      576.6,
+      487.7
     ],
     "momLine": [
       null,
@@ -3353,7 +3355,8 @@ window.dashboardCompanies = [
       6.2,
       49.3,
       1.9,
-      0.9
+      0.9,
+      3.1
     ],
     "yearly": {
       "labels": [
@@ -3451,7 +3454,7 @@ window.dashboardCompanies = [
             719.6,
             560.9,
             576.6,
-            null,
+            487.7,
             null,
             null
           ]
@@ -6130,7 +6133,10 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    }
+    },
+    "dataStatus": "stale",
+    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=6274 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
+    "sourceCheckedAt": "2026-11-04T04:34:23.933392+09:00"
   },
   {
     "name": "ITEQ",
@@ -8129,16 +8135,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "PCB/기판",
     "currency": {
-      "USD": 0.177,
-      "NTD": 5.5858
+      "USD": 0.199,
+      "NTD": 6.2888
     },
     "marketCap": {
       "USD": 18.2,
       "NTD": 573.1
     },
-    "mom": 4.4,
-    "yoy": 57.8,
-    "month": "26/09",
+    "mom": 12.6,
+    "yoy": 69.7,
+    "month": "26/10",
     "bars": [
       null,
       null,
@@ -8208,7 +8214,8 @@ window.dashboardCompanies = [
       4.6843,
       5.4398,
       5.3527,
-      5.5858
+      5.5858,
+      6.2888
     ],
     "yoyLine": [
       null,
@@ -8279,7 +8286,8 @@ window.dashboardCompanies = [
       50.0,
       50.2,
       40.6,
-      57.8
+      57.8,
+      69.7
     ],
     "momLine": [
       null,
@@ -8350,7 +8358,8 @@ window.dashboardCompanies = [
       5.5,
       16.1,
       -1.6,
-      4.4
+      4.4,
+      12.6
     ],
     "yearly": {
       "labels": [
@@ -8448,7 +8457,7 @@ window.dashboardCompanies = [
             50.2,
             40.6,
             57.8,
-            null,
+            69.7,
             null,
             null
           ]
