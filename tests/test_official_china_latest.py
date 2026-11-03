@@ -59,8 +59,23 @@ class OfficialChinaLatestTests(unittest.TestCase):
         stale = json.loads(self.cache.read_text())
         stale["records"][-1]["date"] = "2026-10-28"
         self.cache.write_text(json.dumps(stale), encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "Missing verified prior session"):
+        with self.assertRaisesRegex(ValueError, "Official daily history has 0 rows"):
             latest_from_cache("159819.SZ", "2026-10-30", self.cache, self.szse())
+
+    def test_two_sessions_require_each_official_prior_match(self):
+        self.prior["date"] = "2026-10-30"
+        self.cache.write_text(json.dumps({"records": [self.prior],
+                                          "priceSource": {"provider": "Tencent"}}), encoding="utf-8")
+        def get(*_args, **_kwargs):
+            return Response({"code": "0", "data": {"code": "159819", "picupdata": [
+                ["2026-10-30", "1.2", "1.3", "1.1", "1.4", "", "", "10"],
+                ["2026-11-02", "1.4", "1.5", "1.3", "1.6", "", "", "20"],
+                ["2026-11-03", "1.5", "1.6", "1.4", "1.7", "", "", "30"],
+            ]}})
+        result = latest_from_cache("159819.SZ", "2026-11-03", self.cache, get)
+        self.assertEqual([row["date"] for row in result["records"]],
+                         ["2026-10-30", "2026-11-02", "2026-11-03"])
+        self.assertEqual(result["records"][-1]["volume"], 3000)
 
     def test_invalid_target_ohlc_fails(self):
         with self.assertRaisesRegex(ValueError, "Invalid official OHLCV"):
