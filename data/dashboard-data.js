@@ -6133,10 +6133,7 @@ window.dashboardCompanies = [
           ]
         }
       ]
-    },
-    "dataStatus": "stale",
-    "collectionError": "HTTPSConnectionPool(host='emops.twse.com.tw', port=443): Max retries exceeded with url: /server-java/t146sb05_e?step=0&co_id=6274 (Caused by NameResolutionError(\"HTTPSConnection(host='emops.twse.com.tw', port=443): Failed to resolve 'emops.twse.com.tw' ([Errno -2] Name or service not known)\"))",
-    "sourceCheckedAt": "2026-11-04T04:34:23.933392+09:00"
+    }
   },
   {
     "name": "ITEQ",
