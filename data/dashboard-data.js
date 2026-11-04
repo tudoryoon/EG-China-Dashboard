@@ -1804,16 +1804,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "서버/ODM",
     "currency": {
-      "USD": 3.137,
-      "NTD": 98.6358
+      "USD": 2.543,
+      "NTD": 79.9662
     },
     "marketCap": {
       "USD": 6,
       "NTD": 189.4
     },
-    "mom": 18.5,
-    "yoy": 62.9,
-    "month": "26/09",
+    "mom": -18.9,
+    "yoy": 46.0,
+    "month": "26/10",
     "bars": [
       null,
       31.465,
@@ -1883,7 +1883,8 @@ window.dashboardCompanies = [
       102.2624,
       90.1903,
       83.2677,
-      98.6358
+      98.6358,
+      79.9662
     ],
     "yoyLine": [
       null,
@@ -1954,7 +1955,8 @@ window.dashboardCompanies = [
       61.6,
       65.7,
       35.8,
-      62.9
+      62.9,
+      46.0
     ],
     "momLine": [
       null,
@@ -2025,7 +2027,8 @@ window.dashboardCompanies = [
       23.5,
       -11.8,
       -7.7,
-      18.5
+      18.5,
+      -18.9
     ],
     "yearly": {
       "labels": [
@@ -2123,7 +2126,7 @@ window.dashboardCompanies = [
             65.7,
             35.8,
             62.9,
-            null,
+            46.0,
             null,
             null
           ]
@@ -14443,16 +14446,16 @@ window.dashboardCompanies = [
     "country": "Taiwan",
     "sector": "광반도체/광통신",
     "currency": {
-      "USD": 0.013,
-      "NTD": 0.4491
+      "USD": 0.014,
+      "NTD": 0.4712
     },
     "marketCap": {
       "USD": 2.2,
       "NTD": 69.2
     },
-    "mom": -4.6,
-    "yoy": 29.5,
-    "month": "26/09",
+    "mom": 4.9,
+    "yoy": 32.7,
+    "month": "26/10",
     "bars": [
       null,
       null,
@@ -14522,7 +14525,8 @@ window.dashboardCompanies = [
       0.326,
       0.4221,
       0.4709,
-      0.4491
+      0.4491,
+      0.4712
     ],
     "yoyLine": [
       null,
@@ -14593,7 +14597,8 @@ window.dashboardCompanies = [
       23.6,
       45.1,
       71.2,
-      29.5
+      29.5,
+      32.7
     ],
     "momLine": [
       null,
@@ -14664,7 +14669,8 @@ window.dashboardCompanies = [
       1.6,
       29.5,
       11.6,
-      -4.6
+      -4.6,
+      4.9
     ],
     "yearly": {
       "labels": [
@@ -14762,7 +14768,7 @@ window.dashboardCompanies = [
             45.1,
             71.2,
             29.5,
-            null,
+            32.7,
             null,
             null
           ]
