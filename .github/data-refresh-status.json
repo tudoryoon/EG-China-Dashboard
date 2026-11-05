@@ -1,17 +1,17 @@
 {
   "schemaVersion": 4,
-  "kstDate": "2026-11-05",
-  "refreshDate": "2026-11-04",
-  "completedAt": "2026-11-05T04:56:31.876641+09:00",
+  "kstDate": "2026-11-06",
+  "refreshDate": "2026-11-05",
+  "completedAt": "2026-11-06T05:03:50.070716+09:00",
   "marketSessions": {
-    "hk": "2026-11-04",
-    "cn": "2026-11-04"
+    "hk": "2026-11-05",
+    "cn": "2026-11-05"
   },
   "taiwanRevenueMonths": {
     "TSMC": "26/09",
-    "UMC": "26/09",
-    "Win Semiconductor": "26/09",
-    "Hon Hai(Foxconn)": "26/09",
+    "UMC": "26/10",
+    "Win Semiconductor": "26/10",
+    "Hon Hai(Foxconn)": "26/10",
     "Inventec": "26/10",
     "Quanta": "26/09",
     "Wiwynn": "26/09",
@@ -21,11 +21,11 @@
     "Phison": "26/09",
     "Innodisk": "26/09",
     "ADATA": "26/09",
-    "Apacer": "26/09",
-    "Transcend": "26/09",
-    "TUC": "26/09",
-    "ITEQ": "26/09",
-    "EMC": "26/09",
+    "Apacer": "26/10",
+    "Transcend": "26/10",
+    "TUC": "26/10",
+    "ITEQ": "26/10",
+    "EMC": "26/10",
     "Kinsus": "26/09",
     "Unimicron": "26/09",
     "Gold Circuit": "26/09",
@@ -34,12 +34,12 @@
     "Fulltech": "26/09",
     "Co-Tech": "26/09",
     "Topoint": "26/09",
-    "Aspeed": "26/09",
+    "Aspeed": "26/10",
     "Delta Electronics": "26/09",
     "Accton": "26/09",
     "Asia Vital Components": "26/09",
     "Auras Technology": "26/09",
-    "Kaori Heat": "26/09",
+    "Kaori Heat": "26/10",
     "Jentech": "26/09",
     "SunoWealth": "26/09",
     "King Slide Works": "26/09",
@@ -48,21 +48,21 @@
     "King Yuan": "26/09",
     "Winway": "26/09",
     "MPI": "26/09",
-    "Landmark Opto": "26/09",
+    "Landmark Opto": "26/10",
     "VPEC": "26/10",
     "Browave": "26/09",
     "Grand Process Tech": "26/09"
   },
   "dataHashes": {
-    "index.html": "b8a03e6a399d3955dfb8b46f1ab0fb07fc18ed15ecf1c4fd11d1d8a02fab0c47",
-    "data/dashboard-data.js": "b7e1e806dc5b38093cc9131600b3e4542b6c26260551fd01e5e50ebb4e5f0bcb",
-    "data/taiwan-collection-status.json": "58b19679b9556c6fb3de89ad306bcc246a3b1f8090c08420505cfc90149a1c03",
-    "data/asia-hk-constituents.json": "9ec8c23657d3c51983da9b5e85ec7df1a32e42956ccd9250cd4714610843f142",
-    "data/asia-hk-metadata.json": "2e6398dd426c41f619cb8df87956012d1a0c0727a688fd325c6ea21542494bdc",
-    "data/asia-hk-screening.json": "3cac64b977c4c86f147ab7ef7b7f17956f68f2237dd20f223faf541cc113c410",
-    "data/asia-cn-constituents.json": "edefbb43e8a7d6d1068d7b2aaaad696d00a54bc8dae84cb00fa6559bf799343c",
-    "data/asia-cn-metadata.json": "ff5ca823308cc190dc52a3cb66af52ca13685e6ded2f8d9749ca323e0e6bebc7",
-    "data/asia-cn-screening.json": "a71aa645ac08206ba9b28e7d7570d72efabed5ca5b1850282b68b74e42e9bd8c"
+    "index.html": "8bc9925d8c3998251106918b99db4927c084a1dbc2a59e5107d5f091fba92334",
+    "data/dashboard-data.js": "ae2938894a73a79463af994542bb95240caab655c045b59a3338c7b801c47beb",
+    "data/taiwan-collection-status.json": "dd7933fb79f92f2bf161b4be96ed51a9e687fc16a595f6ef23f827d72ce78b9a",
+    "data/asia-hk-constituents.json": "f48d9ba51f61b55d8b0065052533e3b1ee55d0f593145950fe1cd8b991258ee1",
+    "data/asia-hk-metadata.json": "e7ffb6a57aede819d7af22d89016a321771cb9284500a10f083492f4185f2374",
+    "data/asia-hk-screening.json": "a8d4c9dfb48d7aabea7c16812441e209f3bc8a092a87c5ca417de2b5a50e40e5",
+    "data/asia-cn-constituents.json": "dfce0842ef76705dbb0b372cb07f5497629c29f61ce7fa749bb4b12e76f44abe",
+    "data/asia-cn-metadata.json": "400a3917b7bac32a23a40922c64cf6486551263593e63414d3374dee6991578e",
+    "data/asia-cn-screening.json": "82b4fe082dc92aac55ddccd2b56809d9ef06c29876e91da1f058aea899ba8df3"
   },
   "pipelineHashes": {
     "requirements.txt": "b831164bb781ec61e703d79f0e6eb07945cf62870e333e796074d5d026285b75",
@@ -84,15 +84,15 @@
     "scripts/validate_asia_screening.py": "6e4557ddac362378d093254e3003cdc708664a1937f326f704fffa76535132d6",
     "scripts/validate_migration.py": "f17a2d49d7620a4be291fa31d8c42b07ca438f01d0e1a6298810cc894dcd1966"
   },
-  "runId": "41898988211",
+  "runId": "42097492231",
   "collection": {
     "failurePolicy": "retain-and-publish",
     "failureCount": 4,
     "failures": {
-      "hk:2172.HK": "No current source for 2172.HK: Tencent: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (652 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (645 sessions)",
-      "hk:0853.HK": "No current source for 0853.HK: Tencent: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (648 sessions)",
-      "hk:2252.HK": "No current source for 2252.HK: Tencent: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-04, received 2026-08-31 (647 sessions)",
-      "cn:000831.SZ": "No current source for 000831.SZ: Tencent: Incomplete/stale history: expected 2026-11-04, received 2026-10-30 (640 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-04, received 2026-10-30 (640 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-04, received 2026-10-30 (683 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-04, received 2026-10-30 (683 sessions)"
+      "hk:2172.HK": "No current source for 2172.HK: Tencent: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (652 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (645 sessions)",
+      "hk:0853.HK": "No current source for 0853.HK: Tencent: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (648 sessions)",
+      "hk:2252.HK": "No current source for 2252.HK: Tencent: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-05, received 2026-08-31 (647 sessions)",
+      "cn:000831.SZ": "No current source for 000831.SZ: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Tencent Mirror: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney Equity: Incomplete/stale history: expected 2026-11-05, received 2026-10-30 (683 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-05, received 2026-10-30 (683 sessions)"
     },
     "retry": "next-refresh-cycle"
   }
