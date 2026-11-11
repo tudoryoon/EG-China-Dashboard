@@ -140,6 +140,24 @@ class RegionalFailureRetentionTests(unittest.TestCase):
         self.assertEqual(row["asOfDate"], output["rs"]["updatedAt"])
         self.assertEqual(row["dataStatus"], "stale")
 
+    def test_same_session_published_price_survives_provider_retry_failure(self):
+        previous = previous_snapshot()
+        previous["meta"] = {"covered": 1, "missing": {}}
+        output = fresh_snapshot()
+        output["rs"]["updatedAt"] = output["trend"]["updatedAt"] = OLD_DATE
+        output["rs"]["historyDates"] = ["2026-09-10", OLD_DATE]
+        output["trend"]["historyDates"] = [OLD_DATE]
+        retain_failed_securities(output, previous, members("GOOD.HK", "FAIL.HK"))
+        row = next(item for item in output["rs"]["rows"] if item["ticker"] == "FAIL.HK")
+        trend = next(item for item in output["trend"]["rows"]["all"] if item["ticker"] == "FAIL.HK")
+        self.assertEqual((row["asOfDate"], row["price"], trend["score"]), (OLD_DATE, 20, 8))
+        self.assertNotIn("dataStatus", row)
+        self.assertNotIn("dataStatus", trend)
+        self.assertEqual(output["meta"]["missing"], {})
+        self.assertEqual(output["meta"]["reusedCurrent"], {"FAIL.HK": "No completed quote"})
+        self.assertEqual(output["meta"]["fresh"], 2)
+        self.assertEqual(output["meta"]["retained"], [])
+
     def test_unusable_previous_pairs_are_explicitly_omitted(self):
         scenarios = []
         old = previous_snapshot()

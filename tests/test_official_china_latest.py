@@ -99,5 +99,58 @@ class OfficialChinaLatestTests(unittest.TestCase):
             latest_from_cache("159819.SZ", "2026-10-30", self.cache, self.szse())
 
 
+    def test_six_contiguous_sessions_require_every_official_bar(self):
+        days = ["2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06",
+                "2026-11-09", "2026-11-10", "2026-11-11"]
+        self.prior.update(date=days[0], open=1.3, high=1.3, low=1.3,
+                          close=1.3, rawClose=1.3, adjClose=1.3)
+        self.cache.write_text(json.dumps({"records": [self.prior],
+                                          "priceSource": {"provider": "Eastmoney"}}), encoding="utf-8")
+        rows = [[day, str(1.3 + i * .01), str(1.3 + i * .01),
+                 str(1.3 + i * .01), str(1.3 + i * .01), "", "", str(10 + i)]
+                for i, day in enumerate(days)]
+        def get(*_args, **_kwargs):
+            return Response({"code": "0", "data": {"code": "159819", "picupdata": rows}})
+        result = latest_from_cache("159819.SZ", days[-1], self.cache, get)
+        self.assertEqual([row["date"] for row in result["records"]], days)
+        self.assertEqual(result["records"][-1]["volume"], 1600)
+        rows.pop(3)
+        with self.assertRaisesRegex(ValueError, "Official daily history has 0 rows"):
+            latest_from_cache("159819.SZ", days[-1], self.cache, get)
+
+    def test_sse_prior_volume_rounding_below_one_lot_is_accepted(self):
+        def get(*_args, **_kwargs):
+            return Response({"code": "562500", "kline": [
+                ["20261029", 1.2, 1.4, 1.1, 1.3, 1035],
+                ["20261030", 1.4, 1.6, 1.3, 1.5, 2000],
+            ]})
+        result = latest_from_cache("562500.SS", "2026-10-30", self.cache, get)
+        self.assertEqual(result["records"][-1]["close"], 1.5)
+        def bad(*_args, **_kwargs):
+            return Response({"code": "562500", "kline": [
+                ["20261029", 1.2, 1.4, 1.1, 1.3, 1100],
+                ["20261030", 1.4, 1.6, 1.3, 1.5, 2000],
+            ]})
+        with self.assertRaisesRegex(ValueError, "prior close/volume mismatch"):
+            latest_from_cache("562500.SS", "2026-10-30", self.cache, bad)
+
+    def test_equity_cache_without_separate_raw_close_still_checks_adjustment(self):
+        prior = dict(self.prior)
+        prior.pop("rawClose")
+        self.cache.write_text(json.dumps({"records": [prior],
+                                          "priceSource": {"provider": "Eastmoney"}}), encoding="utf-8")
+        def get(*_args, **_kwargs):
+            return Response({"code": "0", "data": {"code": "302132", "picupdata": [
+                ["2026-10-29", "1.2", "1.3", "1.1", "1.4", "", "", "10"],
+                ["2026-10-30", "1.4", "1.5", "1.3", "1.6", "", "", "20"],
+            ]}})
+        self.assertEqual(latest_from_cache("302132.SZ", "2026-10-30", self.cache, get)["records"][-1]["close"], 1.5)
+        prior["adjClose"] = 1.31
+        self.cache.write_text(json.dumps({"records": [prior],
+                                          "priceSource": {"provider": "Eastmoney"}}), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "Adjusted prior bar"):
+            latest_from_cache("302132.SZ", "2026-10-30", self.cache, get)
+
+
 if __name__ == "__main__":
     unittest.main()

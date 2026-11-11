@@ -13,6 +13,8 @@ def validate_region(data, region, members):
     trend_rows = {row["ticker"]: row for row in trend["rows"]["all"]}
     expected = {member["ticker"] for member in members}
     missing = failure_map(meta["missing"], region)
+    reused_current = failure_map(meta.get("reusedCurrent", {}), region + " reused current")
+    assert set(reused_current).issubset(set(rows) - set(missing))
     assert len(expected) == len(members) >= minimum, "Invalid constituent universe"
     assert len(rows) == len(rs["rows"]) and len(trend_rows) == len(trend["rows"]["all"])
     assert meta["requested"] == len(expected) and meta["covered"] == len(rows)

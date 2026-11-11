@@ -1,7 +1,7 @@
-"""Append completed SZSE/SSE bars to an independently checked local history.
+"""Append contiguous official SZSE/SSE bars to a verified local history.
 
 Only the four securities with recurring provider gaps use this last-resort source.
-The exchange must confirm the cached prior close and volume before its next bar
+The exchange must confirm each prior close and volume before the next bar
 can be used; a split or adjusted-history mismatch remains a collection failure.
 """
 
@@ -22,6 +22,7 @@ SUPPORTED = {
     "562500.SS": ("sse", "562500"),
     "588200.SS": ("sse", "588200"),
 }
+MAX_BRIDGE_SESSIONS = 8
 
 
 def _one(rows, day):
@@ -45,7 +46,7 @@ def _bar(symbol, expected, previous, get):
                     "low": float(row[3]), "high": float(row[4]), "volume": int(row[7]) * 100}
     else:
         url = SSE_URL + code
-        payload = get(url, params={"select": "date,open,high,low,close,volume", "begin": -5, "end": -1},
+        payload = get(url, params={"select": "date,open,high,low,close,volume", "begin": -20, "end": -1},
                       headers={"Referer": "https://www.sse.com.cn/", "User-Agent": "Mozilla/5.0"}).json()
         if payload.get("code") != code:
             raise ValueError(f"SSE response identity mismatch: {symbol}")
@@ -74,17 +75,23 @@ def latest_from_cache(symbol, expected, cache_path, get):
                    calendar.sessions_in_range(previous, expected)][1:]
     except (TypeError, ValueError, KeyError) as error:
         raise ValueError(f"Missing verified prior session: {symbol} {previous}") from error
-    if not cached.get("priceSource") or not 1 <= len(missing) <= 2 or missing[-1] != expected:
+    if not cached.get("priceSource") or not 1 <= len(missing) <= MAX_BRIDGE_SESSIONS or missing[-1] != expected:
         raise ValueError(f"Missing verified prior session: {symbol} {previous}")
     last = records[-1]
-    if not all(math.isfinite(float(last[key])) and float(last[key]) > 0
-               for key in ("close", "rawClose", "adjClose", "volume")):
+    # The 302132.SZ equity cache stores raw close as `close` without a separate
+    # `rawClose` field. Its adjusted close must still equal that raw close.
+    raw_close = last.get("rawClose", last.get("close") if symbol == "302132.SZ" else None)
+    if not all(value is not None and math.isfinite(float(value)) and float(value) > 0
+               for value in (last.get("close"), raw_close, last.get("adjClose"), last.get("volume"))):
         raise ValueError(f"Invalid cached prior bar: {symbol}")
-    if abs(last["close"] - last["rawClose"]) > 0.000001 or abs(last["close"] - last["adjClose"]) > 0.000001:
+    if abs(last["close"] - raw_close) > 0.000001 or abs(last["close"] - last["adjClose"]) > 0.000001:
         raise ValueError(f"Adjusted prior bar needs a full source refresh: {symbol}")
     for session in missing:
         prior, current, url = _bar(symbol, session, previous, get)
-        if abs(prior["close"] - last["close"]) > 0.00051 or abs(prior["volume"] - last["volume"]) > 1:
+        # Eastmoney ETF volumes are rounded to 100 shares; the first SSE
+        # official bar can differ by fewer than 100 shares from that cache.
+        volume_tolerance = 99 if SUPPORTED[symbol][0] == "sse" else 1
+        if abs(prior["close"] - last["close"]) > 0.00051 or abs(prior["volume"] - last["volume"]) > volume_tolerance:
             raise ValueError(f"Official prior close/volume mismatch: {symbol} {previous}")
         values = [current[key] for key in ("open", "high", "low", "close", "volume")]
         if (not all(math.isfinite(value) and value > 0 for value in values)

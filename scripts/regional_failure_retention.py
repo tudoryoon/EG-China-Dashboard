@@ -103,20 +103,48 @@ def retain_failed_securities(output, previous, members):
         raise ValueError("Collection failures contain inactive securities")
     if set(errors) & {row["ticker"] for row in output["rs"]["rows"]}:
         raise ValueError("Failed security was included in fresh scoring")
-    retained, omitted = [], []
-    for symbol, error in errors.items():
+    retained, omitted, reused_current = [], [], {}
+    for symbol, error in list(errors.items()):
         try:
             row, history, trow, thistory = _retained_pair(previous or {}, current[symbol], output, error)
         except (KeyError, TypeError, ValueError, AttributeError):
             omitted.append(symbol)
             continue
+        prior_meta = (previous or {}).get("meta", {})
+        prior_row = next((item for item in previous["rs"]["rows"] if item.get("ticker") == symbol), {})
+        prior_trow = next((item for item in previous["trend"]["rows"]["all"] if item.get("ticker") == symbol), {})
+        # A same-session retry must not turn an already published, fully verified
+        # observation into stale data merely because a provider is down now.
+        # Keep the exact dated price/score history and disclose the retry error.
+        is_verified_current = (
+            prior_meta.get("covered") == len(previous["rs"]["rows"])
+            and symbol not in prior_meta.get("missing", {})
+            and previous["rs"].get("updatedAt") == output["rs"]["updatedAt"]
+            and row["asOfDate"] == trow["asOfDate"] == output["rs"]["updatedAt"]
+            and not prior_row.get("dataStatus") and not prior_row.get("collectionError")
+            and not prior_trow.get("dataStatus") and not prior_trow.get("collectionError")
+            and history["price"][-1] == row["price"]
+            and history["rsRatingAll"][-1] == row["rsRatingAll"]
+            and thistory["price"][-1] == trow["price"]
+            and thistory["score"][-1] == trow["score"]
+        )
+        if is_verified_current:
+            for item in (row, trow):
+                item.pop("dataStatus", None)
+                item.pop("collectionError", None)
+            errors.pop(symbol)
+            reused_current[symbol] = error
+        else:
+            retained.append(symbol)
         output["rs"]["rows"].append(row)
         output["rs"]["histories"][symbol] = history
         output["trend"]["rows"]["all"].append(trow)
         output["trend"]["histories"]["all"][symbol] = thistory
-        retained.append(symbol)
     output["rs"]["rows"].sort(key=lambda row: (-(row.get("rsRatingAll") or 0), row["ticker"]))
     output["trend"]["rows"]["all"].sort(key=lambda row: (row.get("rank") is None, row.get("rank") or 9999, row["ticker"]))
-    output["meta"].update(requested=len(members), covered=len(output["rs"]["rows"]), fresh=fresh,
+    output["meta"].update(requested=len(members), covered=len(output["rs"]["rows"]),
+                           fresh=len(output["rs"]["rows"]) - len(retained),
                            retained=sorted(retained), omitted=sorted(omitted))
+    if reused_current:
+        output["meta"]["reusedCurrent"] = reused_current
     return output
