@@ -1,11 +1,11 @@
 {
   "schemaVersion": 4,
-  "kstDate": "2026-11-12",
-  "refreshDate": "2026-11-11",
-  "completedAt": "2026-11-12T08:18:48.177786+09:00",
+  "kstDate": "2026-11-13",
+  "refreshDate": "2026-11-12",
+  "completedAt": "2026-11-13T08:26:54.102985+09:00",
   "marketSessions": {
-    "hk": "2026-11-11",
-    "cn": "2026-11-11"
+    "hk": "2026-11-12",
+    "cn": "2026-11-12"
   },
   "taiwanRevenueMonths": {
     "TSMC": "26/10",
@@ -54,15 +54,15 @@
     "Grand Process Tech": "26/10"
   },
   "dataHashes": {
-    "index.html": "bcd29ff284a24c72fb90f71e8bc388ae25c9ff083d12854d2d44a5cab7c8b50f",
+    "index.html": "21f1dcba8d266929df3a111974d7627849a9105c38f7c21160f89498ab540c8c",
     "data/dashboard-data.js": "5a24d071855174333fed44852689a8f73f8b26bdb1dd858700b75d7eb216e35b",
-    "data/taiwan-collection-status.json": "75c1fe5d8efb4a8a4b847f1ccf354cf75780a37c36d794437d442a02d2435d01",
-    "data/asia-hk-constituents.json": "afbdff2599d1cd8f2769354b5ac7578991b5815a8b6e271e7fb3aa3d2a350209",
-    "data/asia-hk-metadata.json": "8f7fa78349d77c20e8d13f47fe868277abea5255c83f1e454d27c4aac83e4ace",
-    "data/asia-hk-screening.json": "b7ea8753bea1da9d9433dc12b8c98b31d5fb751a557b267837d298080a488428",
+    "data/taiwan-collection-status.json": "b53d9a4c3ca888126d0527c5ed1c2fdc035d87bc8390e889ae2eaffe7ab98f8d",
+    "data/asia-hk-constituents.json": "736710d4fa192b51a822aeeb2c31f3faaa7832105ea771eb3a168c07f84abdd3",
+    "data/asia-hk-metadata.json": "772cb4e080be35f432a4801a603685e7e53c1c7fd5b10f46823dee9088c38596",
+    "data/asia-hk-screening.json": "1a1bbba78b11fa57b291251216ea1582deea91604da1c82b62002aa02b23f7e6",
     "data/asia-cn-constituents.json": "0cb2f08e4193ec3c7efec703dd2e87a25254e878039cf8897a3c171b46f10117",
-    "data/asia-cn-metadata.json": "7b5cc41959fb68496fc87acddecd5057e796d7afb089ee20cec9b998d4102828",
-    "data/asia-cn-screening.json": "d0c10442277d4bbbbbc5d4e6222b62563a6ef791de7b666d0cb85cb3c30cf5f4"
+    "data/asia-cn-metadata.json": "02c01ddd3924e06922565a535b4dcd23ab1ef290478fd8af964940e6972aca8c",
+    "data/asia-cn-screening.json": "902d28639de58e3bf6548b7264a20548d1d0c9a7447323fb5ed946821324bc92"
   },
   "pipelineHashes": {
     "requirements.txt": "b831164bb781ec61e703d79f0e6eb07945cf62870e333e796074d5d026285b75",
@@ -77,7 +77,7 @@
     "scripts/regional_supplements.py": "5e3c80898868382d286200e23d0d6277b85d28f4ca694f4a71162c089241bb13",
     "scripts/market_price_sources.py": "0ed962c75c92bcd23cdf5cdf71c5b393044c089dcf709fcb7a925db7ce697651",
     "scripts/official_china_latest.py": "cdf05e2df6e7dd3f4f65e08548d11fdda5b1aab3f5cea3103b8b0cb385923a69",
-    "scripts/update_asia_screening.py": "743170177e42518a545e5dbfc32ae2c1069577ef05e89d5c3134bb88e2b9607f",
+    "scripts/update_asia_screening.py": "708cac0ac0fdb38f1158e70cc1a03ade8a773c10e2d67077b18eaad7635887cf",
     "scripts/update_market_rs.py": "cbce41358d78b0859332e5b8a50250a3f2682d1846f7d2296b50722c990ddd6c",
     "scripts/update_market_trend_score.py": "50e79cc9dd04aded4ac690e0d9df2c272b4276e2031dbc1d8adc46bfa868a7c3",
     "scripts/update_taiwan_revenue.py": "e9a3ba0b0f214b125f42bc8be5863a6e1290c8cf4f73fe413c293bf3b4250750",
@@ -89,10 +89,10 @@
     "failurePolicy": "retain-and-publish",
     "failureCount": 4,
     "failures": {
-      "hk:0853.HK": "No current source for 0853.HK: Tencent: Incomplete/stale history: expected 2026-11-11, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-11, received 2026-08-31 (654 sessions); Eastmoney Equity: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.; Yahoo Finance: Incomplete/stale history: expected 2026-11-11, received 2026-08-31 (648 sessions)",
-      "hk:2172.HK": "No current source for 2172.HK: Tencent: Incomplete/stale history: expected 2026-11-11, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-11, received 2026-08-31 (654 sessions); Eastmoney Equity: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.; Yahoo Finance: Incomplete/stale history: expected 2026-11-11, received 2026-08-31 (645 sessions)",
-      "hk:2252.HK": "No current source for 2252.HK: Tencent: Incomplete/stale history: expected 2026-11-11, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-11, received 2026-08-31 (654 sessions); Eastmoney Equity: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.; Yahoo Finance: Incomplete/stale history: expected 2026-11-11, received 2026-08-31 (647 sessions)",
-      "cn:000831.SZ": "No current source for 000831.SZ: Tencent: Incomplete/stale history: expected 2026-11-11, received 2026-10-30 (640 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-11, received 2026-10-30 (640 sessions); Eastmoney Equity: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.; Yahoo Finance: Incomplete/stale history: expected 2026-11-11, received 2026-10-30 (683 sessions)"
+      "hk:0853.HK": "No current source for 0853.HK: Tencent: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (648 sessions)",
+      "hk:2172.HK": "No current source for 2172.HK: Tencent: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (652 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (645 sessions)",
+      "hk:2252.HK": "No current source for 2252.HK: Tencent: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (654 sessions); Tencent Mirror: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (654 sessions); Eastmoney Equity: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (654 sessions); Yahoo Finance: Incomplete/stale history: expected 2026-11-12, received 2026-08-31 (647 sessions)",
+      "cn:000831.SZ": "No current source for 000831.SZ: Tencent: temporarily paused after repeated failures; recovery probe after cooldown; Tencent Mirror: temporarily paused after repeated failures; recovery probe after cooldown; Eastmoney Equity: Failed to perform, curl: (56) Connection closed abruptly. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.; Yahoo Finance: Incomplete/stale history: expected 2026-11-12, received 2026-10-30 (683 sessions)"
     },
     "retry": "next-refresh-cycle"
   }
