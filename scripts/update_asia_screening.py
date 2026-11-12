@@ -264,7 +264,9 @@ def yahoo_csi800_after_official_history(expected: str) -> dict:
         raise ValueError("Yahoo CSI 800 target candle is not a valid final index level")
     return {"records": [*official["records"], {"date": expected, "close": round(close, 2)}],
             "priceSource": {"provider": "Yahoo Finance / China Securities Index",
-                            "symbol": "000906.SS", "url": CSI_INDEX_HISTORY_SOURCE,
+                            "symbol": "000906.SS",
+                            "url": "https://query1.finance.yahoo.com/v8/finance/chart/000906.SS",
+                            "priorSourceUrl": CSI_INDEX_HISTORY_SOURCE,
                             "adjustment": "unadjusted index close, official prior history", "volumeUnit": None}}
 
 
