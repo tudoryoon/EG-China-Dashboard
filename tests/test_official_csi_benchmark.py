@@ -44,6 +44,39 @@ class OfficialCSI800BenchmarkTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 screening.official_csi800_history("2026-10-20")
 
+    def yahoo_response(self, prior_close=4524.9404, market_time=1794466824):
+        class Response:
+            def json(self):
+                return {"chart": {"result": [{
+                    "meta": {"symbol": "000906.SS", "currency": "CNY",
+                             "exchangeTimezoneName": "Asia/Shanghai", "longName": "CSI 800 Index",
+                             "chartPreviousClose": prior_close, "regularMarketTime": market_time},
+                    "timestamp": [market_time],
+                    "indicators": {"quote": [{"open": [4513.95], "high": [4556.63],
+                                              "low": [4471.28], "close": [4479.4604],
+                                              "volume": [323288929]}]},
+                }]}}
+        return Response()
+
+    def test_bridges_only_one_complete_session_after_official_history(self):
+        prior = {"records": [{"date": "2026-11-11", "close": 4524.94}]}
+        with patch.object(screening, "official_csi800_history", return_value=prior) as official, \
+             patch.object(screening, "get", return_value=self.yahoo_response()):
+            result = screening.yahoo_csi800_after_official_history("2026-11-12")
+        official.assert_called_once_with("2026-11-11")
+        self.assertEqual(result["records"][-1], {"date": "2026-11-12", "close": 4479.46})
+
+    def test_rejects_wrong_prior_close_or_preclose_quote(self):
+        prior = {"records": [{"date": "2026-11-11", "close": 4524.94}]}
+        with patch.object(screening, "official_csi800_history", return_value=prior), \
+             patch.object(screening, "get", return_value=self.yahoo_response(prior_close=4400)):
+            with self.assertRaises(ValueError):
+                screening.yahoo_csi800_after_official_history("2026-11-12")
+        with patch.object(screening, "official_csi800_history", return_value=prior), \
+             patch.object(screening, "get", return_value=self.yahoo_response(market_time=1794463200)):
+            with self.assertRaises(ValueError):
+                screening.yahoo_csi800_after_official_history("2026-11-12")
+
 
 if __name__ == "__main__":
     unittest.main()

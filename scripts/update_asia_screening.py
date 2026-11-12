@@ -228,6 +228,46 @@ def official_csi800_history(expected: str) -> dict:
             "adjustment": "official price index close", "volumeUnit": None}}
 
 
+def yahoo_csi800_after_official_history(expected: str) -> dict:
+    """Bridge one CSI publication lag with a completed, identity-checked Yahoo close."""
+    import exchange_calendars as calendars
+
+    prior = calendars.get_calendar("XSHG").previous_session(pd.Timestamp(expected)).strftime("%Y-%m-%d")
+    official = official_csi800_history(prior)
+    response = get("https://query1.finance.yahoo.com/v8/finance/chart/000906.SS",
+                   params={"range": "5d", "interval": "1d"})
+    result = (response.json().get("chart", {}).get("result") or [None])[0]
+    if not result:
+        raise ValueError("Yahoo CSI 800 target observation is absent")
+    meta = result.get("meta") or {}
+    if (meta.get("symbol") != "000906.SS" or meta.get("currency") != "CNY"
+            or meta.get("exchangeTimezoneName") != "Asia/Shanghai"
+            or "CSI 800" not in str(meta.get("longName") or meta.get("shortName") or "")):
+        raise ValueError("Yahoo CSI 800 index identity is not verified")
+    previous_close = float(meta.get("chartPreviousClose") or 0)
+    if abs(previous_close - official["records"][-1]["close"]) > 0.02:
+        raise ValueError("Yahoo CSI 800 prior close differs from the official history")
+    market_time = datetime.fromtimestamp(int(meta.get("regularMarketTime") or 0), timezone(timedelta(hours=8)))
+    if market_time.date().isoformat() != expected or (market_time.hour, market_time.minute) < (15, 0):
+        raise ValueError("Yahoo CSI 800 quote is not from the completed session")
+    stamps = result.get("timestamp") or []
+    quote = ((result.get("indicators") or {}).get("quote") or [{}])[0]
+    if not stamps or not all(len(quote.get(key) or []) == len(stamps)
+                             for key in ("open", "high", "low", "close", "volume")):
+        raise ValueError("Yahoo CSI 800 OHLCV is incomplete")
+    final = len(stamps) - 1
+    quote_date = datetime.fromtimestamp(int(stamps[final]), timezone(timedelta(hours=8))).date().isoformat()
+    opening, high, low, close, volume = (float(quote[key][final]) for key in
+                                         ("open", "high", "low", "close", "volume"))
+    if (quote_date != expected or volume <= 0 or not 0 < low <= min(opening, close)
+            <= max(opening, close) <= high or abs(close - round(close, 2)) > 0.005):
+        raise ValueError("Yahoo CSI 800 target candle is not a valid final index level")
+    return {"records": [*official["records"], {"date": expected, "close": round(close, 2)}],
+            "priceSource": {"provider": "Yahoo Finance / China Securities Index",
+                            "symbol": "000906.SS", "url": CSI_INDEX_HISTORY_SOURCE,
+                            "adjustment": "unadjusted index close, official prior history", "volumeUnit": None}}
+
+
 def write_json(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     # OneDrive can briefly hold the destination open while syncing. Give each
@@ -499,7 +539,9 @@ def regional_benchmark(region, full=False, cached=False):
             ("Yahoo Finance", lambda: legacy_benchmark(region, full)),
         ])
     else:
-        providers = [("China Securities Index", lambda: official_csi800_history(expected)), *providers,
+        providers = [("China Securities Index", lambda: official_csi800_history(expected)),
+                     ("Yahoo Finance / China Securities Index", lambda: yahoo_csi800_after_official_history(expected)),
+                     *providers,
                      ("Eastmoney", lambda: legacy_benchmark(region, full))]
     payload = current_source(symbol, expected, providers)
     write_json(cache_path, payload)
