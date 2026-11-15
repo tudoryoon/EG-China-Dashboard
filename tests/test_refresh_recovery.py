@@ -86,6 +86,25 @@ class RecoveryOwnershipTests(unittest.TestCase):
         self.runs.append(self.record(id=99, status="completed", conclusion="failure", created_at="2026-09-27T12:03:00Z"))
         self.assertTrue(self.queue())
 
+    def test_three_same_revision_failures_stop_the_recovery_chain(self):
+        self.runs.extend([
+            self.record(id=98, status="completed", conclusion="failure",
+                        created_at="2026-09-28T10:03:00Z"),
+            self.record(id=99, status="completed", conclusion="failure",
+                        created_at="2026-09-28T11:03:00Z"),
+        ])
+        self.assertFalse(self.queue())
+        self.assertEqual(self.posts, [])
+
+    def test_old_or_unrelated_revision_failures_do_not_consume_today_limit(self):
+        self.runs.extend([
+            self.record(id=98, status="completed", conclusion="failure",
+                        created_at="2026-09-27T11:03:00Z"),
+            self.record(id=99, status="completed", conclusion="failure",
+                        head_sha="b" * 40, created_at="2026-09-28T11:03:00Z"),
+        ])
+        self.assertTrue(self.queue())
+
     def test_changed_main_suppresses_retired_code_recovery(self):
         self.assertFalse(self.queue(expected_sha="b" * 40))
         self.assertEqual(self.posts, [])

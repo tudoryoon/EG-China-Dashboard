@@ -7,7 +7,7 @@ already replaced by a scheduled, manual or recovery publication run.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import re
 import time
@@ -22,6 +22,8 @@ REFRESH_FILES = (
 )
 ACTIVE_STATUSES = frozenset({"queued", "in_progress", "waiting", "pending", "requested"})
 RECOVERY_DELAY_SECONDS = 300
+MAX_SAME_REVISION_FAILURES = 3
+RECOVERY_FAILURE_WINDOW = timedelta(hours=24)
 
 
 def publication_run(run, repository):
@@ -51,6 +53,28 @@ def suppression_reason(source, candidates, repository, current_run_id, update_ac
         if run.get("status") in ACTIVE_STATUSES and update_active(run):
             return f"publication run {run['id']} has an active update job"
     return None
+
+
+def recovery_exhausted(source, candidates, repository, expected_sha):
+    """Bound repeated collection failures for one unchanged revision per day.
+
+    The current run's update has already failed when this recovery job starts,
+    although the parent workflow may still show ``in_progress``. A newer
+    publication changes main and is handled by the existing SHA guard.
+    """
+    if source["head_sha"] != expected_sha:
+        return False  # A delivery failure after a publication has a new SHA.
+    source_time = run_order(source)[0]
+    failures = 1
+    for run in candidates:
+        if (run["id"] == source["id"] or not publication_run(run, repository)
+                or run.get("head_sha") != expected_sha
+                or run.get("conclusion") not in {"failure", "timed_out"}):
+            continue
+        age = source_time - run_order(run)[0]
+        if timedelta(0) <= age <= RECOVERY_FAILURE_WINDOW:
+            failures += 1
+    return failures >= MAX_SAME_REVISION_FAILURES
 
 
 def has_active_update(github, run):
@@ -100,10 +124,14 @@ def queue_recovery(github, repository, source_run_id, *, current_run_id=None,
     if current_sha != expected_sha:
         print("Recovery skipped: main changed after the failing revision.")
         return False
-    reason = suppression_reason(source, recent_and_active_runs(github), repository, current_run_id,
+    candidates = recent_and_active_runs(github)
+    reason = suppression_reason(source, candidates, repository, current_run_id,
                                 lambda run: has_active_update(github, run))
     if reason:
         print(f"Recovery skipped: {reason}.")
+        return False
+    if recovery_exhausted(source, candidates, repository, expected_sha):
+        print("Recovery skipped: three failed refreshes for this revision within 24 hours.")
         return False
     github.request("/actions/workflows/update-all-data-backup-2.yml/dispatches", {"ref": "main"})
     print(f"Queued one recovery for publication run {source_run_id}.", flush=True)
